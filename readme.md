@@ -69,7 +69,6 @@ Torchvision 0.8.1
 ```
 
 DeepStream SDK: https://youtu.be/Qi_F_IYpuFQ
-
 Darknet: https://youtu.be/AxJJ9fnJ7Xk
 
 | TensorRT        | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with display) | FPS<br />(without display) |
@@ -173,9 +172,9 @@ pre-cluster-threshold = 0.25 (CONF_THRESH)
 ##
 
 ### Native TensorRT conversion
-Donwload [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
+Download [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
 
-Donwload cfg and weights files from your model and move to deepstream/sources/yolo folder.
+Download cfg and weights files from your model and move to deepstream/sources/yolo folder.
 
 * [YOLOv4x-Mish](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4x-mish.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4x-mish.weights)]
 * [YOLOv4-CSP](https://github.com/WongKinYiu/ScaledYOLOv4/tree/yolov4-csp) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-csp.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-csp.weights)]
@@ -254,5 +253,4 @@ Note: If your model are listed in native tab, you can use [my native folder](htt
 ##
 
 For commercial DeepStream SDK projects, contact me at email address available in GitHub.
-
 My projects: https://www.youtube.com/MarcosLucianoTV
