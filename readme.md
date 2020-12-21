@@ -5,7 +5,7 @@ NVIDIA DeepStream SDK 5.0.1 configuration for YOLO models
 
 ### Improvements on this repository
 
-* Darknet CFG params parser (not need to edit nvdsparsebbox_Yolo.cpp or another file)
+* Darknet CFG params parser (not need to edit nvdsparsebbox_Yolo.cpp or another file for native models)
 * Support to new_coords, beta_nms and scale_x_y params
 * Support to new models not supported in official DeepStream SDK YOLO.
 * Support to layers not supported in official DeepStream SDK YOLO.
@@ -15,30 +15,31 @@ NVIDIA DeepStream SDK 5.0.1 configuration for YOLO models
 ##
 
 Tutorial
-* Configuring to your custom model
-* Using VOC models
+* [Configuring to your custom model](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/customModels.md)
+* [Multiple YOLO inferences](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/multipleInferences.md)
 
 Benchmark
 * [mAP/FPS comparison between models](#mapfps-comparison-between-models)
 
-[Native TensorRT conversion](#native-tensorrt-conversion) (tested models below)
-* [YOLOv4x-Mish](https://github.com/AlexeyAB/darknet)
-* [YOLOv4-CSP](https://github.com/WongKinYiu/ScaledYOLOv4/tree/yolov4-csp)
-* [YOLOv4](https://github.com/AlexeyAB/darknet)
-* [YOLOv4-Tiny](https://github.com/AlexeyAB/darknet)
-* [YOLOv3-SSP](https://github.com/pjreddie/darknet)
-* [YOLOv3](https://github.com/pjreddie/darknet)
-* [YOLOv3-Tiny-PRN](https://github.com/WongKinYiu/PartialResidualNetworks)
-* [YOLOv3-Tiny](https://github.com/pjreddie/darknet)
-* [YOLOv3-Lite](https://github.com/dog-qiuqiu/MobileNet-Yolo)
-* [YOLOv3-Nano](https://github.com/dog-qiuqiu/MobileNet-Yolo)
-* [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
-* [YOLO-Fastest-XL](https://github.com/dog-qiuqiu/Yolo-Fastest)
-* [YOLOv2](https://github.com/pjreddie/darknet)
-* [YOLOv2-Tiny](https://github.com/pjreddie/darknet)
+TensorRT conversion
+* [Native](#native-tensorrt-conversion) (tested models below)
+    * YOLOv4x-Mish
+    * YOLOv4-CSP
+    * YOLOv4
+    * YOLOv4-Tiny
+    * YOLOv3-SSP
+    * YOLOv3
+    * YOLOv3-Tiny-PRN
+    * YOLOv3-Tiny
+    * YOLOv3-Lite
+    * YOLOv3-Nano
+    * YOLO-Fastest
+    * YOLO-Fastest-XL
+    * YOLOv2
+    * YOLOv2-Tiny
 
-External TensorRT conversion
-* [YOLOv5](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/YOLOv5.md)
+* [External](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/YOLOv5.md)
+    * YOLOv5
 
 Request
 * [Request native TensorRT conversion for your YOLO-based model](#request-native-tensorrt-conversion-for-your-yolo-based-model)
@@ -66,6 +67,10 @@ OpenCV 4.4.0 (opencv-python)
 PyTorch 1.7.0
 Torchvision 0.8.1
 ```
+
+DeepStream SDK: https://youtu.be/Qi_F_IYpuFQ
+
+Darknet: https://youtu.be/AxJJ9fnJ7Xk
 
 | TensorRT        | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with display) | FPS<br />(without display) |
 |:---------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:-----------------------:|:--------------------------:|
@@ -172,20 +177,20 @@ Donwload [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/t
 
 Donwload cfg and weights files from your model and move to deepstream/sources/yolo folder.
 
-* YOLOv4x-Mish [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4x-mish.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4x-mish.weights)]
-* YOLOv4-CSP [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-csp.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-csp.weights)]
-* YOLOv4 [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights)]
-* YOLOv4-Tiny [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights)]
-* YOLOv3-SPP [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-spp.cfg)] [[weights](https://pjreddie.com/media/files/yolov3-spp.weights)]
-* YOLOv3 [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg)] [[weights](https://pjreddie.com/media/files/yolov3.weights)]
-* YOLOv3-Tiny-PRN [[cfg](https://raw.githubusercontent.com/WongKinYiu/PartialResidualNetworks/master/cfg/yolov3-tiny-prn.cfg)] [[weights](https://github.com/WongKinYiu/PartialResidualNetworks/raw/master/model/yolov3-tiny-prn.weights)]
-* YOLOv3-Tiny [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg)] [[weights](https://pjreddie.com/media/files/yolov3-tiny.weights)]
-* YOLOv3-Lite [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/MobileNet-Yolo/master/MobileNetV2-YOLOv3-Lite/COCO/MobileNetV2-YOLOv3-Lite-coco.cfg)] [[weights](https://github.com/dog-qiuqiu/MobileNet-Yolo/raw/master/MobileNetV2-YOLOv3-Lite/COCO/MobileNetV2-YOLOv3-Lite-coco.weights)]
-* YOLOv3-Nano [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/MobileNet-Yolo/master/MobileNetV2-YOLOv3-Nano/COCO/MobileNetV2-YOLOv3-Nano-coco.cfg)] [[weights](https://github.com/dog-qiuqiu/MobileNet-Yolo/raw/master/MobileNetV2-YOLOv3-Nano/COCO/MobileNetV2-YOLOv3-Nano-coco.weights)]
-* YOLO-Fastest [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/Yolo-Fastest/master/Yolo-Fastest/COCO/yolo-fastest.cfg)] [[weights](https://github.com/dog-qiuqiu/Yolo-Fastest/raw/master/Yolo-Fastest/COCO/yolo-fastest.weights)]
-* YOLO-Fastest-XL [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/Yolo-Fastest/master/Yolo-Fastest/COCO/yolo-fastest-xl.cfg)] [[weights](https://github.com/dog-qiuqiu/Yolo-Fastest/raw/master/Yolo-Fastest/COCO/yolo-fastest-xl.weights)]
-* YOLOv2 [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov2.cfg)] [[weights](https://pjreddie.com/media/files/yolov2.weights)]
-* YOLOv2-Tiny [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov2-tiny.cfg)] [[weights](https://pjreddie.com/media/files/yolov2-tiny.weights)]
+* [YOLOv4x-Mish](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4x-mish.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4x-mish.weights)]
+* [YOLOv4-CSP](https://github.com/WongKinYiu/ScaledYOLOv4/tree/yolov4-csp) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-csp.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-csp.weights)]
+* [YOLOv4](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights)]
+* [YOLOv4-Tiny](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights)]
+* [YOLOv3-SPP](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-spp.cfg)] [[weights](https://pjreddie.com/media/files/yolov3-spp.weights)]
+* [YOLOv3](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg)] [[weights](https://pjreddie.com/media/files/yolov3.weights)]
+* [YOLOv3-Tiny-PRN](https://github.com/WongKinYiu/PartialResidualNetworks) [[cfg](https://raw.githubusercontent.com/WongKinYiu/PartialResidualNetworks/master/cfg/yolov3-tiny-prn.cfg)] [[weights](https://github.com/WongKinYiu/PartialResidualNetworks/raw/master/model/yolov3-tiny-prn.weights)]
+* [YOLOv3-Tiny](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg)] [[weights](https://pjreddie.com/media/files/yolov3-tiny.weights)]
+* [YOLOv3-Lite](https://github.com/dog-qiuqiu/MobileNet-Yolo) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/MobileNet-Yolo/master/MobileNetV2-YOLOv3-Lite/COCO/MobileNetV2-YOLOv3-Lite-coco.cfg)] [[weights](https://github.com/dog-qiuqiu/MobileNet-Yolo/raw/master/MobileNetV2-YOLOv3-Lite/COCO/MobileNetV2-YOLOv3-Lite-coco.weights)]
+* [YOLOv3-Nano](https://github.com/dog-qiuqiu/MobileNet-Yolo) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/MobileNet-Yolo/master/MobileNetV2-YOLOv3-Nano/COCO/MobileNetV2-YOLOv3-Nano-coco.cfg)] [[weights](https://github.com/dog-qiuqiu/MobileNet-Yolo/raw/master/MobileNetV2-YOLOv3-Nano/COCO/MobileNetV2-YOLOv3-Nano-coco.weights)]
+* [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/Yolo-Fastest/master/Yolo-Fastest/COCO/yolo-fastest.cfg)] [[weights](https://github.com/dog-qiuqiu/Yolo-Fastest/raw/master/Yolo-Fastest/COCO/yolo-fastest.weights)]
+* [YOLO-Fastest-XL](https://github.com/dog-qiuqiu/Yolo-Fastest) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/Yolo-Fastest/master/Yolo-Fastest/COCO/yolo-fastest-xl.cfg)] [[weights](https://github.com/dog-qiuqiu/Yolo-Fastest/raw/master/Yolo-Fastest/COCO/yolo-fastest-xl.weights)]
+* [YOLOv2](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov2.cfg)] [[weights](https://pjreddie.com/media/files/yolov2.weights)]
+* [YOLOv2-Tiny](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov2-tiny.cfg)] [[weights](https://pjreddie.com/media/files/yolov2-tiny.weights)]
 
 
 Compile
@@ -198,7 +203,7 @@ Edit config_infer_primary.txt for your model (example for YOLOv4)
 ```
 [property]
 ...
-# 0=RGB, 1=BGR
+# 0=RGB, 1=BGR, 2=GRAYSCALE
 model-color-format=0
 # CFG
 custom-network-config=yolov4.cfg
@@ -249,3 +254,5 @@ Note: If your model are listed in native tab, you can use [my native folder](htt
 ##
 
 For commercial DeepStream SDK projects, contact me at email address available in GitHub.
+
+My projects: https://www.youtube.com/MarcosLucianoTV
