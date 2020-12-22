@@ -53,7 +53,7 @@ void read(const char*& buffer, T& val)
 cudaError_t cudaYoloLayer (
     const void* input, void* output, const uint& batchSize,
     const uint& gridSize, const uint& numOutputClasses,
-    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const uint new_coords, const float scale_x_y, char type);
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const uint modelCoords, const float modelScale, const uint modelType);
 
 YoloLayer::YoloLayer (const void* data, size_t length)
 {
@@ -63,7 +63,7 @@ YoloLayer::YoloLayer (const void* data, size_t length)
     read(d, m_GridSize);
     read(d, m_OutputSize);
 
-    read(d, m_Type);
+    read(d, m_type);
     read(d, m_new_coords);
     read(d, m_scale_x_y);
     read(d, m_beta_nms);
@@ -94,11 +94,11 @@ YoloLayer::YoloLayer (const void* data, size_t length)
 };
 
 YoloLayer::YoloLayer (
-    const uint& numBoxes, const uint& numClasses, const uint& gridSize, char type, int new_coords, float scale_x_y, float beta_nms, std::vector<float> anchors, std::vector<std::vector<int>> mask) :
+    const uint& numBoxes, const uint& numClasses, const uint& gridSize, const uint model_type, const uint new_coords, const float scale_x_y, const float beta_nms, const std::vector<float> anchors, std::vector<std::vector<int>> mask) :
     m_NumBoxes(numBoxes),
     m_NumClasses(numClasses),
     m_GridSize(gridSize),
-    m_Type(type),
+    m_type(model_type),
     m_new_coords(new_coords),
     m_scale_x_y(scale_x_y),
     m_beta_nms(beta_nms),
@@ -143,7 +143,7 @@ int YoloLayer::enqueue(
 {
     CHECK(cudaYoloLayer(
               inputs[0], outputs[0], batchSize, m_GridSize, m_NumClasses, m_NumBoxes,
-              m_OutputSize, stream, m_new_coords, m_scale_x_y, m_Type));
+              m_OutputSize, stream, m_new_coords, m_scale_x_y, m_type));
     return 0;
 }
 
@@ -161,7 +161,7 @@ size_t YoloLayer::getSerializationSize() const
         }
     }
 
-    return sizeof(m_NumBoxes) + sizeof(m_NumClasses) + sizeof(m_GridSize) + sizeof(m_OutputSize) + sizeof(m_Type)
+    return sizeof(m_NumBoxes) + sizeof(m_NumClasses) + sizeof(m_GridSize) + sizeof(m_OutputSize) + sizeof(m_type)
             + sizeof(m_new_coords) + sizeof(m_scale_x_y) + sizeof(m_beta_nms) + anchorsSum * sizeof(float) + maskSum * sizeof(int);
 }
 
@@ -173,7 +173,7 @@ void YoloLayer::serialize(void* buffer) const
     write(d, m_GridSize);
     write(d, m_OutputSize);
 
-    write(d, m_Type);
+    write(d, m_type);
     write(d, m_new_coords);
     write(d, m_scale_x_y);
     write(d, m_beta_nms);
@@ -199,7 +199,7 @@ void YoloLayer::serialize(void* buffer) const
 
 nvinfer1::IPluginV2* YoloLayer::clone() const
 {
-    return new YoloLayer (m_NumBoxes, m_NumClasses, m_GridSize, m_Type, m_new_coords, m_scale_x_y, m_beta_nms, m_Anchors, m_Mask);
+    return new YoloLayer (m_NumBoxes, m_NumClasses, m_GridSize, m_type, m_new_coords, m_scale_x_y, m_beta_nms, m_Anchors, m_Mask);
 }
 
 REGISTER_TENSORRT_PLUGIN(YoloLayerPluginCreator);

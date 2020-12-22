@@ -237,7 +237,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
                 = new YoloLayer(m_OutputTensors.at(outputTensorCount).numBBoxes,
                                   m_OutputTensors.at(outputTensorCount).numClasses,
                                   m_OutputTensors.at(outputTensorCount).gridSize,
-                                  'y', new_coords, scale_x_y, beta_nms,
+                                  1, new_coords, scale_x_y, beta_nms,
                                   curYoloTensor.anchors,
                                   m_OutputMasks);
             assert(yoloPlugin != nullptr);
@@ -274,7 +274,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
                 = new YoloLayer(curRegionTensor.numBBoxes,
                                   curRegionTensor.numClasses,
                                   curRegionTensor.gridSize,
-                                  'r', 0, 1.0, 0,
+                                  0, 0, 1.0, 0,
                                   curRegionTensor.anchors,
                                   mask);
             assert(regionPlugin != nullptr);

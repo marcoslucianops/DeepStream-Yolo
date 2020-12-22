@@ -57,8 +57,8 @@ class YoloLayer : public nvinfer1::IPluginV2
 public:
     YoloLayer (const void* data, size_t length);
     YoloLayer (const uint& numBoxes, const uint& numClasses, const uint& gridSize,
-                char type, int new_coords, float scale_x_y, float beta_nms,
-                std::vector<float> anchors, std::vector<std::vector<int>> mask);
+                const uint model_type, const uint new_coords, const float scale_x_y, const float beta_nms,
+                const std::vector<float> anchors, const std::vector<std::vector<int>> mask);
     const char* getPluginType () const override { return YOLOLAYER_PLUGIN_NAME; }
     const char* getPluginVersion () const override { return YOLOLAYER_PLUGIN_VERSION; }
     int getNbOutputs () const override { return 1; }
@@ -100,7 +100,7 @@ private:
     uint64_t m_OutputSize {0};
     std::string m_Namespace {""};
 
-    char m_Type;
+    uint m_type {0};
     uint m_new_coords {0};
     float m_scale_x_y {0};
     float m_beta_nms {0};
