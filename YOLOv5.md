@@ -31,6 +31,11 @@ pip3 install opencv-python
 pip3 install matplotlib
 ```
 
+* Matplotlib (for Jetson plataform)
+```
+sudo apt-get install python3-matplotlib
+```
+
 * Scipy
 ```
 pip3 install scipy

@@ -55,6 +55,10 @@ Request
 
 ### mAP/FPS comparison between models
 
+DeepStream SDK YOLOv4: https://youtu.be/Qi_F_IYpuFQ
+
+Darknet YOLOv4: https://youtu.be/AxJJ9fnJ7Xk
+
 <details><summary>NVIDIA GTX 1050 (4GB Mobile)</summary>
 
 ```
@@ -63,14 +67,10 @@ Driver 440.33
 TensorRT 7.2.1
 cuDNN 8.0.5
 OpenCV 3.2.0 (libopencv-dev)
-OpenCV 4.4.0 (opencv-python)
+OpenCV Python 4.4.0 (opencv-python)
 PyTorch 1.7.0
 Torchvision 0.8.1
 ```
-
-DeepStream SDK: https://youtu.be/Qi_F_IYpuFQ
-
-Darknet: https://youtu.be/AxJJ9fnJ7Xk
 
 | TensorRT        | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with display) | FPS<br />(without display) |
 |:---------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:-----------------------:|:--------------------------:|
@@ -101,7 +101,7 @@ Darknet: https://youtu.be/AxJJ9fnJ7Xk
 | YOLO-FastestXL  | FP32      | 416        | 0.144        | 0.306   | 0.115    | 121.89                  | 145.13                     |
 | YOLO-FastestXL  | FP32      | 320        | 0.136        | 0.279   | 0.117    | 162.65                  | 199.75                     |
 | YOLOv2          | FP32      | 608        | 0.286        | 0.534   | 0.274    | 23.92                   | 25.47                      |
-| YOLOv2-Tiny     | FP32      | 416        | 0.103        | 0.251   | 0.064    | 165.01                 | 203.02                    |
+| YOLOv2-Tiny     | FP32      | 416        | 0.103        | 0.251   | 0.064    | 165.01                  | 203.02                     |
 
 | Darknet         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with display) | FPS<br />(without display) |
 |:---------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:-----------------------:|:--------------------------:|
@@ -142,7 +142,48 @@ Darknet: https://youtu.be/AxJJ9fnJ7Xk
 </details>
 
 <details><summary>NVIDIA Jetson Nano (4GB)</summary>
-Coming soon
+
+```
+JetPack 4.4.1
+CUDA 10.2
+TensorRT 7.1.3
+cuDNN 8.0
+OpenCV 4.1.1
+```
+
+| TensorRT        | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with display) | FPS<br />(without display) |
+|:---------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:-----------------------:|:--------------------------:|
+| YOLOv4          | FP32      | 416        | 0.462        | 0.694   | 0.503    | 2.97                   | 2.99                      |
+| YOLOv4          | FP16      | 416        | 0.462        | 0.694   | 0.504    | 4.89                   | 4.96                      |
+| YOLOv4          | FP32      | 320        | 0.407        | 0.625   | 0.434    |                    |                       |
+| YOLOv4          | FP16      | 320        | 0.408        | 0.625   | 0.435    |                    |                       |
+| YOLOv3          | FP32      | 416        | 0.370        | 0.664   | 0.379    |                    |                       |
+| YOLOv3          | FP16      | 416        | 0.370        | 0.664   | 0.378    |                   |                       |
+| YOLOv4-Tiny     | FP32      | 416        | 0.194        | 0.378   | 0.177    | 21.79                  | 23.23                      |
+| YOLOv4-Tiny     | FP16      | 416        | 0.194        | 0.378   | 0.177    | 24.76                  | 26.18                      |
+| YOLOv3-Tiny-PRN | FP32      | 416        | 0.163        | 0.375   | 0.120    | 23.79                  | 25.18                      |
+| YOLOv3-Tiny-PRN | FP16      | 416        | 0.163        | 0.375   | 0.119    | 26.08                  | 27.96                      |
+| YOLOv3-Tiny     | FP32      | 416        | 0.162        | 0.363   | 0.122    | 22.84                  | 24.28                      |
+| YOLOv3-Tiny     | FP16      | 416        | 0.162        | 0.363   | 0.122    | 25.47                  | 27.18                      |
+
+| Darknet         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with display) | FPS<br />(without display) |
+|:---------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:-----------------------:|:--------------------------:|
+| YOLOv4          | FP32      | 416        |              |         |          |                         |                            |
+| YOLOv4          | FP32      | 320        |              |         |          |                         |                            |
+| YOLOv3          | FP32      | 416        |              |         |          |                         |                            |
+| YOLOv4-Tiny     | FP32      | 416        |              |         |          |                         |                            |
+| YOLOv3-Tiny-PRN | FP32      | 416        |              |         |          |                         |                            |
+| YOLOv3-Tiny     | FP32      | 416        |              |         |          |                         |                            |
+| YOLOv2          | FP32      | 608        |              |         |          |                         |                            |
+| YOLOv2-Tiny     | FP32      | 416        |              |         |          |                         |                            |
+
+| PyTorch | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(with output) | FPS<br />(without output) |
+|:-------:|:---------:|:----------:|:------------:|:-------:|:--------:|:----------------------:|:-------------------------:|
+| YOLOv5s | FP32      | 416        |              |         |          |                        |                           |
+| YOLOv5s | FP16      | 416        |              |         |          |                        |                           |
+
+<br />
+
 </details>
 
 <br />
