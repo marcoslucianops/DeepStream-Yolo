@@ -186,8 +186,6 @@ OpenCV 4.1.1
 
 </details>
 
-<br />
-
 #### DeepStream settings
 
 * General
