@@ -212,6 +212,12 @@ pre-cluster-threshold = 0.25 (CONF_THRESH)
 ##
 
 ### Native TensorRT conversion
+
+Run command
+```
+sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.0/sources/
+```
+
 Download [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
 
 Download cfg and weights files from your model and move to deepstream/sources/yolo folder.
