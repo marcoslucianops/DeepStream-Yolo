@@ -159,9 +159,14 @@ Edit yolov5.cpp file before compile if you want to change this parameters.
 ##
 
 ### Compile nvdsinfer_custom_impl_Yolo
-1. Donwload [my external/yolov5 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5) and move files to created yolo folder
+1. Run command
+```
+sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.0/sources/
+```
 
-2. Compile lib
+2. Donwload [my external/yolov5 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5) and move files to created yolo folder
+
+3. Compile lib
 ```
 cd /opt/nvidia/deepstream/deepstream-5.0/sources/yolo
 CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
