@@ -21,10 +21,15 @@ How to edit DeepStream files to your custom model
 ##
 
 ### Editing default model
-1. Download [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
-2. Copy and remane your obj.names file to labels.txt to deepstream/sources/yolo directory
-3. Copy your yolo.cfg and yolo.weights files to deepstream/sources/yolo directory.
-4. Edit config_infer_primary.txt for your model
+1. Run command
+```
+sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.0/sources/
+```
+
+2. Download [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
+3. Copy and remane your obj.names file to labels.txt to deepstream/sources/yolo directory
+4. Copy your yolo.cfg and yolo.weights files to deepstream/sources/yolo directory.
+5. Edit config_infer_primary.txt for your model
 ```
 [property]
 ...
