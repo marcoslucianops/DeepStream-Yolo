@@ -57,7 +57,7 @@ enable=1
 gpu-id=0
 gie-unique-id=1
 nvbuf-memory-type=0
-config-file=pgie/config_infer_primary.txt
+config-file=config_infer_primary.txt
 
 [secondary-gie0]
 enable=1
@@ -66,7 +66,7 @@ gie-unique-id=2
 operate-on-gie-id=1
 #operate-on-class-ids=0
 nvbuf-memory-type=0
-config-file=sgie1/config_infer_secondary1.txt
+config-file=config_infer_secondary1.txt
 
 [tests]
 file-loop=0
