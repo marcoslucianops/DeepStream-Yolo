@@ -25,10 +25,7 @@
 
 #include <map>
 
-#define NMS_THRESH 0.45
-#define CONF_THRESH 0.25
-
-static const int NUM_CLASSES_YOLO = 80;
+#define kNMS_THRESH 0.45
 
 static constexpr int LOCATIONS = 4;
 struct alignas(float) Detection{
@@ -90,16 +87,11 @@ static bool NvDsInferParseYoloV5(
     NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-    if (NUM_CLASSES_YOLO != detectionParams.numClassesConfigured)
-    {
-        std::cerr << "WARNING: Num classes mismatch. Configured:"
-                  << detectionParams.numClassesConfigured
-                  << ", detected by network: " << NUM_CLASSES_YOLO << std::endl;
-    }
+    const float kCONF_THRESH = detectionParams.perClassThreshold[0];
 
     std::vector<Detection> res;
 
-    nms(res, (float*)(outputLayersInfo[0].buffer), CONF_THRESH, NMS_THRESH);
+    nms(res, (float*)(outputLayersInfo[0].buffer), kCONF_THRESH, kNMS_THRESH);
     
     for(auto& r : res) {
 	    NvDsInferParseObjectInfo oinfo;        

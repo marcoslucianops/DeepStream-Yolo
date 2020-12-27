@@ -198,9 +198,15 @@ to
 model-engine-file=yolov5x.engine
 ```
 
-To change NMS_THRESH and THRESH_CONF, edit nvdsinfer_custom_impl_Yolo/nvdsparsebbox_Yolo.cpp file and recompile
+To change NMS_THRESH, edit nvdsinfer_custom_impl_Yolo/nvdsparsebbox_Yolo.cpp file and recompile
 
 ```
-#define NMS_THRESH 0.45
-#define CONF_THRESH 0.25
+#define kNMS_THRESH 0.45
+```
+
+To change CONF_THRESH, edit config_infer_primary.txt file
+
+```
+[class-attrs-all]
+pre-cluster-threshold=0.25
 ```
