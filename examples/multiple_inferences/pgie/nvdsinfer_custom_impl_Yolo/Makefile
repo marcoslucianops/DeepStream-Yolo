@@ -31,7 +31,7 @@ CC:= g++
 NVCC:=/usr/local/cuda-$(CUDA_VER)/bin/nvcc
 
 CFLAGS:= -Wall -std=c++11 -shared -fPIC -Wno-error=deprecated-declarations
-CFLAGS+= -I../../includes -I/usr/local/cuda-$(CUDA_VER)/include
+CFLAGS+= -I../../../includes -I/usr/local/cuda-$(CUDA_VER)/include
 
 LIBS:= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
 LFLAGS:= -shared -Wl,--start-group $(LIBS) -Wl,--end-group
