@@ -27,6 +27,20 @@ CFLAGS+= -I../../../includes -I/usr/local/cuda-$(CUDA_VER)/include
 
 ##
 
+### Editing yoloPlugins.h
+To run deepstream-app without errors is necessary to edit yoloPlugins.h (line 51), in nvdsinfer_custom_impl_Yolo folder in each secondary inference directory.
+```
+const char* YOLOLAYER_PLUGIN_VERSION {"1"};
+```
+To:
+```
+const char* YOLOLAYER_PLUGIN_VERSION {"2"};
+```
+
+Note: 2 = sgie1, 3 = sgie2, 4 = sgie3, etc
+
+##
+
 ### Compiling edited models
 1. Check your CUDA version (nvcc --version)
 2. Go to inference directory.
@@ -47,7 +61,6 @@ Example for 1 secondary-gie (2 inferences):
 enable=1
 gpu-id=0
 gie-unique-id=2
-# If you want secodary inference operate on specified GIE id (gie-unique-id you want to operate: 1, 2, etc; comment it if you don't want to use)
 operate-on-gie-id=1
 # If you want secodary inference operate on specified class ids of GIE (class ids you want to operate: 1, 1;2, 2;3;4, 3 etc; comment it if you don't want to use)
 operate-on-class-ids=0
@@ -159,22 +172,6 @@ Example for all secondary:
 
 ```
 batch-size=16
-```
-
-##
-
-* If you want secodary inference operate on specified GIE id (gie-unique-id you want to operate: 1, 2, etc.)
-
-```
-operate-on-gie-id=1
-```
-
-##
-
-* If you want secodary inference operate on specified class ids of GIE (class ids you want to operate: 1, 1;2, 2;3;4, 3 etc.)
-
-```
-operate-on-class-ids=0
 ```
 
 ### Testing model

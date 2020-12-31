@@ -2,7 +2,7 @@
 gpu-id=0
 net-scale-factor=0.0039215697906911373
 model-color-format=0
-custom-network-config=yolo.cfg
+custom-network-config=pgie/yolo.cfg
 model-file=yolo.weights
 model-engine-file=model_b1_gpu0_fp16.engine
 labelfile-path=labels.txt
