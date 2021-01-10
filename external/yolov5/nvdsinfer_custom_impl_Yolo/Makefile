@@ -28,7 +28,8 @@ LIBS:= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib6
 LFLAGS:= -shared -Wl,--start-group $(LIBS) -Wl,--end-group
 
 INCS:= $(wildcard *.h)
-SRCFILES:= nvdsparsebbox_Yolo.cpp
+SRCFILES:= nvdsparsebbox_Yolo.cpp \
+           yololayer.cu
 
 TARGET_LIB:= libnvdsinfer_custom_impl_Yolo.so
 
@@ -48,3 +49,4 @@ $(TARGET_LIB) : $(TARGET_OBJS)
 
 clean:
 	rm -rf $(TARGET_LIB)
+	rm -rf $(TARGET_OBJS)

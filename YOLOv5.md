@@ -3,6 +3,8 @@ NVIDIA DeepStream SDK 5.0.1 configuration for YOLOv5 models
 
 Thanks [DanaHan](https://github.com/DanaHan/Yolov5-in-Deepstream-5.0), [wang-xinyu](https://github.com/wang-xinyu/tensorrtx) and [Ultralytics](https://github.com/ultralytics/yolov5)
 
+Supported version: YOLOv5 3.0/3.1
+
 ##
 
 * [Requirements](#requirements)
@@ -46,6 +48,16 @@ pip3 install scipy
 pip3 install tqdm
 ```
 
+* Pandas
+```
+pip3 install pandas
+```
+
+* seaborn
+```
+pip3 install seaborn
+```
+
 * PyTorch
 ```
 pip3 install torch torchvision
@@ -75,6 +87,12 @@ sudo python3 setup.py install
 git clone https://github.com/DanaHan/Yolov5-in-Deepstream-5.0.git yolov5converter
 git clone https://github.com/wang-xinyu/tensorrtx.git
 git clone https://github.com/ultralytics/yolov5.git
+```
+
+Note: checkout TensorRTX repo to 3.0/3.1 YOLOv5 version
+```
+cd tensorrtx
+git checkout '6d0f5cb'
 ```
 
 2. Download latest YoloV5 (YOLOv5s, YOLOv5m, YOLOv5l or YOLOv5x) weights to yolov5/weights directory (example for YOLOv5s)
@@ -112,8 +130,6 @@ f = open('yolov5s.wts', 'w')
 ```
 mv yolov5converter/yololayer.cu tensorrtx/yolov5/yololayer.cu
 mv yolov5converter/yololayer.h tensorrtx/yolov5/yololayer.h
-mv yolov5converter/hardswish.cu tensorrtx/yolov5/hardswish.cu
-mv yolov5converter/hardswish.h tensorrtx/yolov5/hardswish.h
 ```
 
 2. Move generated yolov5s.wts file to tensorrtx/yolov5 folder (example for YOLOv5s)
@@ -130,7 +146,7 @@ cmake ..
 make
 ```
 
-4. Convert to TensorRT model (yolov5s.engine and libmyplugins.so files will be generated in tensorrtx/yolov5/build folder)
+4. Convert to TensorRT model (yolov5s.engine file will be generated in tensorrtx/yolov5/build folder)
 ```
 sudo ./yolov5 -s
 ```
@@ -139,7 +155,6 @@ sudo ./yolov5 -s
 ```
 mkdir /opt/nvidia/deepstream/deepstream-5.0/sources/yolo
 cp yolov5s.engine /opt/nvidia/deepstream/deepstream-5.0/sources/yolo/yolov5s.engine
-cp libmyplugins.so /opt/nvidia/deepstream/deepstream-5.0/sources/yolo/libmyplugins.so
 ```
 
 <br />
@@ -179,7 +194,7 @@ Use my edited [deepstream_app_config.txt](https://raw.githubusercontent.com/marc
 
 Run command
 ```
-LD_PRELOAD=./libmyplugins.so deepstream-app -c deepstream_app_config.txt
+deepstream-app -c deepstream_app_config.txt
 ```
 
 <br />

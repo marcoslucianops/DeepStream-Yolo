@@ -13,7 +13,6 @@ cluster-mode=4
 maintain-aspect-ratio=0
 parse-bbox-func-name=NvDsInferParseCustomYoloV5
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
-engine-create-func-name=NvDsInferYoloCudaEngineGet
 
 [class-attrs-all]
 pre-cluster-threshold=0.25
