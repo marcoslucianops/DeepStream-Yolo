@@ -298,6 +298,8 @@ Note: If your model are listed in native tab, you can use [my native folder](htt
 
 ##
 
-For commercial DeepStream SDK projects, contact me at email address available in GitHub.
+This code is open-source. You can use as you want. :)
+
+If you want me to create commercial DeepStream SDK projects for you, contact me at email address available in GitHub.
 
 My projects: https://www.youtube.com/MarcosLucianoTV
