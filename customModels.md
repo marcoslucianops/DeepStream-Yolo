@@ -306,7 +306,7 @@ deepstream-app -c deepstream_app_config.txt
 
 ##
 
-### Custom functions in your model
+### Extract metadata
 
 You can get metadata from deepstream in Python and C++. For C++, you need edit deepstream-app or deepstream-test code. For Python your need install and edit [deepstream_python_apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps).
 
