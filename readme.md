@@ -298,6 +298,17 @@ Note: If your model are listed in native tab, you can use [my native folder](htt
 
 ##
 
+### Extract metadata
+You can get metadata from deepstream in Python and C++. For C++, you need edit deepstream-app or deepstream-test code. For Python your need install and edit deepstream_python_apps.
+
+You need manipulate NvDsObjectMeta (Python/C++), NvDsFrameMeta (Python/C++) and NvOSD_RectParams (Python/C++) to get label, position, etc. of bboxs.
+
+In C++ deepstream-app application, your code need be in analytics_done_buf_prob function. In C++/Python deepstream-test application, your code need be in osd_sink_pad_buffer_probe/tiler_src_pad_buffer_probe function.
+
+Python is slightly slower than C (about 5-10%).
+
+##
+
 This code is open-source. You can use as you want. :)
 
 If you want me to create commercial DeepStream SDK projects for you, contact me at email address available in GitHub.
