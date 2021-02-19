@@ -212,7 +212,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
 
         else if (m_ConfigBlocks.at(i).at("type") == "yolo") {
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
+            //assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
             TensorInfo& curYoloTensor = m_OutputTensors.at(outputTensorCount);
             curYoloTensor.gridSizeY = prevTensorDims.d[1];
             curYoloTensor.gridSizeX = prevTensorDims.d[2];
@@ -262,7 +262,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         //YOLOv2 support
         else if (m_ConfigBlocks.at(i).at("type") == "region") {
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
+            //assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
             TensorInfo& curRegionTensor = m_OutputTensors.at(outputTensorCount);
             curRegionTensor.gridSizeY = prevTensorDims.d[1];
             curRegionTensor.gridSizeX = prevTensorDims.d[2];
