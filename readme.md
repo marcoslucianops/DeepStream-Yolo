@@ -1,5 +1,5 @@
 # DeepStream-Yolo
-NVIDIA DeepStream SDK 5.0.1 configuration for YOLO models
+NVIDIA DeepStream SDK 5.1 configuration for YOLO models
 
 ##
 
@@ -47,13 +47,13 @@ Request
 ##
 
 ### Requirements
-* [NVIDIA DeepStream SDK 5.0.1](https://developer.nvidia.com/deepstream-sdk)
+* [NVIDIA DeepStream SDK 5.1](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo Native](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native) (for Darknet YOLO based models)
 * [DeepStream-Yolo External](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external) (for PyTorch YOLOv5 based model)
 
 ##
 
-### mAP/FPS comparison between models
+### mAP/FPS comparison between models (OUTDATED)
 
 DeepStream SDK YOLOv4: https://youtu.be/Qi_F_IYpuFQ
 
@@ -215,7 +215,7 @@ pre-cluster-threshold = 0.25 (CONF_THRESH)
 
 Run command
 ```
-sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.0/sources/
+sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.1/sources/
 ```
 
 Download [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
@@ -239,8 +239,16 @@ Download cfg and weights files from your model and move to deepstream/sources/yo
 
 
 Compile
+
+* x86 platform
 ```
-cd /opt/nvidia/deepstream/deepstream-5.0/sources/yolo
+cd /opt/nvidia/deepstream/deepstream-5.1/sources/yolo
+CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
+```
+
+* Jetson platform
+```
+cd /opt/nvidia/deepstream/deepstream-5.1/sources/yolo
 CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
 ```
 

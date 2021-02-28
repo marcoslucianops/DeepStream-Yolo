@@ -14,7 +14,7 @@ How to edit DeepStream files to your custom model
 ##
 
 ### Requirements
-* [NVIDIA DeepStream SDK 5.0.1](https://developer.nvidia.com/deepstream-sdk)
+* [NVIDIA DeepStream SDK 5.1](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo Native](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native)
 * [Pre-treined YOLO model](https://github.com/AlexeyAB/darknet)
 
@@ -23,7 +23,7 @@ How to edit DeepStream files to your custom model
 ### Editing default model
 1. Run command
 ```
-sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.0/sources/
+sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.1/sources/
 ```
 
 2. Download [my native folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/native), rename to yolo and move to your deepstream/sources folder.
@@ -59,7 +59,14 @@ Note: config_infer_primary.txt uses cluster-mode=4 and NMS = 0.45 (via code) whe
 ### Compiling edited model
 1. Check your CUDA version (nvcc --version)
 2. Go to deepstream/sources/yolo directory
-3. Type command (example for CUDA 10.2 version):
+3. Type command to compile:
+
+* x86 platform
+```
+CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
+```
+
+* Jetson platform
 ```
 CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
 ```

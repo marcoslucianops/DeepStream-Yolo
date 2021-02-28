@@ -44,7 +44,14 @@ Note: 2 = sgie1, 3 = sgie2, 4 = sgie3, etc
 ### Compiling edited models
 1. Check your CUDA version (nvcc --version)
 2. Go to inference directory.
-3. Type command (example for CUDA 10.2 version):
+3. Type command to compile:
+
+* x86 platform
+```
+CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
+```
+
+* Jetson platform
 ```
 CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
 ```
