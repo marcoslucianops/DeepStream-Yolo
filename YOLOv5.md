@@ -1,9 +1,9 @@
 # YOLOv5
-NVIDIA DeepStream SDK 5.1 configuration for YOLOv5 models
+NVIDIA DeepStream SDK 5.1 configuration for YOLOv5 5.0 models
 
-Thanks [DanaHan](https://github.com/DanaHan/Yolov5-in-Deepstream-5.0), [wang-xinyu](https://github.com/wang-xinyu/tensorrtx) and [Ultralytics](https://github.com/ultralytics/yolov5)
+Thanks [wang-xinyu](https://github.com/wang-xinyu/tensorrtx) and [Ultralytics](https://github.com/ultralytics/yolov5)
 
-Supported version: YOLOv5 3.0/3.1
+Supported version: YOLOv5 5.0
 
 ##
 
@@ -16,51 +16,13 @@ Supported version: YOLOv5 3.0/3.1
 ##
 
 ### Requirements
-* Python3
-```
-sudo apt-get install python3 python3-dev python3-pip
-pip3 install --upgrade pip
-```
+* [TensorRTX](https://github.com/wang-xinyu/tensorrtx/blob/master/tutorials/install.md)
 
-* OpenCV Python
-```
-sudo apt-get install libopencv-dev
-pip3 install opencv-python
-```
-
-* Matplotlib
-```
-pip3 install matplotlib
-```
+* [Ultralytics](https://github.com/ultralytics/yolov5/blob/master/requirements.txt)
 
 * Matplotlib (for Jetson plataform)
 ```
 sudo apt-get install python3-matplotlib
-```
-
-* Scipy
-```
-pip3 install scipy
-```
-
-* tqdm
-```
-pip3 install tqdm
-```
-
-* Pandas
-```
-pip3 install pandas
-```
-
-* seaborn
-```
-pip3 install seaborn
-```
-
-* PyTorch
-```
-pip3 install torch torchvision
 ```
 
 * PyTorch (for Jetson plataform)
@@ -84,20 +46,13 @@ sudo python3 setup.py install
 ### Convert PyTorch model to wts file
 1. Download repositories
 ```
-git clone https://github.com/DanaHan/Yolov5-in-Deepstream-5.0.git yolov5converter
 git clone https://github.com/wang-xinyu/tensorrtx.git
 git clone https://github.com/ultralytics/yolov5.git
 ```
 
-Note: checkout TensorRTX repo to 3.0/3.1 YOLOv5 version
+2. Download latest YoloV5 (YOLOv5s, YOLOv5m, YOLOv5l or YOLOv5x) weights to yolov5 folder (example for YOLOv5s)
 ```
-cd tensorrtx
-git checkout '6d0f5cb'
-```
-
-2. Download latest YoloV5 (YOLOv5s, YOLOv5m, YOLOv5l or YOLOv5x) weights to yolov5/weights directory (example for YOLOv5s)
-```
-wget https://github.com/ultralytics/yolov5/releases/download/v3.1/yolov5s.pt -P yolov5/weights/
+wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt -P yolov5/
 ```
 
 3. Copy gen_wts.py file (from tensorrtx/yolov5 folder) to yolov5 (ultralytics) folder
@@ -108,36 +63,15 @@ cp tensorrtx/yolov5/gen_wts.py yolov5/gen_wts.py
 4. Generate wts file
 ```
 cd yolov5
-python3 gen_wts.py
+python3 gen_wts.py yolov5s.pt
 ```
 
 yolov5s.wts file will be generated in yolov5 folder
 
-<br />
-
-Note: if you want to generate wts file to another YOLOv5 model (YOLOv5m, YOLOv5l or YOLOv5x), edit get_wts.py file changing yolov5s to your model name
-```
-model = torch.load('weights/yolov5s.pt', map_location=device)['model'].float()  # load to FP32
-model.to(device).eval()
-
-f = open('yolov5s.wts', 'w')
-```
-
 ##
 
 ### Convert wts file to TensorRT model
-1. Replace yololayer files from tensorrtx/yolov5 folder to yololayer and hardswish files from yolov5converter
-```
-mv yolov5converter/yololayer.cu tensorrtx/yolov5/yololayer.cu
-mv yolov5converter/yololayer.h tensorrtx/yolov5/yololayer.h
-```
-
-2. Move generated yolov5s.wts file to tensorrtx/yolov5 folder (example for YOLOv5s)
-```
-cp yolov5/yolov5s.wts tensorrtx/yolov5/yolov5s.wts
-```
-
-3. Build tensorrtx/yolov5
+1. Build tensorrtx/yolov5
 ```
 cd tensorrtx/yolov5
 mkdir build
@@ -146,12 +80,17 @@ cmake ..
 make
 ```
 
-4. Convert to TensorRT model (yolov5s.engine file will be generated in tensorrtx/yolov5/build folder)
+2. Move generated yolov5s.wts file to tensorrtx/yolov5 folder (example for YOLOv5s)
 ```
-sudo ./yolov5 -s
+cp yolov5/yolov5s.wts tensorrtx/yolov5/build/yolov5s.wts
 ```
 
-5. Create a custom yolo folder and copy generated files (example for YOLOv5s)
+3. Convert to TensorRT model (yolov5s.engine file will be generated in tensorrtx/yolov5/build folder)
+```
+sudo ./yolov5 -s yolov5s.wts yolov5s.engine s
+```
+
+4. Create a custom yolo folder and copy generated file (example for YOLOv5s)
 ```
 mkdir /opt/nvidia/deepstream/deepstream-5.1/sources/yolo
 cp yolov5s.engine /opt/nvidia/deepstream/deepstream-5.1/sources/yolo/yolov5s.engine
@@ -159,15 +98,13 @@ cp yolov5s.engine /opt/nvidia/deepstream/deepstream-5.1/sources/yolo/yolov5s.eng
 
 <br />
 
-Note: by default, yolov5 script generate model with batch size = 1, FP16 mode and s model.
+Note: by default, yolov5 script generate model with batch size = 1 and FP16 mode.
 ```
-#define USE_FP16  // comment out this if want to use FP32
+#define USE_FP32  // set USE_INT8 or USE_FP16 or USE_FP32
 #define DEVICE 0  // GPU id
 #define NMS_THRESH 0.4
 #define CONF_THRESH 0.5
 #define BATCH_SIZE 1
-
-#define NET s  // s m l x
 ```
 Edit yolov5.cpp file before compile if you want to change this parameters.
 
@@ -179,7 +116,7 @@ Edit yolov5.cpp file before compile if you want to change this parameters.
 sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.1/sources/
 ```
 
-2. Donwload [my external/yolov5 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5) and move files to created yolo folder
+2. Donwload [my external/yolov5-5.0 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5-5.0) and move files to created yolo folder
 
 3. Compile lib
 
@@ -198,7 +135,7 @@ CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
 ##
 
 ### Testing model
-Use my edited [deepstream_app_config.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5/deepstream_app_config.txt) and [config_infer_primary.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5/config_infer_primary.txt) files available in [my external/yolov5 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5)
+Use my edited [deepstream_app_config.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5-5.0/deepstream_app_config.txt) and [config_infer_primary.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5-5.0/config_infer_primary.txt) files available in [my external/yolov5-5.0 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5-5.0)
 
 Run command
 ```
