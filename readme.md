@@ -38,8 +38,10 @@ TensorRT conversion
     * YOLOv2
     * YOLOv2-Tiny
 
-* [External](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/YOLOv5.md)
-    * YOLOv5
+* External
+    * [YOLOv5 5.0](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/YOLOv5-5.0.md)
+    * [YOLOv5 4.0](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/YOLOv5-4.0.md)
+    * [YOLOv5 3.X (3.0/3.1)](https://github.com/marcoslucianops/DeepStream-Yolo/blob/master/YOLOv5-3.X.md)
 
 Request
 * [Request native TensorRT conversion for your YOLO-based model](#request-native-tensorrt-conversion-for-your-yolo-based-model)
