@@ -48,7 +48,7 @@ git clone -b yolov5-v4.0 https://github.com/wang-xinyu/tensorrtx.git
 git clone -b v4.0 https://github.com/ultralytics/yolov5.git
 ```
 
-2. Download latest YoloV5 (YOLOv5s, YOLOv5m, YOLOv5l or YOLOv5x) weights to yolov5 folder (example for YOLOv5s)
+2. Download latest YoloV5 (YOLOv5s, YOLOv5m, YOLOv5l or YOLOv5x) weights to yolov5/weights directory (example for YOLOv5s)
 ```
 wget https://github.com/ultralytics/yolov5/releases/download/v4.0/yolov5s.pt -P yolov5/weights
 ```
@@ -65,6 +65,16 @@ python3 gen_wts.py
 ```
 
 yolov5s.wts file will be generated in yolov5 folder
+
+<br />
+
+Note: if you want to generate wts file to another YOLOv5 model (YOLOv5m, YOLOv5l or YOLOv5x), edit get_wts.py file changing yolov5s to your model name
+```
+model = torch.load('weights/yolov5s.pt', map_location=device)['model'].float()  # load to FP32
+model.to(device).eval()
+
+f = open('yolov5s.wts', 'w')
+```
 
 ##
 
