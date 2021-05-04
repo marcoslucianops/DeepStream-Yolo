@@ -1,9 +1,7 @@
 # YOLOv5
-NVIDIA DeepStream SDK 5.1 configuration for YOLOv5 5.0 models
+NVIDIA DeepStream SDK 5.1 configuration for YOLOv5 4.0 models
 
 Thanks [wang-xinyu](https://github.com/wang-xinyu/tensorrtx) and [Ultralytics](https://github.com/ultralytics/yolov5)
-
-Supported version: YOLOv5 5.0
 
 ##
 
@@ -18,7 +16,7 @@ Supported version: YOLOv5 5.0
 ### Requirements
 * [TensorRTX](https://github.com/wang-xinyu/tensorrtx/blob/master/tutorials/install.md)
 
-* [Ultralytics](https://github.com/ultralytics/yolov5/blob/master/requirements.txt)
+* [Ultralytics](https://github.com/ultralytics/yolov5/blob/v4.0/requirements.txt)
 
 * Matplotlib (for Jetson plataform)
 ```
@@ -46,13 +44,13 @@ sudo python3 setup.py install
 ### Convert PyTorch model to wts file
 1. Download repositories
 ```
-git clone https://github.com/wang-xinyu/tensorrtx.git
-git clone https://github.com/ultralytics/yolov5.git
+git clone -b yolov5-v4.0 https://github.com/wang-xinyu/tensorrtx.git
+git clone -b v4.0 https://github.com/ultralytics/yolov5.git
 ```
 
 2. Download latest YoloV5 (YOLOv5s, YOLOv5m, YOLOv5l or YOLOv5x) weights to yolov5 folder (example for YOLOv5s)
 ```
-wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt -P yolov5/
+wget https://github.com/ultralytics/yolov5/releases/download/v4.0/yolov5s.pt -P yolov5/weights
 ```
 
 3. Copy gen_wts.py file (from tensorrtx/yolov5 folder) to yolov5 (ultralytics) folder
@@ -63,7 +61,7 @@ cp tensorrtx/yolov5/gen_wts.py yolov5/gen_wts.py
 4. Generate wts file
 ```
 cd yolov5
-python3 gen_wts.py yolov5s.pt
+python3 gen_wts.py
 ```
 
 yolov5s.wts file will be generated in yolov5 folder
@@ -116,7 +114,7 @@ Edit yolov5.cpp file before compile if you want to change this parameters.
 sudo chmod -R 777 /opt/nvidia/deepstream/deepstream-5.1/sources/
 ```
 
-2. Donwload [my external/yolov5-5.0 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5-5.0) and move files to created yolo folder
+2. Donwload [my external/yolov5-4.0 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5-4.0) and move files to created yolo folder
 
 3. Compile lib
 
@@ -135,7 +133,7 @@ CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
 ##
 
 ### Testing model
-Use my edited [deepstream_app_config.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5-5.0/deepstream_app_config.txt) and [config_infer_primary.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5-5.0/config_infer_primary.txt) files available in [my external/yolov5-5.0 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5-5.0)
+Use my edited [deepstream_app_config.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5-4.0/deepstream_app_config.txt) and [config_infer_primary.txt](https://raw.githubusercontent.com/marcoslucianops/DeepStream-Yolo/master/external/yolov5-4.0/config_infer_primary.txt) files available in [my external/yolov5-4.0 folder](https://github.com/marcoslucianops/DeepStream-Yolo/tree/master/external/yolov5-4.0)
 
 Run command
 ```
