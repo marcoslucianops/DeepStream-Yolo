@@ -36,7 +36,7 @@ pip3 install numpy torch-1.8.0-cp36-cp36m-linux_aarch64.whl
 sudo apt-get install libjpeg-dev zlib1g-dev libpython3-dev libavcodec-dev libavformat-dev libswscale-dev
 git clone --branch v0.9.0 https://github.com/pytorch/vision torchvision
 cd torchvision
-export BUILD_VERSION=0.9.0  
+export BUILD_VERSION=0.9.0
 python3 setup.py install --user
 ```
 
@@ -109,7 +109,7 @@ cp yolov5s.engine /opt/nvidia/deepstream/deepstream-5.1/sources/yolo/yolov5s.eng
 
 Note: by default, yolov5 script generate model with batch size = 1 and FP16 mode.
 ```
-#define USE_FP32  // set USE_INT8 or USE_FP16 or USE_FP32
+#define USE_FP16  // set USE_INT8 or USE_FP16 or USE_FP32
 #define DEVICE 0  // GPU id
 #define NMS_THRESH 0.4
 #define CONF_THRESH 0.5
