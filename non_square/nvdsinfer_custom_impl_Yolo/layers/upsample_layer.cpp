@@ -22,7 +22,7 @@ nvinfer1::ILayer* upsampleLayer(
     int w = inpDims.d[2];
     int stride = std::stoi(block.at("stride"));
 
-    nvinfer1::Dims preDims{3,
+    /*nvinfer1::Dims preDims{3,
                            {1, stride * h, h},
                            {nvinfer1::DimensionType::kCHANNEL, nvinfer1::DimensionType::kSPATIAL,
                             nvinfer1::DimensionType::kSPATIAL}};
@@ -79,5 +79,12 @@ nvinfer1::ILayer* upsampleLayer(
     std::string mm2LayerName = "mm2_" + std::to_string(layerIdx);
     mm2->setName(mm2LayerName.c_str());
 
-    return mm2;
+    return mm2;*/
+    nvinfer1::IResizeLayer* resize_layer = network->addResize(*input);
+    resize_layer->setResizeMode(nvinfer1::ResizeMode::kNEAREST);
+    float scale[3] = {1, stride, stride};
+    resize_layer->setScales(scale, 3);
+    std::string layer_name = "upsample_" + std::to_string(layerIdx);
+    resize_layer->setName(layer_name.c_str());
+    return resize_layer;
 }
