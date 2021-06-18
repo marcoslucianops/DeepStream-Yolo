@@ -190,7 +190,7 @@ deepstream-app -c deepstream_app_config.txt
 
 Note: NVIDIA recommends at least 500 images to get a good accuracy. In this example I used 1000 images to get better accuracy (more images = more accuracy). Higher INT8_CALIB_BATCH_SIZE values will increase the accuracy and calibration speed. Set it according to you GPU memory. This process can take a long time. The calibration isn't available for YOLOv5 models.
 
-###
+##
 
 ### mAP/FPS comparison between models
 
