@@ -1,6 +1,6 @@
 [application]
 enable-perf-measurement=1
-perf-measurement-interval-sec=1
+perf-measurement-interval-sec=5
 
 [tiled-display]
 enable=1
@@ -14,7 +14,7 @@ nvbuf-memory-type=0
 [source0]
 enable=1
 type=3
-uri=file://../../samples/streams/sample_1080p_h264.mp4
+uri=file:///opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_1080p_h264.mp4
 num-sources=1
 gpu-id=0
 cudadec-memtype=0

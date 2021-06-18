@@ -302,7 +302,6 @@ static bool NvDsInferParseYolo(
         const uint gridSizeH = layer.inferDims.d[1];
         const uint gridSizeW = layer.inferDims.d[2];
         const uint stride = DIVUP(networkInfo.width, gridSizeW);
-        //assert(stride == DIVUP(networkInfo.height, gridSizeH));
 
         std::vector<NvDsInferParseObjectInfo> outObjs =
             decodeYoloTensor((const float*)(layer.buffer), masks[idx], anchors, gridSizeW, gridSizeH, stride, masks[idx].size(),
@@ -344,7 +343,6 @@ static bool NvDsInferParseYoloV2(
     const uint gridSizeH = layer.inferDims.d[1];
     const uint gridSizeW = layer.inferDims.d[2];
     const uint stride = DIVUP(networkInfo.width, gridSizeW);
-    //assert(stride == DIVUP(networkInfo.height, gridSizeH));
     for (auto& anchor : anchors) {
         anchor *= stride;
     }

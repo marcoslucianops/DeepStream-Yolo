@@ -14,7 +14,7 @@ nvbuf-memory-type=0
 [source0]
 enable=1
 type=3
-uri=rtsp://192.168.1.2/Streaming/Channels/101/httppreview
+uri=file:///opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_1080p_h264.mp4
 num-sources=1
 gpu-id=0
 cudadec-memtype=0

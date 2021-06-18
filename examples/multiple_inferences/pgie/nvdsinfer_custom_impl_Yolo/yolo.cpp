@@ -25,6 +25,11 @@
 
 #include "yolo.h"
 #include "yoloPlugins.h"
+#include <stdlib.h>
+
+#ifdef OPENCV
+#include "calibrator.h"
+#endif
 
 void orderParams(std::vector<std::vector<int>> *maskVector) {
     std::vector<std::vector<int>> maskinput = *maskVector;
@@ -45,6 +50,8 @@ Yolo::Yolo(const NetworkInfo& networkInfo)
     : m_NetworkType(networkInfo.networkType), // YOLO type
       m_ConfigFilePath(networkInfo.configFilePath), // YOLO cfg
       m_WtsFilePath(networkInfo.wtsFilePath), // YOLO weights
+      m_Int8CalibPath(networkInfo.int8CalibPath), // INT8 calibration path
+      m_NetworkMode(networkInfo.networkMode), // FP32, INT8, FP16
       m_DeviceType(networkInfo.deviceType), // kDLA, kGPU
       m_InputBlobName(networkInfo.inputBlobName), // data
       m_InputH(0),
@@ -62,6 +69,38 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
 {
     assert (builder);
 
+    m_ConfigBlocks = parseConfigFile(m_ConfigFilePath);
+    parseConfigBlocks();
+    orderParams(&m_OutputMasks);
+
+    if (m_NetworkMode == "INT8" && !fileExists(m_Int8CalibPath)) {
+        assert(builder->platformHasFastInt8());
+#ifdef OPENCV
+        std::string calib_image_list;
+        int calib_batch_size;
+        if (getenv("INT8_CALIB_IMG_PATH")) {
+            calib_image_list = getenv("INT8_CALIB_IMG_PATH");
+        }
+        else {
+            std::cerr << "INT8_CALIB_IMG_PATH not set" << std::endl;
+            std::abort();
+        }
+        if (getenv("INT8_CALIB_BATCH_SIZE")) {
+            calib_batch_size = std::stoi(getenv("INT8_CALIB_BATCH_SIZE"));
+        }
+        else {
+            std::cerr << "INT8_CALIB_BATCH_SIZE not set" << std::endl;
+            std::abort();
+        }
+        nvinfer1::int8EntroyCalibrator *calibrator = new nvinfer1::int8EntroyCalibrator(calib_batch_size, m_InputC, m_InputH, m_InputW, m_LetterBox, calib_image_list, m_Int8CalibPath);
+        builder->setInt8Mode(true);
+        builder->setInt8Calibrator(calibrator);
+#else
+        std::cerr << "OpenCV is required to run INT8 calibrator" << std::endl;
+        std::abort();
+#endif
+    }
+
     std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
     std::vector<nvinfer1::Weights> trtWeights;
 
@@ -71,8 +110,12 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
         return nullptr;
     }
 
-    // Build the engine
     std::cout << "Building the TensorRT Engine" << std::endl;
+
+    if (m_LetterBox == 1) {
+        std::cout << "\nNOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file to get better accuracy\n" << std::endl;
+    }
+
     nvinfer1::ICudaEngine * engine = builder->buildCudaEngine(*network);
     if (engine) {
         std::cout << "Building complete\n" << std::endl;
@@ -80,7 +123,6 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
         std::cerr << "Building engine failed\n" << std::endl;
     }
 
-    // destroy
     network->destroy();
     return engine;
 }
@@ -88,12 +130,7 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
 NvDsInferStatus Yolo::parseModel(nvinfer1::INetworkDefinition& network) {
     destroyNetworkUtils();
 
-    m_ConfigBlocks = parseConfigFile(m_ConfigFilePath);
-    parseConfigBlocks();
-    orderParams(&m_OutputMasks);
-
     std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
-    // build yolo network
     std::cout << "Building YOLO network" << std::endl;
     NvDsInferStatus status = buildYoloNetwork(weights, network);
 
@@ -121,9 +158,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
     std::vector<nvinfer1::ITensor*> tensorOutputs;
     uint outputTensorCount = 0;
 
-    // build the network using the network API
     for (uint i = 0; i < m_ConfigBlocks.size(); ++i) {
-        // check if num. of channels is correct
         assert(getNumChannels(previous) == channels);
         std::string layerIndex = "(" + std::to_string(tensorOutputs.size()) + ")";
 
@@ -192,7 +227,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
 
         else if (m_ConfigBlocks.at(i).at("type") == "upsample") {
             std::string inputVol = dimsToString(previous->getDimensions());
-            nvinfer1::ILayer* out = upsampleLayer(i - 1, m_ConfigBlocks[i], weights, m_TrtWeights, channels, previous, &network);
+            nvinfer1::ILayer* out = upsampleLayer(i - 1, m_ConfigBlocks[i], previous, &network);
             previous = out->getOutput(0);
             assert(previous != nullptr);
             std::string outputVol = dimsToString(previous->getDimensions());
@@ -212,7 +247,6 @@ NvDsInferStatus Yolo::buildYoloNetwork(
 
         else if (m_ConfigBlocks.at(i).at("type") == "yolo") {
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            //assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
             TensorInfo& curYoloTensor = m_OutputTensors.at(outputTensorCount);
             curYoloTensor.gridSizeY = prevTensorDims.d[1];
             curYoloTensor.gridSizeX = prevTensorDims.d[2];
@@ -262,7 +296,6 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         //YOLOv2 support
         else if (m_ConfigBlocks.at(i).at("type") == "region") {
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            //assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
             TensorInfo& curRegionTensor = m_OutputTensors.at(outputTensorCount);
             curRegionTensor.gridSizeY = prevTensorDims.d[1];
             curRegionTensor.gridSizeX = prevTensorDims.d[2];
@@ -391,8 +424,14 @@ void Yolo::parseConfigBlocks()
             m_InputH = std::stoul(block.at("height"));
             m_InputW = std::stoul(block.at("width"));
             m_InputC = std::stoul(block.at("channels"));
-            //assert(m_InputW == m_InputH);
             m_InputSize = m_InputC * m_InputH * m_InputW;
+
+            if (block.find("letter_box") != block.end()) {
+                m_LetterBox = std::stoul(block.at("letter_box"));
+            }
+            else {
+                m_LetterBox = 0;
+            }
         }
         else if ((block.at("type") == "region") || (block.at("type") == "yolo"))
         {
@@ -460,7 +499,6 @@ void Yolo::parseConfigBlocks()
 }
 
 void Yolo::destroyNetworkUtils() {
-    // deallocate the weights
     for (uint i = 0; i < m_TrtWeights.size(); ++i) {
         if (m_TrtWeights[i].count > 0)
             free(const_cast<void*>(m_TrtWeights[i].values));

@@ -27,13 +27,25 @@ CUDA_VER?=
 ifeq ($(CUDA_VER),)
   $(error "CUDA_VER is not set")
 endif
+
+OPENCV?=
+ifeq ($(OPENCV),)
+  OPENCV=0
+endif
+
 CC:= g++
 NVCC:=/usr/local/cuda-$(CUDA_VER)/bin/nvcc
 
 CFLAGS:= -Wall -std=c++11 -shared -fPIC -Wno-error=deprecated-declarations
-CFLAGS+= -I../../includes -I/usr/local/cuda-$(CUDA_VER)/include
+CFLAGS+= -I/opt/nvidia/deepstream/deepstream-5.1/sources/includes -I/usr/local/cuda-$(CUDA_VER)/include
 
-LIBS:= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
+ifeq ($(OPENCV), 1)
+COMMON= -DOPENCV
+CFLAGS+= $(shell pkg-config --cflags opencv4 2> /dev/null || pkg-config --cflags opencv)
+LIBS+= $(shell pkg-config --libs opencv4 2> /dev/null || pkg-config --libs opencv)
+endif
+
+LIBS+= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
 LFLAGS:= -shared -Wl,--start-group $(LIBS) -Wl,--end-group
 
 INCS:= $(wildcard *.h)
@@ -50,6 +62,11 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            utils.cpp \
            yolo.cpp \
            yoloForward.cu
+
+ifeq ($(OPENCV), 1)
+SRCFILES+= calibrator.cpp
+endif
+
 TARGET_LIB:= libnvdsinfer_custom_impl_Yolo.so
 
 TARGET_OBJS:= $(SRCFILES:.cpp=.o)
@@ -58,7 +75,7 @@ TARGET_OBJS:= $(TARGET_OBJS:.cu=.o)
 all: $(TARGET_LIB)
 
 %.o: %.cpp $(INCS) Makefile
-	$(CC) -c -o $@ $(CFLAGS) $<
+	$(CC) -c $(COMMON) -o $@ $(CFLAGS) $<
 
 %.o: %.cu $(INCS) Makefile
 	$(NVCC) -c -o $@ --compiler-options '-fPIC' $<

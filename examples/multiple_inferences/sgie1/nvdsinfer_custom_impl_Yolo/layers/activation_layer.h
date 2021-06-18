@@ -3,18 +3,20 @@
  * https://www.github.com/marcoslucianops
  */
 
-#ifndef __UPSAMPLE_LAYER_H__
-#define __UPSAMPLE_LAYER_H__
+#ifndef __ACTIVATION_LAYER_H__
+#define __ACTIVATION_LAYER_H__
 
-#include <map>
-#include <vector>
+#include <string>
 #include <cassert>
 
 #include "NvInfer.h"
 
-nvinfer1::ILayer* upsampleLayer(
+#include "activation_layer.h"
+
+nvinfer1::ILayer* activationLayer(
     int layerIdx,
-    std::map<std::string, std::string>& block,
+    std::string activation,
+    nvinfer1::ILayer* output,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network);
 

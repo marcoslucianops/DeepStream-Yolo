@@ -45,8 +45,19 @@ static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContext
     networkInfo.networkType     = yoloType;
     networkInfo.configFilePath  = initParams->customNetworkConfigFilePath;
     networkInfo.wtsFilePath     = initParams->modelFilePath;
+    networkInfo.int8CalibPath   = initParams->int8CalibrationFilePath;
     networkInfo.deviceType      = (initParams->useDLA ? "kDLA" : "kGPU");
     networkInfo.inputBlobName   = "data";
+
+    if(initParams->networkMode == 0) {
+        networkInfo.networkMode = "FP32";
+    }
+    else if(initParams->networkMode == 1) {
+        networkInfo.networkMode = "INT8";
+    }
+    else if(initParams->networkMode == 2) {
+        networkInfo.networkMode = "FP16";
+    }
 
     if (networkInfo.configFilePath.empty() ||
         networkInfo.wtsFilePath.empty()) {

@@ -40,6 +40,8 @@ struct NetworkInfo
     std::string networkType;
     std::string configFilePath;
     std::string wtsFilePath;
+    std::string int8CalibPath;
+    std::string networkMode;
     std::string deviceType;
     std::string inputBlobName;
 };
@@ -76,6 +78,8 @@ protected:
     const std::string m_NetworkType;
     const std::string m_ConfigFilePath;
     const std::string m_WtsFilePath;
+    const std::string m_Int8CalibPath;
+    const std::string m_NetworkMode;
     const std::string m_DeviceType;
     const std::string m_InputBlobName;
     std::vector<TensorInfo> m_OutputTensors;
@@ -85,6 +89,7 @@ protected:
     uint m_InputW;
     uint m_InputC;
     uint64_t m_InputSize;
+    uint m_LetterBox;
 
     std::vector<nvinfer1::Weights> m_TrtWeights;
 
