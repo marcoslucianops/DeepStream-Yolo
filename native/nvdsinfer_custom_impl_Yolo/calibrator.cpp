@@ -78,36 +78,43 @@ namespace nvinfer1
 std::vector<float> prepareImage(cv::Mat& img, int input_c, int input_h, int input_w, int letter_box)
 {
     cv::Mat out;
-    if (letter_box == 2)
+    int image_w = img.cols;
+    int image_h = img.rows;
+    if (image_w != input_w || image_h != input_h)
     {
-        int image_w = img.cols;
-        int image_h = img.rows;
-        int resize_w = 0;
-        int resize_h = 0;
-        int offset_top = 0;
-        int offset_bottom = 0;
-        int offset_left = 0;
-        int offset_right = 0;
-        if ((float)input_h / image_h > (float)input_w / image_w)
+        if (letter_box == 1)
         {
-            resize_w = input_w;
-            resize_h = (input_w * image_h) / image_w;
-            offset_bottom = input_h - resize_h;
+            float ratio_w = (float)image_w / (float)input_w;
+            float ratio_h = (float)image_h / (float)input_h;
+            if (ratio_w > ratio_h)
+            {
+                int new_width = input_w * ratio_h;
+                int x = (image_w - new_width) / 2;
+                cv::Rect roi(abs(x), 0, new_width, image_h);
+                out = img(roi);
+            }
+            else if (ratio_w < ratio_h)
+            {
+                int new_height = input_h * ratio_w;
+                int y = (image_h - new_height) / 2;
+                cv::Rect roi(0, abs(y), image_w, new_height);
+                out = img(roi);
+            }
+            else {
+                out = img;
+            }
+            cv::resize(out, out, cv::Size(input_w, input_h), 0, 0, cv::INTER_CUBIC);
         }
         else
         {
-            resize_h = input_h;
-            resize_w = (input_h * image_w) / image_h;
-            offset_right = input_w - resize_w;
+            cv::resize(img, out, cv::Size(input_w, input_h), 0, 0, cv::INTER_CUBIC);
         }
-        cv::resize(img, out, cv::Size(resize_w, resize_h), 0, 0, cv::INTER_CUBIC);
-        cv::copyMakeBorder(out, out, offset_top, offset_bottom, offset_left, offset_right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+        cv::cvtColor(out, out, cv::COLOR_BGR2RGB);
     }
     else
     {
-        cv::resize(img, out, cv::Size(input_w, input_h), 0, 0, cv::INTER_CUBIC);
+        cv::cvtColor(img, out, cv::COLOR_BGR2RGB);
     }
-    cv::cvtColor(out, out, cv::COLOR_BGR2RGB);
     if (input_c == 3)
     {
         out.convertTo(out, CV_32FC3, 1.0 / 255.0);
