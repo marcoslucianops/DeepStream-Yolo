@@ -265,6 +265,4 @@ Python is slightly slower than C (about 5-10%).
 
 This code is open-source. You can use as you want. :)
 
-If you want me to create commercial DeepStream SDK projects for you, contact me at email address available in GitHub.
-
 My projects: https://www.youtube.com/MarcosLucianoTV
