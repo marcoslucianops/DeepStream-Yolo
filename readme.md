@@ -5,13 +5,13 @@ NVIDIA DeepStream SDK 5.1 configuration for YOLO models
 
 ### Improvements on this repository
 
-* Darknet CFG params parser (not need to edit nvdsparsebbox_Yolo.cpp or another file for native models)
+* Darknet CFG params parser (it doesn't need to edit nvdsparsebbox_Yolo.cpp or another file for native models)
 * Support for new_coords, beta_nms and scale_x_y params
-* Support for new models not supported in official DeepStream SDK YOLO.
-* Support for layers not supported in official DeepStream SDK YOLO.
-* Support for activations not supported in official DeepStream SDK YOLO.
+* Support for new models that aren't supported in official DeepStream SDK YOLO.
+* Support for layers that aren't supported in official DeepStream SDK YOLO.
+* Support for activations that aren't supported in official DeepStream SDK YOLO.
 * Support for Convolutional groups
-* **Support for INT8 calibration** (not available for YOLOv5 models)
+* **Support for INT8 calibration** (it isn't available for YOLOv5 models)
 * **Support for non square models**
 
 ##
