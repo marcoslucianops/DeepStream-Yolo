@@ -1,7 +1,7 @@
 # DeepStream-Yolo
 NVIDIA DeepStream SDK 5.1 configuration for YOLO models
 
-##
+# New update for DeepStream 6.0 and TensorRT is coming soon, stay tuned!
 
 ### Improvements on this repository
 
