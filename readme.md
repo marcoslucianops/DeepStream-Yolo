@@ -32,7 +32,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
 * [INT8 calibration](#int8-calibration)
-* [Using your custom model](blob/master/docs/customModels.md)
+* [Using your custom model](docs/customModels.md)
 
 ##
 
