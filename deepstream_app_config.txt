@@ -14,7 +14,7 @@ nvbuf-memory-type=0
 [source0]
 enable=1
 type=3
-uri=file:///opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_1080p_h264.mp4
+uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4
 num-sources=1
 gpu-id=0
 cudadec-memtype=0
@@ -57,16 +57,7 @@ enable=1
 gpu-id=0
 gie-unique-id=1
 nvbuf-memory-type=0
-config-file=pgie/config_infer_primary.txt
-
-[secondary-gie0]
-enable=1
-gpu-id=0
-gie-unique-id=2
-operate-on-gie-id=1
-#operate-on-class-ids=0
-nvbuf-memory-type=0
-config-file=sgie1/config_infer_secondary1.txt
+config-file=config_infer_primary.txt
 
 [tests]
 file-loop=0

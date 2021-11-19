@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,37 +59,37 @@ public:
     YoloLayer (const uint& numBoxes, const uint& numClasses, const uint& gridSizeX, const uint& gridSizeY,
                 const uint model_type, const uint new_coords, const float scale_x_y, const float beta_nms,
                 const std::vector<float> anchors, const std::vector<std::vector<int>> mask);
-    const char* getPluginType () const override { return YOLOLAYER_PLUGIN_NAME; }
-    const char* getPluginVersion () const override { return YOLOLAYER_PLUGIN_VERSION; }
-    int getNbOutputs () const override { return 1; }
+    const char* getPluginType () const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
+    const char* getPluginVersion () const noexcept override { return YOLOLAYER_PLUGIN_VERSION; }
+    int getNbOutputs () const noexcept override { return 1; }
 
     nvinfer1::Dims getOutputDimensions (
         int index, const nvinfer1::Dims* inputs,
-        int nbInputDims) override;
+        int nbInputDims) noexcept override;
 
     bool supportsFormat (
-        nvinfer1::DataType type, nvinfer1::PluginFormat format) const override;
+        nvinfer1::DataType type, nvinfer1::PluginFormat format) const noexcept override;
 
     void configureWithFormat (
         const nvinfer1::Dims* inputDims, int nbInputs,
         const nvinfer1::Dims* outputDims, int nbOutputs,
-        nvinfer1::DataType type, nvinfer1::PluginFormat format, int maxBatchSize) override;
+        nvinfer1::DataType type, nvinfer1::PluginFormat format, int maxBatchSize) noexcept override;
 
-    int initialize () override { return 0; }
-    void terminate () override {}
-    size_t getWorkspaceSize (int maxBatchSize) const override { return 0; }
+    int initialize () noexcept override { return 0; }
+    void terminate () noexcept override {}
+    size_t getWorkspaceSize (int maxBatchSize) const noexcept override { return 0; }
     int enqueue (
-        int batchSize, const void* const* inputs, void** outputs,
-        void* workspace, cudaStream_t stream) override;
-    size_t getSerializationSize() const override;
-    void serialize (void* buffer) const override;
-    void destroy () override { delete this; }
-    nvinfer1::IPluginV2* clone() const override;
+        int batchSize, void const* const* inputs, void* const* outputs,
+        void* workspace, cudaStream_t stream) noexcept override;
+    size_t getSerializationSize() const noexcept override;
+    void serialize (void* buffer) const noexcept override;
+    void destroy () noexcept override { delete this; }
+    nvinfer1::IPluginV2* clone() const noexcept override;
 
-    void setPluginNamespace (const char* pluginNamespace)override {
+    void setPluginNamespace (const char* pluginNamespace) noexcept override {
         m_Namespace = pluginNamespace;
     }
-    virtual const char* getPluginNamespace () const override {
+    virtual const char* getPluginNamespace () const noexcept override {
         return m_Namespace.c_str();
     }
 
@@ -115,32 +115,32 @@ public:
     YoloLayerPluginCreator () {}
     ~YoloLayerPluginCreator () {}
 
-    const char* getPluginName () const override { return YOLOLAYER_PLUGIN_NAME; }
-    const char* getPluginVersion () const override { return YOLOLAYER_PLUGIN_VERSION; }
+    const char* getPluginName () const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
+    const char* getPluginVersion () const noexcept override { return YOLOLAYER_PLUGIN_VERSION; }
 
-    const nvinfer1::PluginFieldCollection* getFieldNames() override {
+    const nvinfer1::PluginFieldCollection* getFieldNames() noexcept override {
         std::cerr<< "YoloLayerPluginCreator::getFieldNames is not implemented" << std::endl;
         return nullptr;
     }
 
     nvinfer1::IPluginV2* createPlugin (
-        const char* name, const nvinfer1::PluginFieldCollection* fc) override
+        const char* name, const nvinfer1::PluginFieldCollection* fc) noexcept override
     {
         std::cerr<< "YoloLayerPluginCreator::getFieldNames is not implemented";
         return nullptr;
     }
 
     nvinfer1::IPluginV2* deserializePlugin (
-        const char* name, const void* serialData, size_t serialLength) override
+        const char* name, const void* serialData, size_t serialLength) noexcept override
     {
         std::cout << "Deserialize yoloLayer plugin: " << name << std::endl;
         return new YoloLayer(serialData, serialLength);
     }
 
-    void setPluginNamespace(const char* libNamespace) override {
+    void setPluginNamespace(const char* libNamespace) noexcept override {
         m_Namespace = libNamespace;
     }
-    const char* getPluginNamespace() const override {
+    const char* getPluginNamespace() const noexcept override {
         return m_Namespace.c_str();
     }
 

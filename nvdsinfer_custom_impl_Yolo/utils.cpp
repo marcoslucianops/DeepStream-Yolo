@@ -110,22 +110,6 @@ std::string dimsToString(const nvinfer1::Dims d)
     return s.str();
 }
 
-void displayDimType(const nvinfer1::Dims d)
-{
-    std::cout << "(" << d.nbDims << ") ";
-    for (int i = 0; i < d.nbDims; ++i)
-    {
-        switch (d.type[i])
-        {
-        case nvinfer1::DimensionType::kSPATIAL: std::cout << "kSPATIAL "; break;
-        case nvinfer1::DimensionType::kCHANNEL: std::cout << "kCHANNEL "; break;
-        case nvinfer1::DimensionType::kINDEX: std::cout << "kINDEX "; break;
-        case nvinfer1::DimensionType::kSEQUENCE: std::cout << "kSEQUENCE "; break;
-        }
-    }
-    std::cout << std::endl;
-}
-
 int getNumChannels(nvinfer1::ITensor* t)
 {
     nvinfer1::Dims d = t->getDimensions();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -104,7 +104,7 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
     std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
     std::vector<nvinfer1::Weights> trtWeights;
 
-    nvinfer1::INetworkDefinition *network = builder->createNetwork();
+    nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
     if (parseModel(*network) != NVDSINFER_SUCCESS) {
         network->destroy();
         return nullptr;
@@ -116,7 +116,8 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
         std::cout << "\nNOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file to get better accuracy\n" << std::endl;
     }
 
-    nvinfer1::ICudaEngine * engine = builder->buildCudaEngine(*network);
+    nvinfer1::IBuilderConfig *config = builder->createBuilderConfig();
+    nvinfer1::ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
     if (engine) {
         std::cout << "Building complete\n" << std::endl;
     } else {
@@ -124,6 +125,7 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
     }
 
     network->destroy();
+    delete config;
     return engine;
 }
 
@@ -150,7 +152,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
 
     nvinfer1::ITensor* data =
         network.addInput(m_InputBlobName.c_str(), nvinfer1::DataType::kFLOAT,
-            nvinfer1::DimsCHW{static_cast<int>(m_InputC),
+            nvinfer1::Dims3{static_cast<int>(m_InputC),
                 static_cast<int>(m_InputH), static_cast<int>(m_InputW)});
     assert(data != nullptr && data->getDimensions().nbDims > 0);
 
@@ -163,7 +165,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         std::string layerIndex = "(" + std::to_string(tensorOutputs.size()) + ")";
 
         if (m_ConfigBlocks.at(i).at("type") == "net") {
-            printLayerInfo("", "layer", "     input", "     outup", "weightPtr");
+            printLayerInfo("", "layer", "     input", "     output", "weightPtr");
         }
         
         else if (m_ConfigBlocks.at(i).at("type") == "convolutional") {
