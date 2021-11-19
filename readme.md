@@ -4,7 +4,6 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 
 ### Future updates (comming soon, stay tuned)
 
-* New documentation for custom model
 * New documentation for multiple models
 * DeepStream tutorials
 * Native PyTorch support (YOLOv5 and YOLOR)
@@ -33,6 +32,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
 * [INT8 calibration](#int8-calibration)
+* [Using your custom model](blob/master/docs/customModels.md)
 
 ##
 
@@ -213,7 +213,7 @@ cd DeepStream-Yolo
 
 #### 2. Download cfg and weights files from your model and move to DeepStream-Yolo folder
 
-#### 3. Compile
+#### 3. Compile lib
 
 * x86 platform
 
