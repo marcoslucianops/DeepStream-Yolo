@@ -9,6 +9,8 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Native PyTorch support (YOLOv5 and YOLOR)
 * Native PP-YOLO support
 * Models benchmark
+* GPU NMS
+* Dynamic batch-size
 
 **NOTE**: The support for YOLOv5 was removed in this current update. If you want the old repo version, please use the commit 297e0e9 and DeepStream 5.1 requirements.
 
