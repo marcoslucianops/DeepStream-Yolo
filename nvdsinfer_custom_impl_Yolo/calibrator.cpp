@@ -30,6 +30,11 @@ namespace nvinfer1
             delete[] batchData;
     }
 
+    int Int8EntropyCalibrator2::getBatchSize() const noexcept
+    {
+        return batchSize;
+    }
+
     bool Int8EntropyCalibrator2::getBatch(void **bindings, const char **names, int nbBindings) noexcept
     {
         if (imageIndex + batchSize > uint(imgPaths.size()))
