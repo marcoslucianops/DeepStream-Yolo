@@ -24,9 +24,9 @@
 #endif
 
 namespace nvinfer1 {
-    class int8EntroyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
+    class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
     public:
-        int8EntroyCalibrator(const int &batchsize,
+        Int8EntropyCalibrator2(const int &batchsize,
                              const int &channels,
                              const int &height,
                              const int &width,
@@ -34,11 +34,11 @@ namespace nvinfer1 {
                              const std::string &imgPath,
                              const std::string &calibTablePath);
 
-        virtual ~int8EntroyCalibrator();
-        int getBatchSize() const override { return batchSize; }
-        bool getBatch(void *bindings[], const char *names[], int nbBindings) override;
-        const void *readCalibrationCache(std::size_t &length) override;
-        void writeCalibrationCache(const void *ptr, std::size_t length) override;
+        virtual ~Int8EntropyCalibrator2();
+        int getBatchSize() const noexcept override;
+        bool getBatch(void* bindings[], const char* names[], int nbBindings) noexcept override;
+        const void* readCalibrationCache(std::size_t& length) noexcept override;
+        void writeCalibrationCache(const void* cache, size_t length) noexcept override;
 
     private:
         int batchSize;

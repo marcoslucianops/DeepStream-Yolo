@@ -9,7 +9,7 @@
 
 namespace nvinfer1
 {
-    int8EntroyCalibrator::int8EntroyCalibrator(const int &batchsize, const int &channels, const int &height, const int &width, const int &letterbox, const std::string &imgPath,
+    Int8EntropyCalibrator2::Int8EntropyCalibrator2(const int &batchsize, const int &channels, const int &height, const int &width, const int &letterbox, const std::string &imgPath,
         const std::string &calibTablePath):batchSize(batchsize), inputC(channels), inputH(height), inputW(width), letterBox(letterbox), calibTablePath(calibTablePath), imageIndex(0)
     {
         inputCount = batchsize * channels * height * width;
@@ -23,14 +23,14 @@ namespace nvinfer1
         CUDA_CHECK(cudaMalloc(&deviceInput, inputCount * sizeof(float)));
     }
 
-    int8EntroyCalibrator::~int8EntroyCalibrator()
+    Int8EntropyCalibrator2::~Int8EntropyCalibrator2()
     {
         CUDA_CHECK(cudaFree(deviceInput));
         if (batchData)
             delete[] batchData;
     }
 
-    bool int8EntroyCalibrator::getBatch(void **bindings, const char **names, int nbBindings)
+    bool Int8EntropyCalibrator2::getBatch(void **bindings, const char **names, int nbBindings) noexcept
     {
         if (imageIndex + batchSize > uint(imgPaths.size()))
             return false;
@@ -54,7 +54,7 @@ namespace nvinfer1
         return true;
     }
 
-    const void* int8EntroyCalibrator::readCalibrationCache(std::size_t &length)
+    const void* Int8EntropyCalibrator2::readCalibrationCache(std::size_t &length) noexcept
     {
         calibrationCache.clear();
         std::ifstream input(calibTablePath, std::ios::binary);
@@ -68,7 +68,7 @@ namespace nvinfer1
         return length ? calibrationCache.data() : nullptr;
     }
 
-    void int8EntroyCalibrator::writeCalibrationCache(const void *cache, std::size_t length)
+    void Int8EntropyCalibrator2::writeCalibrationCache(const void* cache, std::size_t length) noexcept
     {
         std::ofstream output(calibTablePath, std::ios::binary);
         output.write(reinterpret_cast<const char*>(cache), length);
