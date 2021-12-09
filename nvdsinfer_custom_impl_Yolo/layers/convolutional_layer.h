@@ -19,6 +19,7 @@ nvinfer1::ILayer* convolutionalLayer(
     std::vector<float>& weights,
     std::vector<nvinfer1::Weights>& trtWeights,
     int& weightPtr,
+    std::string weightsType,
     int& inputChannels,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network);

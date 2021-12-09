@@ -73,9 +73,6 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
     parseConfigBlocks();
     orderParams(&m_OutputMasks);
 
-    std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
-    std::vector<nvinfer1::Weights> trtWeights;
-
     nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
     if (parseModel(*network) != NVDSINFER_SUCCESS) {
         network->destroy();
@@ -134,7 +131,7 @@ NvDsInferStatus Yolo::parseModel(nvinfer1::INetworkDefinition& network) {
     destroyNetworkUtils();
 
     std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
-    std::cout << "Building YOLO network" << std::endl;
+    std::cout << "Building YOLO network\n" << std::endl;
     NvDsInferStatus status = buildYoloNetwork(weights, network);
 
     if (status == NVDSINFER_SUCCESS) {
@@ -150,6 +147,15 @@ NvDsInferStatus Yolo::buildYoloNetwork(
     std::vector<float>& weights, nvinfer1::INetworkDefinition& network) {
     int weightPtr = 0;
     int channels = m_InputC;
+
+    std::string weightsType;
+
+    if (m_WtsFilePath.find(".weights") != std::string::npos) {
+        weightsType = "weights";
+    }
+    else {
+        weightsType = "wts";
+    }
 
     nvinfer1::ITensor* data =
         network.addInput(m_InputBlobName.c_str(), nvinfer1::DataType::kFLOAT,
@@ -171,7 +177,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         
         else if (m_ConfigBlocks.at(i).at("type") == "convolutional") {
             std::string inputVol = dimsToString(previous->getDimensions());
-            nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, channels, previous, &network);
+            nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, previous, &network);
             previous = out->getOutput(0);
             assert(previous != nullptr);
             channels = getNumChannels(previous);
@@ -272,10 +278,10 @@ NvDsInferStatus Yolo::buildYoloNetwork(
                 beta_nms = std::stof(m_ConfigBlocks.at(i).at("beta_nms"));
             }
             nvinfer1::IPluginV2* yoloPlugin
-                = new YoloLayer(m_OutputTensors.at(outputTensorCount).numBBoxes,
-                                  m_OutputTensors.at(outputTensorCount).numClasses,
-                                  m_OutputTensors.at(outputTensorCount).gridSizeX,
-                                  m_OutputTensors.at(outputTensorCount).gridSizeY,
+                = new YoloLayer(curYoloTensor.numBBoxes,
+                                  curYoloTensor.numClasses,
+                                  curYoloTensor.gridSizeX,
+                                  curYoloTensor.gridSizeY,
                                   1, new_coords, scale_x_y, beta_nms,
                                   curYoloTensor.anchors,
                                   m_OutputMasks);
@@ -436,7 +442,7 @@ void Yolo::parseConfigBlocks()
                 m_LetterBox = 0;
             }
         }
-        else if ((block.at("type") == "region") || (block.at("type") == "yolo"))
+        else if ((block.at("type") == "region") || (block.at("type") == "yolo") || (block.at("type") == "detect"))
         {
             assert((block.find("num") != block.end())
                    && std::string("Missing 'num' param in " + block.at("type") + " layer").c_str());
@@ -466,9 +472,7 @@ void Yolo::parseConfigBlocks()
                 }
             }
 
-            
             if (block.find("mask") != block.end()) {
-
                 std::string maskString = block.at("mask");
                 std::vector<int> pMASKS;
                 while (!maskString.empty())

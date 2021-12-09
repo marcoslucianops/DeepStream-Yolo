@@ -12,7 +12,10 @@ nvinfer1::ILayer* activationLayer(
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
 {
-    if (activation == "relu")
+    if (activation == "linear") {
+        // Pass
+    }
+    else if (activation == "relu")
     {
         nvinfer1::IActivationLayer* relu = network->addActivation(
             *input, nvinfer1::ActivationType::kRELU);
@@ -77,6 +80,25 @@ nvinfer1::ILayer* activationLayer(
         std::string mishLayerName = "mish_" + std::to_string(layerIdx);
         mish->setName(mishLayerName.c_str());
         output = mish;
+    }
+    else if (activation == "silu")
+    {
+        nvinfer1::IActivationLayer* sigmoid = network->addActivation(
+            *input, nvinfer1::ActivationType::kSIGMOID);
+        assert(sigmoid != nullptr);
+        std::string sigmoidLayerName = "sigmoid_" + std::to_string(layerIdx);
+        sigmoid->setName(sigmoidLayerName.c_str());
+        nvinfer1::IElementWiseLayer* silu = network->addElementWise(
+            *sigmoid->getOutput(0), *input,
+            nvinfer1::ElementWiseOperation::kPROD);
+        assert(silu != nullptr);
+        std::string siluLayerName = "silu_" + std::to_string(layerIdx);
+        silu->setName(siluLayerName.c_str());
+        output = silu;
+    }
+    else {
+        std::cerr << "Activation not supported: " << activation << std::endl;
+        std::abort();
     }
     return output;
 }

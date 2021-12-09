@@ -12,6 +12,7 @@ nvinfer1::ILayer* convolutionalLayer(
     std::vector<float>& weights,
     std::vector<nvinfer1::Weights>& trtWeights,
     int& weightPtr,
+    std::string weightsType,
     int& inputChannels,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
@@ -56,57 +57,111 @@ nvinfer1::ILayer* convolutionalLayer(
     nvinfer1::Weights convWt{nvinfer1::DataType::kFLOAT, nullptr, size};
     nvinfer1::Weights convBias{nvinfer1::DataType::kFLOAT, nullptr, bias};
 
-    if (batchNormalize == false)
-    {
-        float* val = new float[filters];
-        for (int i = 0; i < filters; ++i)
+    if (weightsType == "weights") {
+        if (batchNormalize == false)
         {
-            val[i] = weights[weightPtr];
-            weightPtr++;
+            float* val = new float[filters];
+            for (int i = 0; i < filters; ++i)
+            {
+                val[i] = weights[weightPtr];
+                weightPtr++;
+            }
+            convBias.values = val;
+            trtWeights.push_back(convBias);
+            val = new float[size];
+            for (int i = 0; i < size; ++i)
+            {
+                val[i] = weights[weightPtr];
+                weightPtr++;
+            }
+            convWt.values = val;
+            trtWeights.push_back(convWt);
         }
-        convBias.values = val;
-        trtWeights.push_back(convBias);
-        val = new float[size];
-        for (int i = 0; i < size; ++i)
+        else
         {
-            val[i] = weights[weightPtr];
-            weightPtr++;
+            for (int i = 0; i < filters; ++i)
+            {
+                bnBiases.push_back(weights[weightPtr]);
+                weightPtr++;
+            }
+            for (int i = 0; i < filters; ++i)
+            {
+                bnWeights.push_back(weights[weightPtr]);
+                weightPtr++;
+            }
+            for (int i = 0; i < filters; ++i)
+            {
+                bnRunningMean.push_back(weights[weightPtr]);
+                weightPtr++;
+            }
+            for (int i = 0; i < filters; ++i)
+            {
+                bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+                weightPtr++;
+            }
+            float* val = new float[size];
+            for (int i = 0; i < size; ++i)
+            {
+                val[i] = weights[weightPtr];
+                weightPtr++;
+            }
+            convWt.values = val;
+            trtWeights.push_back(convWt);
+            trtWeights.push_back(convBias);
         }
-        convWt.values = val;
-        trtWeights.push_back(convWt);
     }
-    else
-    {
-        for (int i = 0; i < filters; ++i)
+    else {
+        if (batchNormalize == false)
         {
-            bnBiases.push_back(weights[weightPtr]);
-            weightPtr++;
+            float* val = new float[size];
+            for (int i = 0; i < size; ++i)
+            {
+                val[i] = weights[weightPtr];
+                weightPtr++;
+            }
+            convWt.values = val;
+            trtWeights.push_back(convWt);
+            val = new float[filters];
+            for (int i = 0; i < filters; ++i)
+            {
+                val[i] = weights[weightPtr];
+                weightPtr++;
+            }
+            convBias.values = val;
+            trtWeights.push_back(convBias);
         }
-
-        for (int i = 0; i < filters; ++i)
+        else
         {
-            bnWeights.push_back(weights[weightPtr]);
-            weightPtr++;
+            float* val = new float[size];
+            for (int i = 0; i < size; ++i)
+            {
+                val[i] = weights[weightPtr];
+                weightPtr++;
+            }
+            convWt.values = val;
+            for (int i = 0; i < filters; ++i)
+            {
+                bnWeights.push_back(weights[weightPtr]);
+                weightPtr++;
+            }
+            for (int i = 0; i < filters; ++i)
+            {
+                bnBiases.push_back(weights[weightPtr]);
+                weightPtr++;
+            }
+            for (int i = 0; i < filters; ++i)
+            {
+                bnRunningMean.push_back(weights[weightPtr]);
+                weightPtr++;
+            }
+            for (int i = 0; i < filters; ++i)
+            {
+                bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+                weightPtr++;
+            }
+            trtWeights.push_back(convWt);
+            trtWeights.push_back(convBias);
         }
-        for (int i = 0; i < filters; ++i)
-        {
-            bnRunningMean.push_back(weights[weightPtr]);
-            weightPtr++;
-        }
-        for (int i = 0; i < filters; ++i)
-        {
-            bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
-            weightPtr++;
-        }
-        float* val = new float[size];
-        for (int i = 0; i < size; ++i)
-        {
-            val[i] = weights[weightPtr];
-            weightPtr++;
-        }
-        convWt.values = val;
-        trtWeights.push_back(convWt);
-        trtWeights.push_back(convBias);
     }
 
     nvinfer1::IConvolutionLayer* conv = network->addConvolution(

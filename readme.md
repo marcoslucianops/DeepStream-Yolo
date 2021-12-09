@@ -6,13 +6,11 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 
 * New documentation for multiple models
 * DeepStream tutorials
-* Native PyTorch support (YOLOv5 and YOLOR)
+* Native YOLOR support
 * Native PP-YOLO support
 * Models benchmark
 * GPU NMS
 * Dynamic batch-size
-
-**NOTE**: The support for YOLOv5 was removed in this current update. If you want the old repo version, please use the commit 297e0e9 and DeepStream 5.1 requirements.
 
 ### Improvements on this repository
 
@@ -24,6 +22,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
+* **YOLOv5 6.0 native support**
 
 ##
 
@@ -33,6 +32,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [Tested models](#tested-models)
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
+* [YOLOv5 usage](#yolov5-usage)
 * [INT8 calibration](#int8-calibration)
 * [Using your custom model](docs/customModels.md)
 
@@ -48,9 +48,14 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [NVIDIA DeepStream SDK 6.0](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
+**For YOLOv5**:
+
+* [PyTorch >= 1.7.0](https://pytorch.org/get-started/locally/)
+
 ##
 
 ### Tested models
+* [YOLOv5 6.0](https://github.com/ultralytics/yolov5) [[pt]](https://github.com/ultralytics/yolov5/releases/tag/v6.0)
 * [YOLOv4x-Mish](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4x-mish.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4x-mish.weights)]
 * [YOLOv4-CSP](https://github.com/WongKinYiu/ScaledYOLOv4/tree/yolov4-csp) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-csp.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-csp.weights)]
 * [YOLOv4](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights)]
@@ -265,6 +270,7 @@ deepstream-app -c deepstream_app_config.txt
 **NOTE**: If you want to use YOLOv2 or YOLOv2-Tiny models, change the deepstream_app_config.txt file before run it
 
 ```
+...
 [primary-gie]
 enable=1
 gpu-id=0
@@ -274,6 +280,127 @@ config-file=config_infer_primary_yoloV2.txt
 ```
 
 **NOTE**: The config_infer_primary.txt file uses cluster-mode=4 and NMS = 0.45 (via code) when beta_nms isn't available (when beta_nms is available, NMS = beta_nms), while the config_infer_primary_yoloV2.txt file uses cluster-mode=2 and nms-iou-threshold=0.45 to set NMS.
+
+##
+
+### YOLOv5 usage
+
+#### 1. Copy gen_wts_yoloV5.py from DeepStream-Yolo/utils to ultralytics/yolov5 folder
+
+#### 2. Open the ultralytics/yolov5 folder
+
+#### 3. Download pt file from [ultralytics/yolov5](https://github.com/ultralytics/yolov5/releases/tag/v6.0) website (example for YOLOv5n)
+
+```
+wget https://github.com/ultralytics/yolov5/releases/download/v6.0/yolov5n.pt
+```
+
+#### 4. Generate cfg and wts files (example for YOLOv5n)
+
+```
+python3 gen_wts_yoloV5.py -w yolov5n.pt
+```
+
+#### 5. Copy generated cfg and wts files to DeepStream-Yolo folder
+
+#### 6. Open DeepStream-Yolo folder
+
+#### 7. Compile lib
+
+* x86 platform
+
+```
+CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+```
+
+* Jetson platform
+
+```
+CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+```
+
+#### 8. Edit config_infer_primary_yoloV5.txt for your model (example for YOLOv5n)
+
+```
+[property]
+...
+# 0=RGB, 1=BGR, 2=GRAYSCALE
+model-color-format=0
+# CFG
+custom-network-config=yolov5n.cfg
+# WTS
+model-file=yolov5n.wts
+# Generated TensorRT model (will be created if it doesn't exist)
+model-engine-file=model_b1_gpu0_fp32.engine
+# Model labels file
+labelfile-path=labels.txt
+# Batch size
+batch-size=1
+# 0=FP32, 1=INT8, 2=FP16 mode
+network-mode=0
+# Number of classes in label file
+num-detected-classes=80
+...
+[class-attrs-all]
+# CONF_THRESH
+pre-cluster-threshold=0.25
+```
+
+#### 8. Change the deepstream_app_config.txt file
+
+```
+...
+[primary-gie]
+enable=1
+gpu-id=0
+gie-unique-id=1
+nvbuf-memory-type=0
+config-file=config_infer_primary_yoloV5.txt
+```
+
+#### 9. Run
+
+```
+deepstream-app -c deepstream_app_config.txt
+```
+
+**NOTE**: For YOLOv5 P6 or custom models, check the gen_wts_yoloV5.py args and use them according to your model
+
+* Input weights (.pt) file path **(required)**
+
+```
+-w or --weights
+```
+
+* Input cfg (.yaml) file path
+
+```
+-c or --yaml
+```
+
+* Model width **(default = 640 / 1280 [P6])**
+
+```
+-mw or --width
+```
+
+* Model height **(default = 640 / 1280 [P6])**
+
+```
+-mh or --height
+```
+
+* Model channels **(default = 3)**
+
+```
+-mc or --channels
+```
+
+* P6 model
+
+```
+--p6
+```
 
 ##
 
