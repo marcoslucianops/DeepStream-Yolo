@@ -8,6 +8,7 @@
 
 #include <string>
 #include <cassert>
+#include <iostream>
 
 #include "NvInfer.h"
 
