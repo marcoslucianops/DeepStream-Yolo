@@ -50,7 +50,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [NVIDIA DeepStream SDK 6.0](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
-**For YOLOv5**:
+**For YOLOv5 and YOLOR**:
 
 * [PyTorch >= 1.7.0](https://pytorch.org/get-started/locally/)
 
