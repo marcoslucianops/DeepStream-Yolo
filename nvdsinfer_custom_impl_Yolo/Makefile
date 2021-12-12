@@ -63,7 +63,10 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            layers/activation_layer.cpp \
            utils.cpp \
            yolo.cpp \
-           yoloForward.cu
+           yoloForward.cu \
+           yoloForward_v2.cu \
+           yoloForward_nc.cu \
+           yoloForward_r.cu
 
 ifeq ($(OPENCV), 1)
 SRCFILES+= calibrator.cpp

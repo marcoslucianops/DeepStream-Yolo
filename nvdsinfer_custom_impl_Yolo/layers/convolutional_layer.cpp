@@ -164,13 +164,13 @@ nvinfer1::ILayer* convolutionalLayer(
         }
     }
 
-    nvinfer1::IConvolutionLayer* conv = network->addConvolution(
+    nvinfer1::IConvolutionLayer* conv = network->addConvolutionNd(
         *input, filters, nvinfer1::DimsHW{kernelSize, kernelSize}, convWt, convBias);
     assert(conv != nullptr);
     std::string convLayerName = "conv_" + std::to_string(layerIdx);
     conv->setName(convLayerName.c_str());
-    conv->setStride(nvinfer1::DimsHW{stride, stride});
-    conv->setPadding(nvinfer1::DimsHW{pad, pad});
+    conv->setStrideNd(nvinfer1::DimsHW{stride, stride});
+    conv->setPaddingNd(nvinfer1::DimsHW{pad, pad});
 
     if (block.find("groups") != block.end())
     {

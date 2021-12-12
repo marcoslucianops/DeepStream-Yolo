@@ -35,25 +35,40 @@ std::vector<float> kANCHORS;
 std::vector<std::vector<int>> kMASK;
 
 namespace {
-template <typename T>
-void write(char*& buffer, const T& val)
-{
-    *reinterpret_cast<T*>(buffer) = val;
-    buffer += sizeof(T);
-}
+    template <typename T>
+    void write(char*& buffer, const T& val)
+    {
+        *reinterpret_cast<T*>(buffer) = val;
+        buffer += sizeof(T);
+    }
 
-template <typename T>
-void read(const char*& buffer, T& val)
-{
-    val = *reinterpret_cast<const T*>(buffer);
-    buffer += sizeof(T);
-}
+    template <typename T>
+    void read(const char*& buffer, T& val)
+    {
+        val = *reinterpret_cast<const T*>(buffer);
+        buffer += sizeof(T);
+    }
 }
 
 cudaError_t cudaYoloLayer (
     const void* input, void* output, const uint& batchSize,
     const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
-    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const uint modelCoords, const float modelScale, const uint modelType);
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float modelScale);
+
+cudaError_t cudaYoloLayer_v2 (
+    const void* input, void* output, const uint& batchSize,
+    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream);
+
+cudaError_t cudaYoloLayer_nc (
+    const void* input, void* output, const uint& batchSize,
+    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float modelScale);
+
+cudaError_t cudaYoloLayer_r (
+    const void* input, void* output, const uint& batchSize,
+    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float modelScale);
 
 YoloLayer::YoloLayer (const void* data, size_t length)
 {
@@ -144,9 +159,28 @@ int YoloLayer::enqueue(
     int batchSize, void const* const* inputs, void* const* outputs, void* workspace,	
     cudaStream_t stream) noexcept
 {
-    CHECK(cudaYoloLayer(
-              inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
-              m_OutputSize, stream, m_new_coords, m_scale_x_y, m_type));
+    if (m_type == 2) { // YOLOR incorrect param
+        CHECK(cudaYoloLayer_r(
+                inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+                m_OutputSize, stream, m_scale_x_y));
+    }
+    else if (m_type == 1) {
+        if (m_new_coords) {
+            CHECK(cudaYoloLayer_nc(
+                    inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+                    m_OutputSize, stream, m_scale_x_y));
+        }
+        else {
+            CHECK(cudaYoloLayer(
+                    inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+                    m_OutputSize, stream, m_scale_x_y));
+        }
+    }
+    else {
+        CHECK(cudaYoloLayer_v2(
+                inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+                m_OutputSize, stream));
+    }
     return 0;
 }
 

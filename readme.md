@@ -16,7 +16,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Darknet CFG params parser (it doesn't need to edit nvdsparsebbox_Yolo.cpp or another file for native models)
 * Support for new_coords, beta_nms and scale_x_y params
 * Support for new models
-* Support for new layers types
+* Support for new layers
 * Support for new activations
 * Support for convolutional groups
 * Support for INT8 calibration

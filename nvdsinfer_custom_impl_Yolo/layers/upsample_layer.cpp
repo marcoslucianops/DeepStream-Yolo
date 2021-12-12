@@ -16,7 +16,7 @@ nvinfer1::ILayer* upsampleLayer(
 
     nvinfer1::IResizeLayer* resize_layer = network->addResize(*input);
     resize_layer->setResizeMode(nvinfer1::ResizeMode::kNEAREST);
-    float scale[3] = {1, stride, stride};
+    float scale[3] = {1, static_cast<float>(stride), static_cast<float>(stride)};
     resize_layer->setScales(scale, 3);
     std::string layer_name = "upsample_" + std::to_string(layerIdx);
     resize_layer->setName(layer_name.c_str());

@@ -75,7 +75,7 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
 
     nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
     if (parseModel(*network) != NVDSINFER_SUCCESS) {
-        network->destroy();
+        delete network;
         return nullptr;
     }
 
@@ -122,7 +122,7 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
         std::cerr << "Building engine failed\n" << std::endl;
     }
 
-    network->destroy();
+    delete network;
     delete config;
     return engine;
 }
@@ -232,12 +232,11 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, layerType, "        -", outputVol, "    -");
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "dropout") {
+        else if (m_ConfigBlocks.at(i).at("type") == "dropout") { // Skip dropout layer
             assert(m_ConfigBlocks.at(i).find("probability") != m_ConfigBlocks.at(i).end());
             //float probability = std::stof(m_ConfigBlocks.at(i).at("probability"));
             //nvinfer1::ILayer* out = dropoutLayer(probability, previous, &network);
             //previous = out->getOutput(0);
-            //Skip dropout layer
             assert(previous != nullptr);
             tensorOutputs.push_back(previous);
             printLayerInfo(layerIndex, "dropout", "        -", "        -", "    -");
@@ -300,6 +299,13 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         }
 
         else if (m_ConfigBlocks.at(i).at("type") == "yolo") {
+            uint model_type;
+            if (m_NetworkType.find("yolor") != std::string::npos) {
+                model_type = 2;
+            }
+            else {
+                model_type = 1;
+            }
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
             TensorInfo& curYoloTensor = m_OutputTensors.at(outputTensorCount);
             curYoloTensor.gridSizeY = prevTensorDims.d[1];
@@ -327,7 +333,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(
                                   curYoloTensor.numClasses,
                                   curYoloTensor.gridSizeX,
                                   curYoloTensor.gridSizeY,
-                                  1, new_coords, scale_x_y, beta_nms,
+                                  model_type, new_coords, scale_x_y, beta_nms,
                                   curYoloTensor.anchors,
                                   m_OutputMasks);
             assert(yoloPlugin != nullptr);
