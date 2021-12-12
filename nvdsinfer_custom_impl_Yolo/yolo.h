@@ -27,6 +27,8 @@
 #define _YOLO_H_
 
 #include "layers/convolutional_layer.h"
+#include "layers/implicit_layer.h"
+#include "layers/channels_layer.h"
 #include "layers/dropout_layer.h"
 #include "layers/shortcut_layer.h"
 #include "layers/route_layer.h"

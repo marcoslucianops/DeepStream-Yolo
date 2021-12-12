@@ -6,7 +6,6 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 
 * New documentation for multiple models
 * DeepStream tutorials
-* Native YOLOR support
 * Native PP-YOLO support
 * Models benchmark
 * GPU NMS
@@ -22,7 +21,9 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
+* **Support for implicit and channel layers (YOLOR)**
 * **YOLOv5 6.0 native support**
+* **Initial YOLOR native support**
 
 ##
 
@@ -33,6 +34,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
 * [YOLOv5 usage](#yolov5-usage)
+* [YOLOR usage](#yolor-usage)
 * [INT8 calibration](#int8-calibration)
 * [Using your custom model](docs/customModels.md)
 
@@ -55,6 +57,10 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 ##
 
 ### Tested models
+* [YOLOR-CSP](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp.cfg) [[pt]](https://drive.google.com/file/d/1ZEqGy4kmZyD-Cj3tEFJcLSZenZBDGiyg/view?usp=sharing)
+* [YOLOR-CSP*](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp.cfg) [[pt]](https://drive.google.com/file/d/1OJKgIasELZYxkIjFoiqyn555bcmixUP2/view?usp=sharing)
+* [YOLOR-CSP-X](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp_x.cfg) [[pt]](https://drive.google.com/file/d/1L29rfIPNH1n910qQClGftknWpTBgAv6c/view?usp=sharing)
+* [YOLOR-CSO-X*](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp_x.cfg) [[pt]](https://drive.google.com/file/d/1NbMG3ivuBQ4S8kEhFJ0FIqOQXevGje_w/view?usp=sharing)
 * [YOLOv5 6.0](https://github.com/ultralytics/yolov5) [[pt]](https://github.com/ultralytics/yolov5/releases/tag/v6.0)
 * [YOLOv4x-Mish](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4x-mish.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4x-mish.weights)]
 * [YOLOv4-CSP](https://github.com/WongKinYiu/ScaledYOLOv4/tree/yolov4-csp) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-csp.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-csp.weights)]
@@ -285,7 +291,7 @@ config-file=config_infer_primary_yoloV2.txt
 
 ### YOLOv5 usage
 
-#### 1. Copy gen_wts_yoloV5.py from DeepStream-Yolo/utils to ultralytics/yolov5 folder
+#### 1. Copy gen_wts_yoloV5.py from DeepStream-Yolo/utils to [ultralytics/yolov5](https://github.com/ultralytics/yolov5) folder
 
 #### 2. Open the ultralytics/yolov5 folder
 
@@ -400,6 +406,87 @@ deepstream-app -c deepstream_app_config.txt
 
 ```
 --p6
+```
+
+##
+
+### YOLOR usage
+
+**NOTE**: For now, available only for YOLOR-CSP, YOLOR-CSP*, YOLOR-CSP-X and YOLOR-CSP-X*.
+
+#### 1. Copy gen_wts_yolor.py from DeepStream-Yolo/utils to [yolor](https://github.com/WongKinYiu/yolor) folder
+
+#### 2. Open the yolor folder
+
+#### 3. Download pt file from [yolor](https://github.com/WongKinYiu/yolor) website
+
+#### 4. Generate wts file (example for YOLOR-CSP)
+
+```
+python3 gen_wts_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg
+```
+
+#### 5. Copy cfg and generated wts files to DeepStream-Yolo folder
+
+#### 6. Open DeepStream-Yolo folder
+
+#### 7. Compile lib
+
+* x86 platform
+
+```
+CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+```
+
+* Jetson platform
+
+```
+CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+```
+
+#### 8. Edit config_infer_primary_yolor.txt for your model (example for YOLOR-CSP)
+
+```
+[property]
+...
+# 0=RGB, 1=BGR, 2=GRAYSCALE
+model-color-format=0
+# CFG
+custom-network-config=yolor_csp.cfg
+# WTS
+model-file=yolor_csp.wts
+# Generated TensorRT model (will be created if it doesn't exist)
+model-engine-file=model_b1_gpu0_fp32.engine
+# Model labels file
+labelfile-path=labels.txt
+# Batch size
+batch-size=1
+# 0=FP32, 1=INT8, 2=FP16 mode
+network-mode=0
+# Number of classes in label file
+num-detected-classes=80
+...
+[class-attrs-all]
+# CONF_THRESH
+pre-cluster-threshold=0.25
+```
+
+#### 8. Change the deepstream_app_config.txt file
+
+```
+...
+[primary-gie]
+enable=1
+gpu-id=0
+gie-unique-id=1
+nvbuf-memory-type=0
+config-file=config_infer_primary_yolor.txt
+```
+
+#### 9. Run
+
+```
+deepstream-app -c deepstream_app_config.txt
 ```
 
 ##

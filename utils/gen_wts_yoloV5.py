@@ -8,7 +8,7 @@ from utils.torch_utils import select_device
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="PyTorch conversion")
+    parser = argparse.ArgumentParser(description="PyTorch YOLOv5 conversion")
     parser.add_argument("-w", "--weights", required=True, help="Input weights (.pt) file path (required)")
     parser.add_argument("-c", "--yaml", help="Input cfg (.yaml) file path")
     parser.add_argument("-mw", "--width", help="Model width (default = 640 / 1280 [P6])")
@@ -76,7 +76,7 @@ with open(wts_file, "w") as f:
                 cv1 += "{} {} ".format(k, len(vr))
                 for vv in vr:
                     cv1 += " "
-                    cv1 += struct.pack(">f" ,float(vv)).hex()
+                    cv1 += struct.pack(">f", float(vv)).hex()
                 cv1 += "\n"
                 conv_count += 1
             elif cv1 != "" and ".m." in k:
@@ -86,7 +86,7 @@ with open(wts_file, "w") as f:
                 cv3 += "{} {} ".format(k, len(vr))
                 for vv in vr:
                     cv3 += " "
-                    cv3 += struct.pack(">f" ,float(vv)).hex()
+                    cv3 += struct.pack(">f", float(vv)).hex()
                 cv3 += "\n"
                 cv3_idx = idx
                 conv_count += 1
@@ -98,7 +98,7 @@ with open(wts_file, "w") as f:
                 wts_write += "{} {} ".format(k, len(vr))
                 for vv in vr:
                     wts_write += " "
-                    wts_write += struct.pack(">f" ,float(vv)).hex()
+                    wts_write += struct.pack(">f", float(vv)).hex()
                 wts_write += "\n"
                 conv_count += 1
     f.write("{}\n".format(conv_count))

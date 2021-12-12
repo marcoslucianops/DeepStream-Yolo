@@ -53,6 +53,8 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            nvdsparsebbox_Yolo.cpp \
            yoloPlugins.cpp \
            layers/convolutional_layer.cpp \
+           layers/implicit_layer.cpp \
+           layers/channels_layer.cpp \
            layers/dropout_layer.cpp \
            layers/shortcut_layer.cpp \
            layers/route_layer.cpp \

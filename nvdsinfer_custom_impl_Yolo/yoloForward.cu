@@ -60,6 +60,28 @@ __global__ void gpuYoloLayer(const float* input, float* output, const uint gridS
                 = input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + (5 + i))];
         }
     }
+    else if (new_coords == 0 && scale_x_y != 1) { // YOLOR incorrect param
+        output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]
+            = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]) * 2.0 - 0.5;
+
+        output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]
+            = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]) * 2.0 - 0.5;
+
+        output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 2)]
+            = pow(sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 2)]) * 2, 2);
+
+        output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)]
+            = pow(sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)]) * 2, 2);
+
+        output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)]
+            = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)]);
+
+        for (uint i = 0; i < numOutputClasses; ++i)
+        {
+            output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + (5 + i))]
+                = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + (5 + i))]);
+        }
+    }
     else {
         output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]
             = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]) * alpha + beta;

@@ -187,6 +187,51 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
         }
 
+        else if (m_ConfigBlocks.at(i).at("type") == "implicit_add" || m_ConfigBlocks.at(i).at("type") == "implicit_mul") {
+            std::string type;
+            if (m_ConfigBlocks.at(i).at("type") == "implicit_add") {
+                type = "add";
+            }
+            else if (m_ConfigBlocks.at(i).at("type") == "implicit_mul") {
+                type = "mul";
+            }
+            assert(m_ConfigBlocks.at(i).find("filters") != m_ConfigBlocks.at(i).end());
+            int filters = std::stoi(m_ConfigBlocks.at(i).at("filters"));
+            nvinfer1::ILayer* out = implicitLayer(filters, weights, m_TrtWeights, weightPtr, &network);
+            previous = out->getOutput(0);
+            assert(previous != nullptr);
+            channels = getNumChannels(previous);
+            std::string outputVol = dimsToString(previous->getDimensions());
+            tensorOutputs.push_back(previous);
+            std::string layerType = "implicit_" + type;
+            printLayerInfo(layerIndex, layerType, "        -", outputVol, std::to_string(weightPtr));
+        }
+
+        else if (m_ConfigBlocks.at(i).at("type") == "shift_channels" || m_ConfigBlocks.at(i).at("type") == "control_channels") {
+            std::string type;
+            if (m_ConfigBlocks.at(i).at("type") == "shift_channels") {
+                type = "shift";
+            }
+            else if (m_ConfigBlocks.at(i).at("type") == "control_channels") {
+                type = "control";
+            }
+            assert(m_ConfigBlocks.at(i).find("from") != m_ConfigBlocks.at(i).end());
+            int from = stoi(m_ConfigBlocks.at(i).at("from"));
+            if (from > 0) {
+                from = from - i + 1;
+            }
+            assert((i - 2 >= 0) && (i - 2 < tensorOutputs.size()));
+            assert((i + from - 1 >= 0) && (i + from - 1 < tensorOutputs.size()));
+            assert(i + from - 1 < i - 2);
+            nvinfer1::ILayer* out = channelsLayer(type, previous, tensorOutputs[i + from - 1], &network);
+            previous = out->getOutput(0);
+            assert(previous != nullptr);
+            std::string outputVol = dimsToString(previous->getDimensions());
+            tensorOutputs.push_back(previous);
+            std::string layerType = type + "_channels" + ": " + std::to_string(i + from - 1);
+            printLayerInfo(layerIndex, layerType, "        -", outputVol, "    -");
+        }
+
         else if (m_ConfigBlocks.at(i).at("type") == "dropout") {
             assert(m_ConfigBlocks.at(i).find("probability") != m_ConfigBlocks.at(i).end());
             //float probability = std::stof(m_ConfigBlocks.at(i).at("probability"));
