@@ -65,7 +65,7 @@ Yolo::~Yolo()
     destroyNetworkUtils();
 }
 
-nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
+nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config)
 {
     assert (builder);
 
@@ -84,8 +84,6 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
     if (m_LetterBox == 1) {
         std::cout << "\nNOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file to get better accuracy\n" << std::endl;
     }
-
-    nvinfer1::IBuilderConfig *config = builder->createBuilderConfig();
 
     if (m_NetworkMode == "INT8" && !fileExists(m_Int8CalibPath)) {
         assert(builder->platformHasFastInt8());
@@ -123,7 +121,6 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder)
     }
 
     delete network;
-    delete config;
     return engine;
 }
 

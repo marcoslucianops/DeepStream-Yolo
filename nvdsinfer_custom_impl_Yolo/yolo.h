@@ -74,7 +74,7 @@ public:
     }
     NvDsInferStatus parseModel(nvinfer1::INetworkDefinition& network) override;
 
-    nvinfer1::ICudaEngine *createEngine (nvinfer1::IBuilder* builder);
+    nvinfer1::ICudaEngine *createEngine (nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config);
 
 protected:
     const std::string m_NetworkType;

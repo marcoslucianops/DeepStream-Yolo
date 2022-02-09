@@ -107,7 +107,7 @@ bool NvDsInferYoloCudaEngineGet(nvinfer1::IBuilder * const builder,
     }
 
     Yolo yolo(networkInfo);
-    cudaEngine = yolo.createEngine (builder);
+    cudaEngine = yolo.createEngine (builder, builderConfig);
     if (cudaEngine == nullptr)
     {
         std::cerr << "Failed to build CUDA engine on "
