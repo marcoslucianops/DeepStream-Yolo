@@ -156,7 +156,7 @@ nvinfer1::ILayer* convolutionalLayer(
             }
             for (int i = 0; i < filters; ++i)
             {
-                bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+                bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-3));
                 weightPtr++;
             }
             trtWeights.push_back(convWt);

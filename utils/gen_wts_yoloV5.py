@@ -240,7 +240,7 @@ with open(cfg_file, "w") as c:
                         layer += "\n# SPPF\n"
                         layer += "\n[convolutional]\n"
                         layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
+                        layer += "filters=%d\n" % (get_width(v[3][0], width_multiple) / 2)
                         layer += "size=1\n"
                         layer += "stride=1\n"
                         layer += "pad=1\n"
@@ -250,22 +250,16 @@ with open(cfg_file, "w") as c:
                         layer += "stride=1\n"
                         layer += "size=%d\n" % v[3][1]
                         blocks += 1
-                        layer += "\n[route]\n"
-                        layer += "layers=-2\n"
+                        layer += "\n[maxpool]\n"
+                        layer += "stride=1\n"
+                        layer += "size=%d\n" % v[3][1]
                         blocks += 1
                         layer += "\n[maxpool]\n"
                         layer += "stride=1\n"
                         layer += "size=%d\n" % v[3][1]
                         blocks += 1
                         layer += "\n[route]\n"
-                        layer += "layers=-2\n"
-                        blocks += 1
-                        layer += "\n[maxpool]\n"
-                        layer += "stride=1\n"
-                        layer += "size=%d\n" % v[3][1]
-                        blocks += 1
-                        layer += "\n[route]\n"
-                        layer += "layers=-1, -3, -5, -6\n"
+                        layer += "layers=-4, -3, -2, -1\n"
                         blocks += 1
                         layer += "\n[convolutional]\n"
                         layer += "batch_normalize=1\n"

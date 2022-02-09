@@ -29,7 +29,7 @@ nvbuf-memory-type=0
 [osd]
 enable=1
 gpu-id=0
-border-width=1
+border-width=5
 text-size=15
 text-color=1;1;1;1;
 text-bg-color=0.3;0.3;0.3;1
