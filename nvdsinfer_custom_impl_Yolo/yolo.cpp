@@ -173,8 +173,12 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         }
         
         else if (m_ConfigBlocks.at(i).at("type") == "convolutional") {
+            float eps = 1.0e-5;
+            if (m_NetworkType.find("yolov5") != std::string::npos) {
+                eps = 1.0e-3;
+            }
             std::string inputVol = dimsToString(previous->getDimensions());
-            nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, previous, &network);
+            nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, eps, previous, &network);
             previous = out->getOutput(0);
             assert(previous != nullptr);
             channels = getNumChannels(previous);
@@ -442,6 +446,7 @@ Yolo::parseConfigFile (const std::string cfgFilePath)
     while (getline(file, line))
     {
         if (line.size() == 0) continue;
+        if (line.front() == ' ') continue;
         if (line.front() == '#') continue;
         line = trim(line);
         if (line.front() == '[')

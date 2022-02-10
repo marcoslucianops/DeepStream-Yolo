@@ -7,7 +7,6 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * New documentation for multiple models
 * DeepStream tutorials
 * Native PP-YOLO support
-* Models benchmark
 * GPU NMS
 * Dynamic batch-size
 
@@ -21,9 +20,10 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
-* **Support for implicit and channel layers (YOLOR)**
-* **YOLOv5 6.0 native support**
-* **Initial YOLOR native support**
+* Support for implicit and channel layers (YOLOR)
+* YOLOv5 6.0 native support
+* Initial YOLOR native support
+* **Models benchmarks**
 
 ##
 
@@ -31,6 +31,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 
 * [Requirements](#requirements)
 * [Tested models](#tested-models)
+* [Benchmarks](#benchmarks)
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
 * [YOLOv5 usage](#yolov5-usage)
@@ -57,25 +58,59 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 ##
 
 ### Tested models
-* [YOLOR-CSP](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp.cfg) [[pt]](https://drive.google.com/file/d/1ZEqGy4kmZyD-Cj3tEFJcLSZenZBDGiyg/view?usp=sharing)
-* [YOLOR-CSP*](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp.cfg) [[pt]](https://drive.google.com/file/d/1OJKgIasELZYxkIjFoiqyn555bcmixUP2/view?usp=sharing)
-* [YOLOR-CSP-X](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp_x.cfg) [[pt]](https://drive.google.com/file/d/1L29rfIPNH1n910qQClGftknWpTBgAv6c/view?usp=sharing)
-* [YOLOR-CSO-X*](https://github.com/WongKinYiu/yolor) [[cfg]](https://raw.githubusercontent.com/WongKinYiu/yolor/main/cfg/yolor_csp_x.cfg) [[pt]](https://drive.google.com/file/d/1NbMG3ivuBQ4S8kEhFJ0FIqOQXevGje_w/view?usp=sharing)
-* [YOLOv5 6.0](https://github.com/ultralytics/yolov5) [[pt]](https://github.com/ultralytics/yolov5/releases/tag/v6.0)
-* [YOLOv4x-Mish](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4x-mish.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4x-mish.weights)]
-* [YOLOv4-CSP](https://github.com/WongKinYiu/ScaledYOLOv4/tree/yolov4-csp) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-csp.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-csp.weights)]
-* [YOLOv4](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights)]
-* [YOLOv4-Tiny](https://github.com/AlexeyAB/darknet) [[cfg](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg)] [[weights](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights)]
-* [YOLOv3-SPP](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-spp.cfg)] [[weights](https://pjreddie.com/media/files/yolov3-spp.weights)]
-* [YOLOv3](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg)] [[weights](https://pjreddie.com/media/files/yolov3.weights)]
-* [YOLOv3-Tiny-PRN](https://github.com/WongKinYiu/PartialResidualNetworks) [[cfg](https://raw.githubusercontent.com/WongKinYiu/PartialResidualNetworks/master/cfg/yolov3-tiny-prn.cfg)] [[weights](https://github.com/WongKinYiu/PartialResidualNetworks/raw/master/model/yolov3-tiny-prn.weights)]
-* [YOLOv3-Tiny](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg)] [[weights](https://pjreddie.com/media/files/yolov3-tiny.weights)]
-* [YOLOv3-Lite](https://github.com/dog-qiuqiu/MobileNet-Yolo) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/MobileNet-Yolo/master/MobileNetV2-YOLOv3-Lite/COCO/MobileNetV2-YOLOv3-Lite-coco.cfg)] [[weights](https://github.com/dog-qiuqiu/MobileNet-Yolo/raw/master/MobileNetV2-YOLOv3-Lite/COCO/MobileNetV2-YOLOv3-Lite-coco.weights)]
-* [YOLOv3-Nano](https://github.com/dog-qiuqiu/MobileNet-Yolo) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/MobileNet-Yolo/master/MobileNetV2-YOLOv3-Nano/COCO/MobileNetV2-YOLOv3-Nano-coco.cfg)] [[weights](https://github.com/dog-qiuqiu/MobileNet-Yolo/raw/master/MobileNetV2-YOLOv3-Nano/COCO/MobileNetV2-YOLOv3-Nano-coco.weights)]
-* [YOLO-Fastest 1.1](https://github.com/dog-qiuqiu/Yolo-Fastest) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/Yolo-Fastest/master/ModelZoo/yolo-fastest-1.1_coco/yolo-fastest-1.1-xl.cfg)] [[weights](https://github.com/dog-qiuqiu/Yolo-Fastest/raw/master/ModelZoo/yolo-fastest-1.1_coco/yolo-fastest-1.1-xl.weights)]
-* [YOLO-Fastest-XL 1.1](https://github.com/dog-qiuqiu/Yolo-Fastest) [[cfg](https://raw.githubusercontent.com/dog-qiuqiu/Yolo-Fastest/master/ModelZoo/yolo-fastest-1.1_coco/yolo-fastest-1.1.cfg)] [[weights](https://github.com/dog-qiuqiu/Yolo-Fastest/raw/master/ModelZoo/yolo-fastest-1.1_coco/yolo-fastest-1.1.weights)]
-* [YOLOv2](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov2.cfg)] [[weights](https://pjreddie.com/media/files/yolov2.weights)]
-* [YOLOv2-Tiny](https://github.com/pjreddie/darknet) [[cfg](https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov2-tiny.cfg)] [[weights](https://pjreddie.com/media/files/yolov2-tiny.weights)]
+
+* [Darknet YOLO](https://github.com/AlexeyAB/darknet)
+* [YOLOv5 6.0](https://github.com/ultralytics/yolov5)
+* [YOLOR](https://github.com/WongKinYiu/yolor)
+* [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
+* [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
+
+##
+
+### Benchmarks
+
+```
+nms = 0.45 (changed to beta_nms when used in Darknet cfg file) / 0.6 (YOLOv5 and YOLOR models)
+pre-cluster-threshold = 0.001 (mAP eval) / 0.25 (FPS measurement)
+batch-size = 1
+valid = val2017 (COCO) - 1000 random images for INT8 calibration
+NOTE: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_box=1), YOLOv5 and YOLOR models.
+```
+
+<details><summary>NVIDIA GTX 1050 (4GB Mobile)</summary>
+
+| DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
+|:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
+| YOLOR-CSP-X*       | FP32      | 640        | 0.473        | 0.664   | 0.513    | 7.59                       |
+| YOLOR-CSP-X        | FP32      | 640        | 0.470        | 0.661   | 0.507    | 7.52                       |
+| YOLOR-CSP*         | FP32      | 640        | 0.459        | 0.652   | 0.496    | 13.28                      |
+| YOLOR-CSP          | FP32      | 640        | 0.449        | 0.639   | 0.483    | 13.32                      |
+| YOLOv5x6 6.0       | FP32      | 1280       | 0.504        | 0.681   | 0.547    | 2.22                       |
+| YOLOv5l6 6.0       | FP32      | 1280       | 0.492        | 0.670   | 0.535    | 4.05                       |
+| YOLOv5m6 6.0       | FP32      | 1280       | 0.463        | 0.642   | 0.504    | 7.54                       |
+| YOLOv5s6 6.0       | FP32      | 1280       | 0.394        | 0.572   | 0.424    | 18.64                      |
+| YOLOv5n6 6.0       | FP32      | 1280       | 0.294        | 0.452   | 0.314    | 26.94                      |
+| YOLOv5x 6.0        | FP32      | 640        | 0.469        | 0.654   | 0.509    | 8.24                       |
+| YOLOv5l 6.0        | FP32      | 640        | 0.450        | 0.634   | 0.487    | 14.96                      |
+| YOLOv5m 6.0        | FP32      | 640        | 0.415        | 0.601   | 0.448    | 28.30                      |
+| YOLOv5s 6.0        | FP32      | 640        | 0.334        | 0.516   | 0.355    | 63.55                      |
+| YOLOv5n 6.0        | FP32      | 640        | 0.250        | 0.417   | 0.260    | 110.25                     |
+| YOLOv4-P6          | FP32      | 1280       | 0.499        | 0.685   | 0.542    | 2.57                       |
+| YOLOv4-P5          | FP32      | 896        | 0.472        | 0.659   | 0.513    | 5.48                       |
+| YOLOv4-CSP-X-SWISH | FP32      | 640        | 0.473        | 0.664   | 0.513    | 7.51                       |
+| YOLOv4-CSP-SWISH   | FP32      | 640        | 0.459        | 0.652   | 0.496    | 13.13                      |
+| YOLOv4x-MISH       | FP32      | 640        | 0.459        | 0.650   | 0.495    | 7.53                       |
+| YOLOv4-CSP         | FP32      | 640        | 0.440        | 0.632   | 0.474    | 13.19                      |
+| YOLOv4             | FP32      | 608        | 0.498        | 0.740   | 0.549    | 12.18                      |
+| YOLOv4-Tiny        | FP32      | 416        | 0.215        | 0.403   | 0.206    | 201.20                     |
+| YOLOv3-SPP         | FP32      | 608        | 0.411        | 0.686   | 0.433    | 12.22                      |
+| YOLOv3-Tiny-PRN    | FP32      | 416        | 0.167        | 0.382   | 0.125    | 277.14                     |
+| YOLOv3             | FP32      | 608        | 0.377        | 0.672   | 0.385    | 12.51                      |
+| YOLOv3-Tiny        | FP32      | 416        | 0.095        | 0.203   | 0.079    | 218.42                     |
+| YOLOv2             | FP32      | 608        | 0.286        | 0.541   | 0.273    | 25.28                      |
+| YOLOv2-Tiny        | FP32      | 416        | 0.102        | 0.258   | 0.061    | 231.36                     |
+
+</details>
 
 ##
 

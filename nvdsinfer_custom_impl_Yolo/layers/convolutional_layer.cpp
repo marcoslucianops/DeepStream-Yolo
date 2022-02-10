@@ -14,6 +14,7 @@ nvinfer1::ILayer* convolutionalLayer(
     int& weightPtr,
     std::string weightsType,
     int& inputChannels,
+    float eps,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
 {
@@ -156,7 +157,7 @@ nvinfer1::ILayer* convolutionalLayer(
             }
             for (int i = 0; i < filters; ++i)
             {
-                bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-3));
+                bnRunningVar.push_back(sqrt(weights[weightPtr] + eps));
                 weightPtr++;
             }
             trtWeights.push_back(convWt);

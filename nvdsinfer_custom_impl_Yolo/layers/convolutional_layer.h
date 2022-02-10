@@ -21,6 +21,7 @@ nvinfer1::ILayer* convolutionalLayer(
     int& weightPtr,
     std::string weightsType,
     int& inputChannels,
+    float eps,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network);
 

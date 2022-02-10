@@ -81,7 +81,7 @@ nvinfer1::ILayer* activationLayer(
         mish->setName(mishLayerName.c_str());
         output = mish;
     }
-    else if (activation == "silu")
+    else if (activation == "silu" || activation == "swish")
     {
         nvinfer1::IActivationLayer* sigmoid = network->addActivation(
             *input, nvinfer1::ActivationType::kSIGMOID);
