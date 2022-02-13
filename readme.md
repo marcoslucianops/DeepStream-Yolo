@@ -74,10 +74,21 @@ nms = 0.45 (changed to beta_nms when used in Darknet cfg file) / 0.6 (YOLOv5 and
 pre-cluster-threshold = 0.001 (mAP eval) / 0.25 (FPS measurement)
 batch-size = 1
 valid = val2017 (COCO) - 1000 random images for INT8 calibration
+sample = 1920x1080 video
 NOTE: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_box=1), YOLOv5 and YOLOR models.
 ```
 
-<details><summary>NVIDIA GTX 1050 (4GB Mobile)</summary>
+#### NVIDIA GTX 1050 4GB (Mobile)
+
+YOLOv5n performance comparison
+
+|                       | DeepStream | TensorRTX | Ultralytics |
+|:---------------------:|:----------:|:---------:|:-----------:|
+| FPS (without display) | 110.25     | 87.42     | 97.19       |
+| FPS (with display)    | 105.62     | 73.07     | 50.37       |
+
+<details><summary>More</summary>
+<br>
 
 | DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
 |:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
