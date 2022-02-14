@@ -80,7 +80,14 @@ NOTE: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_
 
 #### NVIDIA GTX 1050 4GB (Mobile)
 
-YOLOv5n performance comparison
+##### YOLOR-CSP performance comparison
+
+|                       | DeepStream | PyTorch |
+|:---------------------:|:----------:|:-------:|
+| FPS (without display) | 13.32      | 10.07   |
+| FPS (with display)    | 12.63      | 9.41    |
+
+##### YOLOv5n performance comparison
 
 |                       | DeepStream | TensorRTX | Ultralytics |
 |:---------------------:|:----------:|:---------:|:-----------:|
