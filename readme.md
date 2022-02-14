@@ -89,7 +89,7 @@ NOTE: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_
 
 ##### YOLOv5n performance comparison
 
-|                       | DeepStream | TensorRTX | Ultralytics |
+|                       | DeepStream | TensorRTx | Ultralytics |
 |:---------------------:|:----------:|:---------:|:-----------:|
 | FPS (without display) | 110.25     | 87.42     | 97.19       |
 | FPS (with display)    | 105.62     | 73.07     | 50.37       |
