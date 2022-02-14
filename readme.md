@@ -20,9 +20,9 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
-* Support for implicit and channel layers (YOLOR)
+* Support for reorg, implicit and channel layers (YOLOR)
 * YOLOv5 6.0 native support
-* Initial YOLOR native support
+* YOLOR native support
 * **Models benchmarks**
 
 ##
@@ -99,6 +99,7 @@ NOTE: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_
 
 | DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
 |:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
+| YOLOR-P6           | FP32      | 1280       | 0.478        | 0.663   | 0.519    | 5.53                       |
 | YOLOR-CSP-X*       | FP32      | 640        | 0.473        | 0.664   | 0.513    | 7.59                       |
 | YOLOR-CSP-X        | FP32      | 640        | 0.470        | 0.661   | 0.507    | 7.52                       |
 | YOLOR-CSP*         | FP32      | 640        | 0.459        | 0.652   | 0.496    | 13.28                      |
@@ -464,8 +465,6 @@ deepstream-app -c deepstream_app_config.txt
 ##
 
 ### YOLOR usage
-
-**NOTE**: For now, available only for YOLOR-CSP, YOLOR-CSP*, YOLOR-CSP-X and YOLOR-CSP-X*.
 
 #### 1. Copy gen_wts_yolor.py from DeepStream-Yolo/utils to [yolor](https://github.com/WongKinYiu/yolor) folder
 

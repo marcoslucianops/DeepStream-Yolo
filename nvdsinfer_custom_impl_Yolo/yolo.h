@@ -34,6 +34,7 @@
 #include "layers/route_layer.h"
 #include "layers/upsample_layer.h"
 #include "layers/maxpool_layer.h"
+#include "layers/reorg_r_layer.h"
 
 #include "nvdsinfer_custom_impl.h"
 

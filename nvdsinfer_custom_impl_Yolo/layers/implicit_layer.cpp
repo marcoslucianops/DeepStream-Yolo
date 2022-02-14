@@ -3,7 +3,6 @@
  * https://www.github.com/marcoslucianops
  */
 
-#include <math.h>
 #include "implicit_layer.h"
 
 nvinfer1::ILayer* implicitLayer(
