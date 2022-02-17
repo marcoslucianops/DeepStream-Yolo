@@ -58,7 +58,7 @@ struct TensorInfo
     uint numClasses{0};
     uint numBBoxes{0};
     uint64_t volume{0};
-    std::vector<uint> masks;
+    std::vector<int> masks;
     std::vector<float> anchors;
     int bindingIndex{-1};
     float* hostBuffer{nullptr};
@@ -86,7 +86,6 @@ protected:
     const std::string m_DeviceType;
     const std::string m_InputBlobName;
     std::vector<TensorInfo> m_OutputTensors;
-    std::vector<std::vector<int>> m_OutputMasks;
     std::vector<std::map<std::string, std::string>> m_ConfigBlocks;
     uint m_InputH;
     uint m_InputW;

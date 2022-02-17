@@ -143,50 +143,32 @@ static void addBBoxProposal(const float bx, const float by, const float bw, cons
 
 static std::vector<NvDsInferParseObjectInfo>
 decodeYoloTensor(
-    const float* detections, const std::vector<int> &mask, const std::vector<float> &anchors,
+    const float* detections,
     const uint gridSizeW, const uint gridSizeH, const uint stride, const uint numBBoxes,
-    const uint numOutputClasses, const uint& netW,
-    const uint& netH,
-    const float confThresh)
+    const uint numOutputClasses, const uint& netW, const uint& netH, const float confThresh)
 {
     std::vector<NvDsInferParseObjectInfo> binfo;
     for (uint y = 0; y < gridSizeH; ++y) {
         for (uint x = 0; x < gridSizeW; ++x) {
             for (uint b = 0; b < numBBoxes; ++b)
             {
-                const float pw = anchors[mask[b] * 2];
-                const float ph = anchors[mask[b] * 2 + 1];
-
                 const int numGridCells = gridSizeH * gridSizeW;
                 const int bbindex = y * gridSizeW + x;
-                const float bx
-                    = x + detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 0)];
-                const float by
-                    = y + detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 1)];
-                const float bw
-                    = pw * detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 2)];
-                const float bh
-                    = ph * detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 3)];
 
-                const float objectness
+                const float bx
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 0)];
+                const float by
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 1)];
+                const float bw
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 2)];
+                const float bh
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 3)];
+
+                const float maxProb
                     = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 4)];
 
-                float maxProb = 0.0f;
-                int maxIndex = -1;
-
-                for (uint i = 0; i < numOutputClasses; ++i)
-                {
-                    float prob
-                        = (detections[bbindex
-                                      + numGridCells * (b * (5 + numOutputClasses) + (5 + i))]);
-
-                    if (prob > maxProb)
-                    {
-                        maxProb = prob;
-                        maxIndex = i;
-                    }
-                }
-                maxProb = objectness * maxProb;
+                const int maxIndex
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 5)];
 
                 if (maxProb > confThresh)
                 {
@@ -200,49 +182,32 @@ decodeYoloTensor(
 
 static std::vector<NvDsInferParseObjectInfo>
 decodeYoloV2Tensor(
-    const float* detections, const std::vector<float> &anchors,
+    const float* detections,
     const uint gridSizeW, const uint gridSizeH, const uint stride, const uint numBBoxes,
-    const uint numOutputClasses, const uint& netW,
-    const uint& netH)
+    const uint numOutputClasses, const uint& netW, const uint& netH)
 {
     std::vector<NvDsInferParseObjectInfo> binfo;
     for (uint y = 0; y < gridSizeH; ++y) {
         for (uint x = 0; x < gridSizeW; ++x) {
             for (uint b = 0; b < numBBoxes; ++b)
             {
-                const float pw = anchors[b * 2];
-                const float ph = anchors[b * 2 + 1];
-
                 const int numGridCells = gridSizeH * gridSizeW;
                 const int bbindex = y * gridSizeW + x;
-                const float bx
-                    = x + detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 0)];
-                const float by
-                    = y + detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 1)];
-                const float bw
-                    = pw * detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 2)];
-                const float bh
-                    = ph * detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 3)];
 
-                const float objectness
+                const float bx
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 0)];
+                const float by
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 1)];
+                const float bw
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 2)] * stride;
+                const float bh
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 3)] * stride;
+
+                const float maxProb
                     = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 4)];
 
-                float maxProb = 0.0f;
-                int maxIndex = -1;
-
-                for (uint i = 0; i < numOutputClasses; ++i)
-                {
-                    float prob
-                        = (detections[bbindex
-                                      + numGridCells * (b * (5 + numOutputClasses) + (5 + i))]);
-
-                    if (prob > maxProb)
-                    {
-                        maxProb = prob;
-                        maxIndex = i;
-                    }
-                }
-                maxProb = objectness * maxProb;
+                const int maxIndex
+                    = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 5)];
 
                 addBBoxProposal(bx, by, bw, bh, stride, netW, netH, maxIndex, maxProb, binfo);
             }
@@ -270,32 +235,30 @@ static bool NvDsInferParseYolo(
     NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList,
-    const std::vector<float> &anchors,
-    const std::vector<std::vector<int>> &masks,
-    const uint &num_classes,
-    const float &beta_nms)
+    const uint &numBBoxes,
+    const uint &numClasses,
+    const float &betaNMS)
 {
+    if (outputLayersInfo.empty()) {
+        std::cerr << "ERROR: Could not find output layer in bbox parsing" << std::endl;;
+        return false;
+    }
+
     const float kCONF_THRESH = detectionParams.perClassThreshold[0];
 
     const std::vector<const NvDsInferLayerInfo*> sortedLayers =
         SortLayers (outputLayersInfo);
 
-    if (sortedLayers.size() != masks.size()) {
-        std::cerr << "ERROR: YOLO output layer.size: " << sortedLayers.size()
-                  << " does not match mask.size: " << masks.size() << std::endl;
-        return false;
-    }
-
-    if (num_classes != detectionParams.numClassesConfigured)
+    if (numClasses != detectionParams.numClassesConfigured)
     {
         std::cerr << "WARNING: Num classes mismatch. Configured: "
                   << detectionParams.numClassesConfigured
-                  << ", detected by network: " << num_classes << std::endl;
+                  << ", detected by network: " << numClasses << std::endl;
     }
 
     std::vector<NvDsInferParseObjectInfo> objects;
 
-    for (uint idx = 0; idx < masks.size(); ++idx) {
+    for (uint idx = 0; idx < sortedLayers.size(); ++idx) {
         const NvDsInferLayerInfo &layer = *sortedLayers[idx]; // 255 x Grid x Grid
 
         assert(layer.inferDims.numDims == 3);
@@ -304,14 +267,13 @@ static bool NvDsInferParseYolo(
         const uint stride = DIVUP(networkInfo.width, gridSizeW);
 
         std::vector<NvDsInferParseObjectInfo> outObjs =
-            decodeYoloTensor((const float*)(layer.buffer), masks[idx], anchors, gridSizeW, gridSizeH, stride, masks[idx].size(),
-                       num_classes, networkInfo.width, networkInfo.height, kCONF_THRESH);
+            decodeYoloTensor((const float*)(layer.buffer), gridSizeW, gridSizeH, stride, numBBoxes,
+                numClasses, networkInfo.width, networkInfo.height, kCONF_THRESH);
         objects.insert(objects.end(), outObjs.begin(), outObjs.end());
     }
 
-
     objectList.clear();
-    objectList = nmsAllClasses(beta_nms, objects, num_classes);
+    objectList = nmsAllClasses(betaNMS, objects, numClasses);
 
     return true;
 }
@@ -321,34 +283,31 @@ static bool NvDsInferParseYoloV2(
     NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList,
-    std::vector<float> &anchors,
-    const uint &num_classes)
+    const uint &numBBoxes,
+    const uint &numClasses)
 {
     if (outputLayersInfo.empty()) {
-        std::cerr << "Could not find output layer in bbox parsing" << std::endl;;
+        std::cerr << "ERROR: Could not find output layer in bbox parsing" << std::endl;;
         return false;
     }
-    const uint kNUM_BBOXES = anchors.size() / 2;
 
     const NvDsInferLayerInfo &layer = outputLayersInfo[0];
 
-    if (num_classes != detectionParams.numClassesConfigured)
+    if (numClasses != detectionParams.numClassesConfigured)
     {
         std::cerr << "WARNING: Num classes mismatch. Configured: "
                   << detectionParams.numClassesConfigured
-                  << ", detected by network: " << num_classes << std::endl;
+                  << ", detected by network: " << numClasses << std::endl;
     }
 
     assert(layer.inferDims.numDims == 3);
     const uint gridSizeH = layer.inferDims.d[1];
     const uint gridSizeW = layer.inferDims.d[2];
     const uint stride = DIVUP(networkInfo.width, gridSizeW);
-    for (auto& anchor : anchors) {
-        anchor *= stride;
-    }
+
     std::vector<NvDsInferParseObjectInfo> objects =
-        decodeYoloV2Tensor((const float*)(layer.buffer), anchors, gridSizeW, gridSizeH, stride, kNUM_BBOXES,
-                   num_classes, networkInfo.width, networkInfo.height);
+        decodeYoloV2Tensor((const float*)(layer.buffer), gridSizeW, gridSizeH, stride, numBBoxes,
+            numClasses, networkInfo.width, networkInfo.height);
 
     objectList = objects;
 
@@ -361,17 +320,18 @@ extern "C" bool NvDsInferParseYolo(
     NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-
+    int model_type = kMODEL_TYPE;
+    int num_bboxes = kNUM_BBOXES;
     int num_classes = kNUM_CLASSES;
     float beta_nms = kBETA_NMS;
-    std::vector<float> anchors = kANCHORS;
-    std::vector<std::vector<int>> mask = kMASK;
 
-    if (mask.size() > 0) {
-        return NvDsInferParseYolo (outputLayersInfo, networkInfo, detectionParams, objectList, anchors, mask, num_classes, beta_nms);
+    if (model_type != 0) {
+        return NvDsInferParseYolo (outputLayersInfo, networkInfo, detectionParams, objectList,
+            num_bboxes, num_classes, beta_nms);
     }
     else {
-        return NvDsInferParseYoloV2 (outputLayersInfo, networkInfo, detectionParams, objectList, anchors, num_classes);
+        return NvDsInferParseYoloV2 (outputLayersInfo, networkInfo, detectionParams, objectList,
+            num_bboxes, num_classes);
     }
 }
 

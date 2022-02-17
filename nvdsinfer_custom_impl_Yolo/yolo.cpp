@@ -31,21 +31,6 @@
 #include "calibrator.h"
 #endif
 
-void orderParams(std::vector<std::vector<int>> *maskVector) {
-    std::vector<std::vector<int>> maskinput = *maskVector;
-    std::vector<int> maskPartial;
-    for (uint i = 0; i < maskinput.size(); i++) {
-		for (uint j = i + 1; j < maskinput.size(); j++) {
-			if (maskinput[i][0] <= maskinput[j][0]) {
-				maskPartial = maskinput[i];
-				maskinput[i] = maskinput[j];
-				maskinput[j] = maskPartial;
-            }
-		}
-	}
-    *maskVector = maskinput;
-}
-
 Yolo::Yolo(const NetworkInfo& networkInfo)
     : m_NetworkType(networkInfo.networkType), // YOLO type
       m_ConfigFilePath(networkInfo.configFilePath), // YOLO cfg
@@ -71,7 +56,6 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder, nvinfer1
 
     m_ConfigBlocks = parseConfigFile(m_ConfigFilePath);
     parseConfigBlocks();
-    orderParams(&m_OutputMasks);
 
     nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
     if (parseModel(*network) != NVDSINFER_SUCCESS) {
@@ -361,12 +345,12 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             }
             nvinfer1::IPluginV2* yoloPlugin
                 = new YoloLayer(curYoloTensor.numBBoxes,
-                                  curYoloTensor.numClasses,
-                                  curYoloTensor.gridSizeX,
-                                  curYoloTensor.gridSizeY,
-                                  model_type, new_coords, scale_x_y, beta_nms,
-                                  curYoloTensor.anchors,
-                                  m_OutputMasks);
+                                curYoloTensor.numClasses,
+                                curYoloTensor.gridSizeX,
+                                curYoloTensor.gridSizeY,
+                                model_type, new_coords, scale_x_y, beta_nms,
+                                curYoloTensor.anchors,
+                                curYoloTensor.masks);
             assert(yoloPlugin != nullptr);
             nvinfer1::IPluginV2Layer* yolo =
                 network.addPluginV2(&previous, 1, *yoloPlugin);
@@ -396,15 +380,15 @@ NvDsInferStatus Yolo::buildYoloNetwork(
                 * (curRegionTensor.numBBoxes * (5 + curRegionTensor.numClasses));
             std::string layerName = "region_" + std::to_string(i);
             curRegionTensor.blobName = layerName;
-            std::vector<std::vector<int>> mask;
+            std::vector<int> mask;
             nvinfer1::IPluginV2* regionPlugin
                 = new YoloLayer(curRegionTensor.numBBoxes,
-                                  curRegionTensor.numClasses,
-                                  curRegionTensor.gridSizeX,
-                                  curRegionTensor.gridSizeY,
-                                  0, 0, 1.0, 0,
-                                  curRegionTensor.anchors,
-                                  mask);
+                                curRegionTensor.numClasses,
+                                curRegionTensor.gridSizeX,
+                                curRegionTensor.gridSizeY,
+                                0, 0, 1.0, 0,
+                                curRegionTensor.anchors,
+                                mask);
             assert(regionPlugin != nullptr);
             nvinfer1::IPluginV2Layer* region =
                 network.addPluginV2(&previous, 1, *regionPlugin);
@@ -541,26 +525,22 @@ void Yolo::parseConfigBlocks()
 
             if (block.find("mask") != block.end()) {
                 std::string maskString = block.at("mask");
-                std::vector<int> pMASKS;
                 while (!maskString.empty())
                 {
                     int npos = maskString.find_first_of(',');
                     if (npos != -1)
                     {
                         int mask = std::stoul(trim(maskString.substr(0, npos)));
-                        pMASKS.push_back(mask);
                         outputTensor.masks.push_back(mask);
                         maskString.erase(0, npos + 1);
                     }
                     else
                     {
                         int mask = std::stoul(trim(maskString));
-                        pMASKS.push_back(mask);
                         outputTensor.masks.push_back(mask);
                         break;
                     }
                 }
-                m_OutputMasks.push_back(pMASKS);
             }
 
             outputTensor.numBBoxes = outputTensor.masks.size() > 0

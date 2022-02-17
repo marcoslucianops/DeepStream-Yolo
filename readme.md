@@ -23,7 +23,8 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for reorg, implicit and channel layers (YOLOR)
 * YOLOv5 6.0 native support
 * YOLOR native support
-* **Models benchmarks**
+* Models benchmarks
+* **GPU YOLO Decoder (moved from CPU to GPU to get better performance)**
 
 ##
 
@@ -43,6 +44,8 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 
 ### Requirements
 
+#### x86 platform
+
 * [Ubuntu 18.04](https://releases.ubuntu.com/18.04.6/)
 * [CUDA 11.4.3](https://developer.nvidia.com/cuda-toolkit)
 * [TensorRT 8.0 GA (8.0.1)](https://developer.nvidia.com/tensorrt)
@@ -51,9 +54,21 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * [NVIDIA DeepStream SDK 6.0](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
-**For YOLOv5 and YOLOR**:
+#### Jetson platform
+
+* [JetPack 4.6](https://developer.nvidia.com/embedded/jetpack)
+* [NVIDIA DeepStream SDK 6.0](https://developer.nvidia.com/deepstream-sdk)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
+### For YOLOv5 and YOLOR
+
+#### x86 platform
 
 * [PyTorch >= 1.7.0](https://pytorch.org/get-started/locally/)
+
+#### Jetson platform
+
+* [PyTorch >= 1.7.0](https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-10-now-available/72048)
 
 ##
 

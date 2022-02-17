@@ -29,10 +29,10 @@
 #include <iostream>
 #include <memory>
 
+int kMODEL_TYPE;
+int kNUM_BBOXES;
 int kNUM_CLASSES;
 float kBETA_NMS;
-std::vector<float> kANCHORS;
-std::vector<std::vector<int>> kMASK;
 
 namespace {
     template <typename T>
@@ -50,25 +50,28 @@ namespace {
     }
 }
 
-cudaError_t cudaYoloLayer (
+cudaError_t cudaYoloLayer_r (
     const void* input, void* output, const uint& batchSize,
     const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
-    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float modelScale);
-
-cudaError_t cudaYoloLayer_v2 (
-    const void* input, void* output, const uint& batchSize,
-    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
-    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream);
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float scaleXY,
+    const void* anchors, const void* mask);
 
 cudaError_t cudaYoloLayer_nc (
     const void* input, void* output, const uint& batchSize,
     const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
-    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float modelScale);
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float scaleXY,
+    const void* anchors, const void* mask);
 
-cudaError_t cudaYoloLayer_r (
+cudaError_t cudaYoloLayer (
     const void* input, void* output, const uint& batchSize,
     const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
-    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float modelScale);
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const float scaleXY,
+    const void* anchors, const void* mask);
+
+cudaError_t cudaYoloLayer_v2 (
+    const void* input, void* output, void* softmax, const uint& batchSize,
+    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+    const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream, const void* anchors);
 
 YoloLayer::YoloLayer (const void* data, size_t length)
 {
@@ -79,10 +82,11 @@ YoloLayer::YoloLayer (const void* data, size_t length)
     read(d, m_GridSizeY);
     read(d, m_OutputSize);
 
-    read(d, m_type);
-    read(d, m_new_coords);
-    read(d, m_scale_x_y);
-    read(d, m_beta_nms);
+    read(d, m_Type);
+    read(d, m_NewCoords);
+    read(d, m_ScaleXY);
+    read(d, m_BetaNMS);
+
     uint anchorsSize;
     read(d, anchorsSize);
     for (uint i = 0; i < anchorsSize; i++) {
@@ -90,35 +94,43 @@ YoloLayer::YoloLayer (const void* data, size_t length)
         read(d, result);
         m_Anchors.push_back(result);
     }
+
     uint maskSize;
     read(d, maskSize);
     for (uint i = 0; i < maskSize; i++) {
-        uint nMask;
-        read(d, nMask);
-        std::vector<int> pMask;
-        for (uint f = 0; f < nMask; f++) {
-            int result;
-            read(d, result);
-            pMask.push_back(result);
-        }
-        m_Mask.push_back(pMask);
+        int result;
+        read(d, result);
+        m_Mask.push_back(result);
     }
+
+    kMODEL_TYPE = m_Type;
+    kNUM_BBOXES = m_NumBoxes;
     kNUM_CLASSES = m_NumClasses;
-    kBETA_NMS = m_beta_nms;
-    kANCHORS = m_Anchors;
-    kMASK = m_Mask;
+    kBETA_NMS = m_BetaNMS;
+
+    if (m_Anchors.size() > 0) {
+        float* m_anchors = m_Anchors.data();
+        CHECK(cudaMallocHost(&mAnchors, m_Anchors.size() * sizeof(float)));
+        CHECK(cudaMemcpy(mAnchors, m_anchors, m_Anchors.size() * sizeof(float), cudaMemcpyHostToDevice));
+    }
+
+    if (m_Mask.size() > 0) {
+        int* m_mask = m_Mask.data();
+        CHECK(cudaMallocHost(&mMask, m_Mask.size() * sizeof(int)));
+        CHECK(cudaMemcpy(mMask, m_mask, m_Mask.size() * sizeof(int), cudaMemcpyHostToDevice));
+    }
 };
 
 YoloLayer::YoloLayer (
-    const uint& numBoxes, const uint& numClasses, const uint& gridSizeX, const uint& gridSizeY, const uint model_type, const uint new_coords, const float scale_x_y, const float beta_nms, const std::vector<float> anchors, std::vector<std::vector<int>> mask) :
+    const uint& numBoxes, const uint& numClasses, const uint& gridSizeX, const uint& gridSizeY, const uint modelType, const uint newCoords, const float scaleXY, const float betaNMS, const std::vector<float> anchors, std::vector<int> mask) :
     m_NumBoxes(numBoxes),
     m_NumClasses(numClasses),
     m_GridSizeX(gridSizeX),
     m_GridSizeY(gridSizeY),
-    m_type(model_type),
-    m_new_coords(new_coords),
-    m_scale_x_y(scale_x_y),
-    m_beta_nms(beta_nms),
+    m_Type(modelType),
+    m_NewCoords(newCoords),
+    m_ScaleXY(scaleXY),
+    m_BetaNMS(betaNMS),
     m_Anchors(anchors),
     m_Mask(mask)
 {
@@ -127,7 +139,29 @@ YoloLayer::YoloLayer (
     assert(m_GridSizeX > 0);
     assert(m_GridSizeY > 0);
     m_OutputSize = m_GridSizeX * m_GridSizeY * (m_NumBoxes * (4 + 1 + m_NumClasses));
+
+    if (m_Anchors.size() > 0) {
+        float* m_anchors = m_Anchors.data();
+        CHECK(cudaMallocHost(&mAnchors, m_Anchors.size() * sizeof(float)));
+        CHECK(cudaMemcpy(mAnchors, m_anchors, m_Anchors.size() * sizeof(float), cudaMemcpyHostToDevice));
+    }
+
+    if (m_Mask.size() > 0) {
+        int* m_mask = m_Mask.data();
+        CHECK(cudaMallocHost(&mMask, m_Mask.size() * sizeof(int)));
+        CHECK(cudaMemcpy(mMask, m_mask, m_Mask.size() * sizeof(int), cudaMemcpyHostToDevice));
+    }
 };
+
+YoloLayer::~YoloLayer()
+{
+    if (m_Anchors.size() > 0) {
+        CHECK(cudaFreeHost(mAnchors));
+    }
+    if (m_Mask.size() > 0) {
+        CHECK(cudaFreeHost(mMask));
+    }
+}
 
 nvinfer1::Dims
 YoloLayer::getOutputDimensions(
@@ -159,27 +193,33 @@ int YoloLayer::enqueue(
     int batchSize, void const* const* inputs, void* const* outputs, void* workspace,	
     cudaStream_t stream) noexcept
 {
-    if (m_type == 2) { // YOLOR incorrect param
+    if (m_Type == 2) { // YOLOR incorrect param: scale_x_y = 2.0
         CHECK(cudaYoloLayer_r(
-                inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
-                m_OutputSize, stream, m_scale_x_y));
+            inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+            m_OutputSize, stream, 2.0, mAnchors, mMask));
     }
-    else if (m_type == 1) {
-        if (m_new_coords) {
+    else if (m_Type == 1) {
+        if (m_NewCoords) {
             CHECK(cudaYoloLayer_nc(
-                    inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
-                    m_OutputSize, stream, m_scale_x_y));
+                inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+                m_OutputSize, stream, m_ScaleXY, mAnchors, mMask));
         }
         else {
             CHECK(cudaYoloLayer(
-                    inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
-                    m_OutputSize, stream, m_scale_x_y));
+                inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+                m_OutputSize, stream, m_ScaleXY, mAnchors, mMask));
         }
     }
     else {
+        void* softmax;
+        cudaMallocHost(&softmax, sizeof(outputs[0]));
+        cudaMemcpy(softmax, outputs[0], sizeof(outputs[0]), cudaMemcpyHostToDevice);
+
         CHECK(cudaYoloLayer_v2(
-                inputs[0], outputs[0], batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
-                m_OutputSize, stream));
+            inputs[0], outputs[0], softmax, batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
+            m_OutputSize, stream, mAnchors));
+
+        CHECK(cudaFreeHost(softmax));
     }
     return 0;
 }
@@ -193,13 +233,10 @@ size_t YoloLayer::getSerializationSize() const noexcept
     int maskSum = 1;
     for (uint i = 0; i < m_Mask.size(); i++) {
         maskSum += 1;
-        for (uint f = 0; f < m_Mask[i].size(); f++) {
-            maskSum += 1;
-        }
     }
 
-    return sizeof(m_NumBoxes) + sizeof(m_NumClasses) + sizeof(m_GridSizeX) + sizeof(m_GridSizeY) + sizeof(m_OutputSize) + sizeof(m_type)
-            + sizeof(m_new_coords) + sizeof(m_scale_x_y) + sizeof(m_beta_nms) + anchorsSum * sizeof(float) + maskSum * sizeof(int);
+    return sizeof(m_NumBoxes) + sizeof(m_NumClasses) + sizeof(m_GridSizeX) + sizeof(m_GridSizeY) + sizeof(m_OutputSize) + sizeof(m_Type)
+            + sizeof(m_NewCoords) + sizeof(m_ScaleXY) + sizeof(m_BetaNMS) + anchorsSum * sizeof(float) + maskSum * sizeof(int);
 }
 
 void YoloLayer::serialize(void* buffer) const noexcept
@@ -211,33 +248,32 @@ void YoloLayer::serialize(void* buffer) const noexcept
     write(d, m_GridSizeY);
     write(d, m_OutputSize);
 
-    write(d, m_type);
-    write(d, m_new_coords);
-    write(d, m_scale_x_y);
-    write(d, m_beta_nms);
+    write(d, m_Type);
+    write(d, m_NewCoords);
+    write(d, m_ScaleXY);
+    write(d, m_BetaNMS);
+
     uint anchorsSize = m_Anchors.size();
     write(d, anchorsSize);
     for (uint i = 0; i < anchorsSize; i++) {
         write(d, m_Anchors[i]);
     }
+
     uint maskSize = m_Mask.size();
     write(d, maskSize);
     for (uint i = 0; i < maskSize; i++) {
-        uint pMaskSize = m_Mask[i].size();
-        write(d, pMaskSize);
-        for (uint f = 0; f < pMaskSize; f++) {
-            write(d, m_Mask[i][f]);
-        }
+        write(d, m_Mask[i]);
     }
+
+    kMODEL_TYPE = m_Type;
+    kNUM_BBOXES = m_NumBoxes;
     kNUM_CLASSES = m_NumClasses;
-    kBETA_NMS = m_beta_nms;
-    kANCHORS = m_Anchors;
-    kMASK = m_Mask;
+    kBETA_NMS = m_BetaNMS;
 }
 
 nvinfer1::IPluginV2* YoloLayer::clone() const noexcept
 {
-    return new YoloLayer (m_NumBoxes, m_NumClasses, m_GridSizeX, m_GridSizeY, m_type, m_new_coords, m_scale_x_y, m_beta_nms, m_Anchors, m_Mask);
+    return new YoloLayer (m_NumBoxes, m_NumClasses, m_GridSizeX, m_GridSizeY, m_Type, m_NewCoords, m_ScaleXY, m_BetaNMS, m_Anchors, m_Mask);
 }
 
 REGISTER_TENSORRT_PLUGIN(YoloLayerPluginCreator);

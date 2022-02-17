@@ -57,8 +57,9 @@ class YoloLayer : public nvinfer1::IPluginV2
 public:
     YoloLayer (const void* data, size_t length);
     YoloLayer (const uint& numBoxes, const uint& numClasses, const uint& gridSizeX, const uint& gridSizeY,
-                const uint model_type, const uint new_coords, const float scale_x_y, const float beta_nms,
-                const std::vector<float> anchors, const std::vector<std::vector<int>> mask);
+                const uint modelType, const uint newCoords, const float scaleXY, const float betaNMS,
+                const std::vector<float> anchors, const std::vector<int> mask);
+    ~YoloLayer ();
     const char* getPluginType () const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
     const char* getPluginVersion () const noexcept override { return YOLOLAYER_PLUGIN_VERSION; }
     int getNbOutputs () const noexcept override { return 1; }
@@ -101,12 +102,15 @@ private:
     uint64_t m_OutputSize {0};
     std::string m_Namespace {""};
 
-    uint m_type {0};
-    uint m_new_coords {0};
-    float m_scale_x_y {0};
-    float m_beta_nms {0};
+    uint m_Type {0};
+    uint m_NewCoords {0};
+    float m_ScaleXY {0};
+    float m_BetaNMS {0};
     std::vector<float> m_Anchors;
-    std::vector<std::vector<int>> m_Mask;
+    std::vector<int> m_Mask;
+
+    void* mAnchors;
+    void* mMask;
 };
 
 class YoloLayerPluginCreator : public nvinfer1::IPluginCreator
@@ -148,9 +152,9 @@ private:
     std::string m_Namespace {""};
 };
 
+extern int kMODEL_TYPE;
+extern int kNUM_BBOXES;
 extern int kNUM_CLASSES;
 extern float kBETA_NMS;
-extern std::vector<float> kANCHORS;
-extern std::vector<std::vector<int>> kMASK;
 
 #endif // __YOLO_PLUGINS__
