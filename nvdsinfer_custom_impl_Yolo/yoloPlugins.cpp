@@ -212,8 +212,8 @@ int YoloLayer::enqueue(
     }
     else {
         void* softmax;
-        cudaMallocHost(&softmax, sizeof(outputs[0]));
-        cudaMemcpy(softmax, outputs[0], sizeof(outputs[0]), cudaMemcpyHostToDevice);
+        CHECK(cudaMallocHost(&softmax, sizeof(outputs[0])));
+        CHECK(cudaMemcpy(softmax, outputs[0], sizeof(outputs[0]), cudaMemcpyHostToDevice));
 
         CHECK(cudaYoloLayer_v2(
             inputs[0], outputs[0], softmax, batchSize, m_GridSizeX, m_GridSizeY, m_NumClasses, m_NumBoxes,
