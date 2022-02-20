@@ -7,7 +7,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * New documentation for multiple models
 * DeepStream tutorials
 * Native PP-YOLO support
-* GPU NMS
+* GPU NMS [#71](https://github.com/marcoslucianops/DeepStream-Yolo/issues/71#issuecomment-1046270722])
 * Dynamic batch-size
 
 ### Improvements on this repository
