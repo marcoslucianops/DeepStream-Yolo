@@ -24,7 +24,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * YOLOR native support
 * Models benchmarks (**outdated**)
 * **GPU YOLO Decoder (moved from CPU to GPU to get better performance)** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
-* **Improved NMS** [#71](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
+* **Improved NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 
 ##
 
