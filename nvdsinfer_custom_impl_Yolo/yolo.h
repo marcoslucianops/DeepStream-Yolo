@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-
+ *
  * Edited by Marcos Luciano
  * https://www.github.com/marcoslucianops
  */
@@ -40,28 +40,25 @@
 
 struct NetworkInfo
 {
+    std::string inputBlobName;
     std::string networkType;
     std::string configFilePath;
     std::string wtsFilePath;
     std::string int8CalibPath;
-    std::string networkMode;
     std::string deviceType;
-    std::string inputBlobName;
+    uint numDetectedClasses;
+    int clusterMode;
+    float iouThreshold;
+    std::string networkMode;
 };
 
 struct TensorInfo
 {
     std::string blobName;
-    uint stride{0};
-    uint gridSizeY{0};
-    uint gridSizeX{0};
-    uint numClasses{0};
-    uint numBBoxes{0};
-    uint64_t volume{0};
-    std::vector<int> masks;
+    uint numBBoxes {0};
+    uint numClasses {0};
     std::vector<float> anchors;
-    int bindingIndex{-1};
-    float* hostBuffer{nullptr};
+    std::vector<int> mask;
 };
 
 class Yolo : public IModelParser {
@@ -78,21 +75,27 @@ public:
     nvinfer1::ICudaEngine *createEngine (nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config);
 
 protected:
+    const std::string m_InputBlobName;
     const std::string m_NetworkType;
     const std::string m_ConfigFilePath;
     const std::string m_WtsFilePath;
     const std::string m_Int8CalibPath;
-    const std::string m_NetworkMode;
     const std::string m_DeviceType;
-    const std::string m_InputBlobName;
-    std::vector<TensorInfo> m_OutputTensors;
-    std::vector<std::map<std::string, std::string>> m_ConfigBlocks;
+    const uint m_NumDetectedClasses;
+    const int m_ClusterMode;
+    const float m_IouThreshold;
+    const std::string m_NetworkMode;
+
     uint m_InputH;
     uint m_InputW;
     uint m_InputC;
     uint64_t m_InputSize;
+    uint m_NumClasses;
     uint m_LetterBox;
+    float m_BetaNMS;
 
+    std::vector<TensorInfo> m_OutputTensors;
+    std::vector<std::map<std::string, std::string>> m_ConfigBlocks;
     std::vector<nvinfer1::Weights> m_TrtWeights;
 
 private:

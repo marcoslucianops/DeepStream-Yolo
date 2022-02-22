@@ -9,8 +9,10 @@
 #include <stdio.h>
 #include <string.h>
 
-__global__ void gpuYoloLayer_nc(const float* input, float* output, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses,
-                               const uint numBBoxes, const float scaleXY, const float* anchors, const int* mask)
+__global__ void gpuYoloLayer_nc(
+    const float* input, float* output, const uint netWidth, const uint netHeight, const uint gridSizeX,
+    const uint gridSizeY, const uint numOutputClasses, const uint numBBoxes, const float scaleXY,
+    const float* anchors, const int* mask)
 {
     uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
     uint y_id = blockIdx.y * blockDim.y + threadIdx.y;
@@ -28,16 +30,20 @@ __global__ void gpuYoloLayer_nc(const float* input, float* output, const uint gr
     const float beta = -0.5 * (scaleXY - 1);
 
     output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]
-        = input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)] * alpha + beta + x_id;
+        = (input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]
+          * alpha + beta + x_id) * netWidth / gridSizeX;
 
     output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]
-        = input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)] * alpha + beta + y_id;
+        = (input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]
+          * alpha + beta + y_id) * netHeight / gridSizeY;
 
     output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 2)]
-        = __powf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 2)] * 2, 2) * anchors[mask[z_id] * 2];
+        = __powf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 2)] * 2, 2)
+          * anchors[mask[z_id] * 2];
 
     output[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)]
-        = __powf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)] * 2, 2) * anchors[mask[z_id] * 2 + 1];
+        = __powf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)] * 2, 2)
+          * anchors[mask[z_id] * 2 + 1];
 
     const float objectness
         = input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)];
@@ -64,24 +70,28 @@ __global__ void gpuYoloLayer_nc(const float* input, float* output, const uint gr
         = maxIndex;
 }
 
-cudaError_t cudaYoloLayer_nc(const void* input, void* output, const uint& batchSize, const uint& gridSizeX, const uint& gridSizeY,
-                            const uint& numOutputClasses, const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream,
-                            const float scaleXY, const void* anchors, const void* mask);
+cudaError_t cudaYoloLayer_nc(
+    const void* input, void* output, const uint& batchSize, const uint& netWidth, const uint& netHeight,
+    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses, const uint& numBBoxes,
+    uint64_t& outputSize, const float& scaleXY, const void* anchors, const void* mask, cudaStream_t stream);
 
-cudaError_t cudaYoloLayer_nc(const void* input, void* output, const uint& batchSize, const uint& gridSizeX, const uint& gridSizeY,
-                            const uint& numOutputClasses, const uint& numBBoxes, uint64_t outputSize, cudaStream_t stream,
-                            const float scaleXY, const void* anchors, const void* mask)
+cudaError_t cudaYoloLayer_nc(
+    const void* input, void* output, const uint& batchSize, const uint& netWidth, const uint& netHeight,
+    const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses, const uint& numBBoxes,
+    uint64_t& outputSize, const float& scaleXY, const void* anchors, const void* mask, cudaStream_t stream)
 {
     dim3 threads_per_block(16, 16, 4);
     dim3 number_of_blocks((gridSizeX / threads_per_block.x) + 1,
                           (gridSizeY / threads_per_block.y) + 1,
                           (numBBoxes / threads_per_block.z) + 1);
+
     for (unsigned int batch = 0; batch < batchSize; ++batch)
     {
         gpuYoloLayer_nc<<<number_of_blocks, threads_per_block, 0, stream>>>(
             reinterpret_cast<const float*>(input) + (batch * outputSize),
-            reinterpret_cast<float*>(output) + (batch * outputSize), gridSizeX, gridSizeY, numOutputClasses,
-            numBBoxes, scaleXY, reinterpret_cast<const float*>(anchors), reinterpret_cast<const int*>(mask));
+            reinterpret_cast<float*>(output) + (batch * outputSize),
+            netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, scaleXY,
+            reinterpret_cast<const float*>(anchors), reinterpret_cast<const int*>(mask));
     }
     return cudaGetLastError();
 }

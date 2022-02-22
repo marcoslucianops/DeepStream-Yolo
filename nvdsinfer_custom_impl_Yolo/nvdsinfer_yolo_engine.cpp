@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-
+ *
  * Edited by Marcos Luciano
  * https://www.github.com/marcoslucianops
  */
@@ -42,12 +42,15 @@ static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContext
 
     yoloType = yoloCfg.substr(0, yoloCfg.find(".cfg"));
 
-    networkInfo.networkType     = yoloType;
-    networkInfo.configFilePath  = initParams->customNetworkConfigFilePath;
-    networkInfo.wtsFilePath     = initParams->modelFilePath;
-    networkInfo.int8CalibPath   = initParams->int8CalibrationFilePath;
-    networkInfo.deviceType      = (initParams->useDLA ? "kDLA" : "kGPU");
-    networkInfo.inputBlobName   = "data";
+    networkInfo.inputBlobName = "data";
+    networkInfo.networkType = yoloType;
+    networkInfo.configFilePath = initParams->customNetworkConfigFilePath;
+    networkInfo.wtsFilePath = initParams->modelFilePath;
+    networkInfo.int8CalibPath = initParams->int8CalibrationFilePath;
+    networkInfo.deviceType = (initParams->useDLA ? "kDLA" : "kGPU");
+    networkInfo.numDetectedClasses = initParams->numDetectedClasses;
+    networkInfo.clusterMode = initParams->clusterMode;
+    networkInfo.iouThreshold = initParams->perClassDetectionParams->nmsIOUThreshold;
 
     if(initParams->networkMode == 0) {
         networkInfo.networkMode = "FP32";

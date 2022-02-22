@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-
+ *
  * Edited by Marcos Luciano
  * https://www.github.com/marcoslucianops
  */
@@ -147,12 +147,6 @@ int getNumChannels(nvinfer1::ITensor* t)
     assert(d.nbDims == 3);
 
     return d.d[0];
-}
-
-uint64_t get3DTensorVolume(nvinfer1::Dims inputDims)
-{
-    assert(inputDims.nbDims == 3);
-    return inputDims.d[0] * inputDims.d[1] * inputDims.d[2];
 }
 
 void printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput,

@@ -2,12 +2,11 @@
 
 NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 
-### Future updates (comming soon, stay tuned)
+### Future updates
 
 * New documentation for multiple models
 * DeepStream tutorials
 * Native PP-YOLO support
-* GPU NMS [#71](https://github.com/marcoslucianops/DeepStream-Yolo/issues/71#issuecomment-1046270722])
 * Dynamic batch-size
 
 ### Improvements on this repository
@@ -23,8 +22,9 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for reorg, implicit and channel layers (YOLOR)
 * YOLOv5 6.0 native support
 * YOLOR native support
-* Models benchmarks
+* Models benchmarks (**outdated**)
 * **GPU YOLO Decoder (moved from CPU to GPU to get better performance)** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
+* **Improved NMS** [#71](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 
 ##
 
@@ -316,9 +316,9 @@ CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
 ...
 # 0=RGB, 1=BGR, 2=GRAYSCALE
 model-color-format=0
-# CFG
+# YOLO cfg
 custom-network-config=yolov4.cfg
-# Weights
+# YOLO weights
 model-file=yolov4.weights
 # Generated TensorRT model (will be created if it doesn't exist)
 model-engine-file=model_b1_gpu0_fp32.engine
@@ -332,7 +332,9 @@ network-mode=0
 num-detected-classes=80
 ...
 [class-attrs-all]
-# CONF_THRESH
+# IOU threshold
+nms-iou-threshold=0.6
+# Socre threshold
 pre-cluster-threshold=0.25
 ```
 
@@ -353,8 +355,6 @@ gie-unique-id=1
 nvbuf-memory-type=0
 config-file=config_infer_primary_yoloV2.txt
 ```
-
-**NOTE**: The config_infer_primary.txt file uses cluster-mode=4 and NMS = 0.45 (via code) when beta_nms isn't available (when beta_nms is available, NMS = beta_nms), while the config_infer_primary_yoloV2.txt file uses cluster-mode=2 and nms-iou-threshold=0.45 to set NMS.
 
 ##
 
@@ -417,7 +417,9 @@ network-mode=0
 num-detected-classes=80
 ...
 [class-attrs-all]
-# CONF_THRESH
+# IOU threshold
+nms-iou-threshold=0.6
+# Socre threshold
 pre-cluster-threshold=0.25
 ```
 
@@ -534,7 +536,9 @@ network-mode=0
 num-detected-classes=80
 ...
 [class-attrs-all]
-# CONF_THRESH
+# IOU threshold
+nms-iou-threshold=0.6
+# Socre threshold
 pre-cluster-threshold=0.25
 ```
 
@@ -652,4 +656,4 @@ In C++/Python deepstream-test application, your code need be in osd_sink_pad_buf
 
 ##
 
-My projects: https://www.youtube.com/MarcosLucianoTV (new videos and tutorials comming soon)
+My projects: https://www.youtube.com/MarcosLucianoTV

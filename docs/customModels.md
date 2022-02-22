@@ -12,7 +12,7 @@
 ### Requirements
 
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
-* [Pre-treined YOLO model](https://github.com/AlexeyAB/darknet)
+* Pre-treined YOLO model in Darknet or PyTorch
 
 ##
 
@@ -25,36 +25,11 @@ git clone https://github.com/marcoslucianops/DeepStream-Yolo.git
 cd DeepStream-Yolo
 ```
 
-#### 2. Remane the obj.names file to labels.txt and copy it to DeepStream-Yolo directory
+#### 2. Copy your labels file to DeepStream-Yolo directory and remane it to labels.txt
 
-#### 3. Copy the yolo.cfg and yolo.weights files to DeepStream-Yolo directory
+#### 3. Copy the yolo.cfg and yolo.weights/yolo.wts files to DeepStream-Yolo directory
 
-#### 4. Edit config_infer_primary.txt for your model
-
-```
-[property]
-...
-# CFG
-custom-network-config=yolo.cfg
-# Weights
-model-file=yolo.weights
-# Model labels file
-labelfile-path=labels.txt
-...
-```
-
-**NOTE**: If you want to use YOLOv2 or YOLOv2-Tiny models, change the deepstream_app_config.txt file before run it
-
-```
-[primary-gie]
-enable=1
-gpu-id=0
-gie-unique-id=1
-nvbuf-memory-type=0
-config-file=config_infer_primary_yoloV2.txt
-```
-
-**NOTE**: The config_infer_primary.txt file uses cluster-mode=4 and NMS = 0.45 (via code) when beta_nms isn't available (when beta_nms is available, NMS = beta_nms), while the config_infer_primary_yoloV2.txt file uses cluster-mode=2 and nms-iou-threshold=0.45 to set NMS.
+**NOTE**: It's important to keep the YOLO model reference (yolov4_, yolov5_, yolor_, etc) in you cfg and weights/wts file to generate the engine correctly.
 
 ##
 
@@ -192,6 +167,8 @@ nvbuf-memory-type=0
 config-file=config_infer_primary.txt
 ```
 
+**NOTE**: Choose the correct config_infer_primary based on your YOLO model.
+
 ##
 
 ### Understanding and editing config_infer_primary
@@ -211,12 +188,38 @@ model-color-format=0
 
 ##
 
+#### custom-network-config
+
+* Example for custom YOLOv4 model
+
+```
+custom-network-config=yolov4_custom.cfg
+```
+
+##
+
+#### model-file
+
+* Example for custom YOLOv4 model
+
+```
+model-file=yolov4_custom.weights
+```
+
+##
+
 #### model-engine-file 
 
 * Example for batch-size=1 and network-mode=2
 
 ```
 model-engine-file=model_b1_gpu0_fp16.engine
+```
+
+* Example for batch-size=1 and network-mode=1
+
+```
+model-engine-file=model_b1_gpu0_int8.engine
 ```
 
 * Example for batch-size=1 and network-mode=0
@@ -260,15 +263,6 @@ num-detected-classes=80
 
 ##
 
-#### network-type
-
-```
-# 0=Detector, 1=Classifier, 2=Segmentation
-network-type=0
-```
-
-##
-
 #### interval
 
 ```
@@ -278,11 +272,19 @@ interval=0
 
 ##
 
+#### nms-iou-threshold
+
+```
+# IOU threshold
+nms-iou-threshold=0.6
+```
+
+##
+
 #### pre-cluster-threshold
 
 ```
-[class-attrs-all]
-# CONF_THRESH
+# Socre threshold
 pre-cluster-threshold=0.25
 ```
 

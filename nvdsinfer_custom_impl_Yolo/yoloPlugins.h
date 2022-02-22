@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-
+ *
  * Edited by Marcos Luciano
  * https://www.github.com/marcoslucianops
  */
@@ -36,7 +36,7 @@
 
 #include "NvInferPlugin.h"
 
-#define CHECK(status)                                                                              \
+#define CUDA_CHECK(status)                                                                              \
     {                                                                                              \
         if (status != 0)                                                                           \
         {                                                                                          \
@@ -56,9 +56,11 @@ class YoloLayer : public nvinfer1::IPluginV2
 {
 public:
     YoloLayer (const void* data, size_t length);
-    YoloLayer (const uint& numBoxes, const uint& numClasses, const uint& gridSizeX, const uint& gridSizeY,
-                const uint modelType, const uint newCoords, const float scaleXY, const float betaNMS,
-                const std::vector<float> anchors, const std::vector<int> mask);
+    YoloLayer (
+        const uint& numBBoxes, const uint& numClasses, const uint& netWidth, const uint& netHeight,
+        const uint& gridSizeX, const uint& gridSizeY, const uint& modelType, const uint& newCoords,
+        const float& scaleXY, const std::vector<float> anchors,
+        const std::vector<int> mask);
     ~YoloLayer ();
     const char* getPluginType () const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
     const char* getPluginVersion () const noexcept override { return YOLOLAYER_PLUGIN_VERSION; }
@@ -95,22 +97,21 @@ public:
     }
 
 private:
-    uint m_NumBoxes {0};
+    std::string m_Namespace {""};
+    uint m_NumBBoxes {0};
     uint m_NumClasses {0};
+    uint m_NetWidth {0};
+    uint m_NetHeight {0};
     uint m_GridSizeX {0};
     uint m_GridSizeY {0};
-    uint64_t m_OutputSize {0};
-    std::string m_Namespace {""};
-
     uint m_Type {0};
     uint m_NewCoords {0};
     float m_ScaleXY {0};
-    float m_BetaNMS {0};
     std::vector<float> m_Anchors;
     std::vector<int> m_Mask;
-
-    void* mAnchors;
-    void* mMask;
+    uint64_t m_OutputSize {0};
+    void* p_Anchors;
+    void* p_Mask;
 };
 
 class YoloLayerPluginCreator : public nvinfer1::IPluginCreator
@@ -152,9 +153,7 @@ private:
     std::string m_Namespace {""};
 };
 
-extern int kMODEL_TYPE;
-extern int kNUM_BBOXES;
-extern int kNUM_CLASSES;
-extern float kBETA_NMS;
+extern uint kNUM_BBOXES;
+extern uint kNUM_CLASSES;
 
 #endif // __YOLO_PLUGINS__
