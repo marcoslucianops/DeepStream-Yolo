@@ -20,7 +20,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 * Support for INT8 calibration
 * Support for non square models
 * Support for reorg, implicit and channel layers (YOLOR)
-* YOLOv5 6.0 native support
+* YOLOv5 6.0/6.1 native support
 * YOLOR native support
 * Models benchmarks (**outdated**)
 * **GPU YOLO Decoder (moved from CPU to GPU to get better performance)** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
@@ -75,7 +75,7 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 ### Tested models
 
 * [Darknet YOLO](https://github.com/AlexeyAB/darknet)
-* [YOLOv5 6.0](https://github.com/ultralytics/yolov5)
+* [YOLOv5 6.0/6.1](https://github.com/ultralytics/yolov5)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
@@ -364,10 +364,10 @@ config-file=config_infer_primary_yoloV2.txt
 
 #### 2. Open the ultralytics/yolov5 folder
 
-#### 3. Download pt file from [ultralytics/yolov5](https://github.com/ultralytics/yolov5/releases/tag/v6.0) website (example for YOLOv5n)
+#### 3. Download pt file from [ultralytics/yolov5](https://github.com/ultralytics/yolov5/releases/tag/v6.1) website (example for YOLOv5n)
 
 ```
-wget https://github.com/ultralytics/yolov5/releases/download/v6.0/yolov5n.pt
+wget https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5n.pt
 ```
 
 #### 4. Generate cfg and wts files (example for YOLOv5n)
