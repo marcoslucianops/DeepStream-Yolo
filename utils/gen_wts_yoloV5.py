@@ -124,7 +124,7 @@ with open(wts_file, "w") as f:
     f.write(wts_write)
 
 with open(cfg_file, "w") as c:
-    with open(yaml_file, "r") as f:
+    with open(yaml_file, "r", encoding="utf-8") as f:
         nc = 0
         depth_multiple = 0
         width_multiple = 0
