@@ -1,6 +1,6 @@
 # DeepStream-Yolo
 
-NVIDIA DeepStream SDK 6.0 configuration for YOLO models
+NVIDIA DeepStream SDK 6.0.1 configuration for YOLO models
 
 ### Future updates
 
