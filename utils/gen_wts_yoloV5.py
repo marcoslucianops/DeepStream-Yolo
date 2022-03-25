@@ -111,7 +111,7 @@ with open(wts_file, "w") as f:
                 conv_count += 1
         elif "anchor_grid" in k:
             vr = v.cpu().numpy().tolist()
-            a = v.reshape(-1).cpu().numpy().astype(int).tolist()
+            a = v.reshape(-1).cpu().numpy().astype(float).tolist()
             anchors = str(a)[1:-1]
             num = 0
             for m in vr:
