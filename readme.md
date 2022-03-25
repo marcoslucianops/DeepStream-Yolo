@@ -47,17 +47,17 @@ NVIDIA DeepStream SDK 6.0 configuration for YOLO models
 #### x86 platform
 
 * [Ubuntu 18.04](https://releases.ubuntu.com/18.04.6/)
-* [CUDA 11.4.3](https://developer.nvidia.com/cuda-toolkit)
+* [CUDA 11.4](https://developer.nvidia.com/cuda-toolkit)
 * [TensorRT 8.0 GA (8.0.1)](https://developer.nvidia.com/tensorrt)
 * [cuDNN >= 8.2](https://developer.nvidia.com/cudnn)
 * [NVIDIA Driver >= 470.63.01](https://www.nvidia.com.br/Download/index.aspx)
-* [NVIDIA DeepStream SDK 6.0](https://developer.nvidia.com/deepstream-sdk)
+* [NVIDIA DeepStream SDK 6.0.1 (6.0)](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
 #### Jetson platform
 
-* [JetPack 4.6](https://developer.nvidia.com/embedded/jetpack)
-* [NVIDIA DeepStream SDK 6.0](https://developer.nvidia.com/deepstream-sdk)
+* [JetPack 4.6.1](https://developer.nvidia.com/embedded/jetpack)
+* [NVIDIA DeepStream SDK 6.0.1 (6.0)](https://developer.nvidia.com/deepstream-sdk)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
 ### For YOLOv5 and YOLOR
@@ -178,13 +178,21 @@ sudo apt install libssl1.0.0 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-p
 sudo apt-get install linux-headers-$(uname -r)
 ```
 
-**NOTE**: Install DKMS if you are using the default Ubuntu kernel
+**NOTE**: Install DKMS only if you are using the default Ubuntu kernel
 
 ```
 sudo apt-get install dkms
 ```
 
 **NOTE**: Purge all NVIDIA driver, CUDA, etc.
+
+```
+sudo apt-get remove --purge '*nvidia*'
+sudo apt-get remove --purge '*cuda*'
+sudo apt-get remove --purge '*cudnn*'
+sudo apt-get remove --purge '*tensorrt*'
+sudo apt autoremove --purge && sudo apt autoclean && sudo apt clean
+```
 
 #### 3. Disable Nouveau
 
@@ -213,12 +221,21 @@ sudo reboot
 
 #### 5. Download and install NVIDIA Driver without xconfig
 
+* TITAN, GeForce RTX / GTX series and RTX / Quadro series
+
 ```
-wget https://us.download.nvidia.com/tesla/470.82.01/NVIDIA-Linux-x86_64-470.82.01.run
-sudo sh NVIDIA-Linux-x86_64-470.82.01.run
+wget https://us.download.nvidia.com/XFree86/Linux-x86_64/470.103.01/NVIDIA-Linux-x86_64-470.103.01.run
+sudo sh NVIDIA-Linux-x86_64-470.103.01.run
 ```
 
-**NOTE**: If you are using default Ubuntu kernel, enable the DKMS during the installation. Else, you can skip this driver installation and install the NVIDIA driver from CUDA runfile (next step).
+* Data center / Tesla series
+
+```
+wget https://us.download.nvidia.com/tesla/470.103.01/NVIDIA-Linux-x86_64-470.103.01.run
+sudo sh NVIDIA-Linux-x86_64-470.103.01.run
+```
+
+**NOTE**: Only if you are using default Ubuntu kernel, enable the DKMS during the installation.
 
 #### 6. Download and install CUDA 11.4.3 without NVIDIA Driver
 
@@ -267,11 +284,12 @@ sudo apt-get update
 sudo apt-get install libnvinfer8=8.0.1-1+cuda11.3 libnvinfer-plugin8=8.0.1-1+cuda11.3 libnvparsers8=8.0.1-1+cuda11.3 libnvonnxparsers8=8.0.1-1+cuda11.3 libnvinfer-bin=8.0.1-1+cuda11.3 libnvinfer-dev=8.0.1-1+cuda11.3 libnvinfer-plugin-dev=8.0.1-1+cuda11.3 libnvparsers-dev=8.0.1-1+cuda11.3 libnvonnxparsers-dev=8.0.1-1+cuda11.3 libnvinfer-samples=8.0.1-1+cuda11.3 libnvinfer-doc=8.0.1-1+cuda11.3
 ```
 
-#### 8. Download from [NVIDIA website](https://developer.nvidia.com/deepstream-sdk) and install the DeepStream SDK 6.0
+#### 8. Download from [NVIDIA website](https://developer.nvidia.com/deepstream-sdk) and install the DeepStream SDK 6.0.1 (6.0)
 
 ```
-sudo apt-get install ./deepstream-6.0_6.0.0-1_amd64.deb
+sudo apt-get install ./deepstream-6.0_6.0.1-1_amd64.deb
 rm ${HOME}/.cache/gstreamer-1.0/registry.x86_64.bin
+sudo ln -snf /usr/local/cuda-11.4 /usr/local/cuda
 ```
 
 #### 9. Reboot the computer
