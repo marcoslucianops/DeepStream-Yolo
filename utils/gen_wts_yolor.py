@@ -20,7 +20,7 @@ def parse_args():
 
 pt_file, cfg_file = parse_args()
 
-wts_file = pt_file.split(".pt")[0] + ".wts"
+wts_file = cfg_file.split(".cfg")[0] + ".wts"
 
 device = select_device("cpu")
 model = Darknet(cfg_file).to(device)
