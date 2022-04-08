@@ -7,6 +7,57 @@ import torch
 from utils.torch_utils import select_device
 
 
+class YoloLayers():
+    def get_route(self, n, layers):
+        route = 0
+        for i, layer in enumerate(layers):
+            if i <= n:
+                route += layer[1]
+            else:
+                break
+        return route
+
+    def route(self, layers=""):
+        return "\n[route]\n" + \
+               "layers=%s\n" % layers
+
+    def shortcut(self, route=-1, activation="linear"):
+        return "\n[shortcut]\n" + \
+               "from=%d\n" % route + \
+               "activation=%s\n" % activation
+
+    def maxpool(self, stride=1, size=1):
+        return "\n[maxpool]\n" + \
+               "stride=%d\n" % stride + \
+               "size=%d\n" % size
+
+    def upsample(self, stride=1):
+        return "\n[upsample]\n" + \
+               "stride=%d\n" % stride
+
+    def convolutional(self, bn=False, size=1, stride=1, pad=1, filters=1, groups=1, activation="linear"):
+        b = "batch_normalize=1\n" if bn is True else ""
+        g = "groups=%d\n" % groups if groups > 1 else ""
+        return "\n[convolutional]\n" + \
+               b + \
+               "filters=%d\n" % filters + \
+               "size=%d\n" % size + \
+               "stride=%d\n" % stride + \
+               "pad=%d\n" % pad + \
+               g + \
+               "activation=%s\n" % activation
+
+    def yolo(self, mask="", anchors="", classes=80, num=3):
+        return "\n[yolo]\n" + \
+               "mask=%s\n" % mask + \
+               "anchors=%s\n" % anchors + \
+               "classes=%d\n" % classes + \
+               "num=%d\n" % num + \
+               "scale_x_y=2.0\n" + \
+               "beta_nms=0.6\n" + \
+               "new_coords=1\n"
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="PyTorch YOLOv5 conversion")
     parser.add_argument("-w", "--weights", required=True, help="Input weights (.pt) file path (required)")
@@ -77,10 +128,10 @@ with open(wts_file, "w") as f:
     cv3_idx = 0
     sppf_idx = 11 if p6 else 9
     for k, v in model.state_dict().items():
-        if not "num_batches_tracked" in k and not "anchors" in k and not "anchor_grid" in k:
+        if "num_batches_tracked" not in k and "anchors" not in k and "anchor_grid" not in k:
             vr = v.reshape(-1).cpu().numpy()
             idx = int(k.split(".")[1])
-            if ".cv1." in k and not ".m." in k and idx != sppf_idx:
+            if ".cv1." in k and ".m." not in k and idx != sppf_idx:
                 cv1 += "{} {} ".format(k, len(vr))
                 for vv in vr:
                     cv1 += " "
@@ -102,7 +153,7 @@ with open(wts_file, "w") as f:
                 wts_write += cv3
                 cv3 = ""
                 cv3_idx = 0
-            if not ".cv3." in k and not (".cv1." in k and not ".m." in k and idx != sppf_idx):
+            if ".cv3." not in k and not (".cv1." in k and ".m." not in k and idx != sppf_idx):
                 wts_write += "{} {} ".format(k, len(vr))
                 for vv in vr:
                     wts_write += " "
@@ -125,219 +176,117 @@ with open(wts_file, "w") as f:
 
 with open(cfg_file, "w") as c:
     with open(yaml_file, "r", encoding="utf-8") as f:
-        nc = 0
-        depth_multiple = 0
-        width_multiple = 0
-        detections = []
-        layers = []
-        f = yaml.load(f,Loader=yaml.FullLoader)
         c.write("[net]\n")
         c.write("width=%d\n" % model_width)
         c.write("height=%d\n" % model_height)
         c.write("channels=%d\n" % model_channels)
-        for l in f:
-            if l == "nc":
-                nc = f[l]
-            elif l == "depth_multiple":
-                depth_multiple = f[l]
-            elif l == "width_multiple":
-                width_multiple = f[l]
-            elif l == "backbone" or l == "head":
-                for v in f[l]:
+        nc = 0
+        depth_multiple = 0
+        width_multiple = 0
+        layers = []
+        yoloLayers = YoloLayers()
+        f = yaml.load(f, Loader=yaml.FullLoader)
+        for topic in f:
+            if topic == "nc":
+                nc = f[topic]
+            elif topic == "depth_multiple":
+                depth_multiple = f[topic]
+            elif topic == "width_multiple":
+                width_multiple = f[topic]
+            elif topic == "backbone" or topic == "head":
+                for v in f[topic]:
                     if v[2] == "Conv":
-                        layer = ""
+                        layer = "\n# Conv\n"
                         blocks = 0
-                        layer += "\n[convolutional]\n"
-                        layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % get_width(v[3][0], width_multiple)
-                        layer += "size=%d\n" % v[3][1]
-                        layer += "stride=%d\n" % v[3][2]
-                        layer += "pad=1\n"
-                        layer += "activation=silu\n"
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple), size=v[3][1],
+                                                          stride=v[3][2], activation="silu")
                         blocks += 1
                         layers.append([layer, blocks])
                     elif v[2] == "C3":
-                        layer = ""
+                        layer = "\n# C3\n"
                         blocks = 0
-                        layer += "\n# C3\n"
                         # SPLIT
-                        layer += "\n[convolutional]\n"
-                        layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
-                        layer += "size=1\n"
-                        layer += "stride=1\n"
-                        layer += "pad=1\n"
-                        layer += "activation=silu\n"
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                          activation="silu")
                         blocks += 1
-                        layer += "\n[route]\n"
-                        layer += "layers=-2\n"
+                        layer += yoloLayers.route(layers="-2")
                         blocks += 1
-                        layer += "\n[convolutional]\n"
-                        layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
-                        layer += "size=1\n"
-                        layer += "stride=1\n"
-                        layer += "pad=1\n"
-                        layer += "activation=silu\n"
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                          activation="silu")
                         blocks += 1
                         # Residual Block
-                        if len(v[3]) == 1 or v[3][1] == True:
+                        if len(v[3]) == 1 or v[3][1] is True:
                             for _ in range(get_depth(v[1], depth_multiple)):
-                                layer += "\n[convolutional]\n"
-                                layer += "batch_normalize=1\n"
-                                layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
-                                layer += "size=1\n"
-                                layer += "stride=1\n"
-                                layer += "pad=1\n"
-                                layer += "activation=silu\n"
+                                layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                                  activation="silu")
                                 blocks += 1
-                                layer += "\n[convolutional]\n"
-                                layer += "batch_normalize=1\n"
-                                layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
-                                layer += "size=3\n"
-                                layer += "stride=1\n"
-                                layer += "pad=1\n"
-                                layer += "activation=silu\n"
+                                layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                                  size=3, activation="silu")
                                 blocks += 1
-                                layer += "\n[shortcut]\n"
-                                layer += "from=-3\n"
-                                layer += "activation=linear\n"
+                                layer += yoloLayers.shortcut(route=-3)
                                 blocks += 1
                             # Merge
-                            layer += "\n[route]\n"
-                            layer += "layers=-1, -%d\n" % (3 * get_depth(v[1], depth_multiple) + 3)
+                            layer += yoloLayers.route(layers="-1, -%d" % (3 * get_depth(v[1], depth_multiple) + 3))
                             blocks += 1
                         else:
                             for _ in range(get_depth(v[1], depth_multiple)):
-                                layer += "\n[convolutional]\n"
-                                layer += "batch_normalize=1\n"
-                                layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
-                                layer += "size=1\n"
-                                layer += "stride=1\n"
-                                layer += "pad=1\n"
-                                layer += "activation=silu\n"
+                                layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                                  activation="silu")
                                 blocks += 1
-                                layer += "\n[convolutional]\n"
-                                layer += "batch_normalize=1\n"
-                                layer += "filters=%d\n" % get_width(v[3][0] / 2, width_multiple)
-                                layer += "size=3\n"
-                                layer += "stride=1\n"
-                                layer += "pad=1\n"
-                                layer += "activation=silu\n"
+                                layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                                  size=3, activation="silu")
                                 blocks += 1
                             # Merge
-                            layer += "\n[route]\n"
-                            layer += "layers=-1, -%d\n" % (2 * get_depth(v[1], depth_multiple) + 3)
+                            layer += yoloLayers.route(layers="-1, -%d" % (2 * get_depth(v[1], depth_multiple) + 3))
                             blocks += 1
                         # Transition
-                        layer += "\n[convolutional]\n"
-                        layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % get_width(v[3][0], width_multiple)
-                        layer += "size=1\n"
-                        layer += "stride=1\n"
-                        layer += "pad=1\n"
-                        layer += "activation=silu\n"
-                        layer += "\n##########\n"
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple),
+                                                          activation="silu")
                         blocks += 1
                         layers.append([layer, blocks])
                     elif v[2] == "SPPF":
-                        layer = ""
+                        layer = "\n# SPPF\n"
                         blocks = 0
-                        layer += "\n# SPPF\n"
-                        layer += "\n[convolutional]\n"
-                        layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % (get_width(v[3][0], width_multiple) / 2)
-                        layer += "size=1\n"
-                        layer += "stride=1\n"
-                        layer += "pad=1\n"
-                        layer += "activation=silu\n"
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                          activation="silu")
                         blocks += 1
-                        layer += "\n[maxpool]\n"
-                        layer += "stride=1\n"
-                        layer += "size=%d\n" % v[3][1]
+                        layer += yoloLayers.maxpool(size=v[3][1])
                         blocks += 1
-                        layer += "\n[maxpool]\n"
-                        layer += "stride=1\n"
-                        layer += "size=%d\n" % v[3][1]
+                        layer += yoloLayers.maxpool(size=v[3][1])
                         blocks += 1
-                        layer += "\n[maxpool]\n"
-                        layer += "stride=1\n"
-                        layer += "size=%d\n" % v[3][1]
+                        layer += yoloLayers.maxpool(size=v[3][1])
                         blocks += 1
-                        layer += "\n[route]\n"
-                        layer += "layers=-4, -3, -2, -1\n"
+                        layer += yoloLayers.route(layers="-4, -3, -2, -1")
                         blocks += 1
-                        layer += "\n[convolutional]\n"
-                        layer += "batch_normalize=1\n"
-                        layer += "filters=%d\n" % get_width(v[3][0], width_multiple)
-                        layer += "size=1\n"
-                        layer += "stride=1\n"
-                        layer += "pad=1\n"
-                        layer += "activation=silu\n"
-                        layer += "\n##########\n"
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple),
+                                                          activation="silu")
                         blocks += 1
                         layers.append([layer, blocks])
                     elif v[2] == "nn.Upsample":
-                        layer = ""
+                        layer = "\n# nn.Upsample\n"
                         blocks = 0
-                        layer += "\n[upsample]\n"
-                        layer += "stride=%d\n" % v[3][1]
+                        layer += yoloLayers.upsample(stride=v[3][1])
                         blocks += 1
                         layers.append([layer, blocks])
                     elif v[2] == "Concat":
-                        layer = ""
-                        blocks = 0
                         route = v[0][1]
-                        r = 0
-                        if route > 0:
-                            for i, item in enumerate(layers):
-                                if i <= route:
-                                    r += item[1]
-                                else:
-                                    break
-                        else:
-                            route = len(layers) + route
-                            for i, item in enumerate(layers):
-                                if i <= route:
-                                    r += item[1]
-                                else:
-                                    break
-                        layer += "\n# Concat\n"
-                        layer += "\n[route]\n"
-                        layer += "layers=-1, %d\n" % (r - 1)
-                        layer += "\n##########\n"
+                        route = yoloLayers.get_route(route, layers) if route > 0 else \
+                            yoloLayers.get_route(len(layers) + route, layers)
+                        layer = "\n# Concat\n"
+                        blocks = 0
+                        layer += yoloLayers.route(layers="-1, %d" % (route - 1))
                         blocks += 1
                         layers.append([layer, blocks])
                     elif v[2] == "Detect":
                         for i, n in enumerate(v[0]):
-                            layer = ""
+                            route = yoloLayers.get_route(n, layers)
+                            layer = "\n# Detect\n"
                             blocks = 0
-                            r = 0
-                            for j, item in enumerate(layers):
-                                if j <= n:
-                                    r += item[1]
-                                else:
-                                    break
-                            layer += "\n# Detect\n"
-                            layer += "\n[route]\n"
-                            layer += "layers=%d\n" % (r - 1)
+                            layer += yoloLayers.route(layers="%d" % (route - 1))
                             blocks += 1
-                            layer += "\n[convolutional]\n"
-                            layer += "size=1\n"
-                            layer += "stride=1\n"
-                            layer += "pad=1\n"
-                            layer += "filters=%d\n" % ((nc + 5) * len(masks[i]))
-                            layer += "activation=logistic\n"
+                            layer += yoloLayers.convolutional(filters=((nc + 5) * len(masks[i])), activation="logistic")
                             blocks += 1
-                            layer += "\n[yolo]\n"
-                            layer += "mask=%s\n" % str(masks[i])[1:-1]
-                            layer += "anchors=%s\n" % anchors
-                            layer += "classes=%d\n" % nc
-                            layer += "num=%d\n" % num
-                            layer += "scale_x_y=2.0\n"
-                            layer += "beta_nms=0.6\n"
-                            layer += "new_coords=1\n"
-                            layer += "\n##########\n"
+                            layer += yoloLayers.yolo(mask=str(masks[i])[1:-1], anchors=anchors, classes=nc, num=num)
                             blocks += 1
                             layers.append([layer, blocks])
         for layer in layers:

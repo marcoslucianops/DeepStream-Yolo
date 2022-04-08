@@ -31,7 +31,7 @@ with open(wts_file, "w") as f:
     wts_write = ""
     conv_count = 0
     for k, v in model.state_dict().items():
-        if not "num_batches_tracked" in k:
+        if "num_batches_tracked" not in k:
             vr = v.reshape(-1).cpu().numpy()
             wts_write += "{} {} ".format(k, len(vr))
             for vv in vr:

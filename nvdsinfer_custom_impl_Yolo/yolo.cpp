@@ -174,9 +174,9 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         
         else if (m_ConfigBlocks.at(i).at("type") == "convolutional") {
             float eps = 1.0e-5;
-            if (m_NetworkType.find("yolov5") != std::string::npos) {
+            /*if (m_NetworkType.find("yolov5") != std::string::npos) {
                 eps = 1.0e-3;
-            }
+            }*/
             std::string inputVol = dimsToString(previous->getDimensions());
             nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, eps, previous, &network);
             previous = out->getOutput(0);
@@ -233,11 +233,12 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, layerType, "        -", outputVol, "    -");
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "dropout") { // Skip dropout layer
+        else if (m_ConfigBlocks.at(i).at("type") == "dropout") {
+            // Skip dropout layer
             assert(m_ConfigBlocks.at(i).find("probability") != m_ConfigBlocks.at(i).end());
-            //float probability = std::stof(m_ConfigBlocks.at(i).at("probability"));
-            //nvinfer1::ILayer* out = dropoutLayer(probability, previous, &network);
-            //previous = out->getOutput(0);
+            /*float probability = std::stof(m_ConfigBlocks.at(i).at("probability"));
+            nvinfer1::ILayer* out = dropoutLayer(probability, previous, &network);
+            previous = out->getOutput(0);*/
             assert(previous != nullptr);
             tensorOutputs.push_back(previous);
             printLayerInfo(layerIndex, "dropout", "        -", "        -", "    -");
