@@ -3,9 +3,9 @@
  * https://www.github.com/marcoslucianops
  */
 
-#include "reorg_r_layer.h"
+#include "reorgv5_layer.h"
 
-nvinfer1::ILayer* reorgRLayer(
+nvinfer1::ILayer* reorgV5Layer(
     int layerIdx,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)

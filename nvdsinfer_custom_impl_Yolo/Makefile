@@ -61,7 +61,7 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            layers/upsample_layer.cpp \
            layers/maxpool_layer.cpp \
            layers/activation_layer.cpp \
-           layers/reorg_r_layer.cpp \
+           layers/reorgv5_layer.cpp \
            utils.cpp \
            yolo.cpp \
            yoloForward.cu \

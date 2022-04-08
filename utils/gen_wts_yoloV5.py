@@ -21,6 +21,9 @@ class YoloLayers():
         return "\n[route]\n" + \
                "layers=%s\n" % layers
 
+    def reorg(self):
+        return "\n[reorg]\n"
+
     def shortcut(self, route=-1, activation="linear"):
         return "\n[shortcut]\n" + \
                "from=%d\n" % route + \
@@ -120,59 +123,20 @@ model.to(device).eval()
 anchors = ""
 masks = []
 
-with open(wts_file, "w") as f:
-    wts_write = ""
-    conv_count = 0
-    cv1 = ""
-    cv3 = ""
-    cv3_idx = 0
-    sppf_idx = 11 if p6 else 9
-    for k, v in model.state_dict().items():
-        if "num_batches_tracked" not in k and "anchors" not in k and "anchor_grid" not in k:
-            vr = v.reshape(-1).cpu().numpy()
-            idx = int(k.split(".")[1])
-            if ".cv1." in k and ".m." not in k and idx != sppf_idx:
-                cv1 += "{} {} ".format(k, len(vr))
-                for vv in vr:
-                    cv1 += " "
-                    cv1 += struct.pack(">f", float(vv)).hex()
-                cv1 += "\n"
-                conv_count += 1
-            elif cv1 != "" and ".m." in k:
-                wts_write += cv1
-                cv1 = ""
-            if ".cv3." in k:
-                cv3 += "{} {} ".format(k, len(vr))
-                for vv in vr:
-                    cv3 += " "
-                    cv3 += struct.pack(">f", float(vv)).hex()
-                cv3 += "\n"
-                cv3_idx = idx
-                conv_count += 1
-            elif cv3 != "" and cv3_idx != idx:
-                wts_write += cv3
-                cv3 = ""
-                cv3_idx = 0
-            if ".cv3." not in k and not (".cv1." in k and ".m." not in k and idx != sppf_idx):
-                wts_write += "{} {} ".format(k, len(vr))
-                for vv in vr:
-                    wts_write += " "
-                    wts_write += struct.pack(">f", float(vv)).hex()
-                wts_write += "\n"
-                conv_count += 1
-        elif "anchor_grid" in k:
-            vr = v.cpu().numpy().tolist()
-            a = v.reshape(-1).cpu().numpy().astype(float).tolist()
-            anchors = str(a)[1:-1]
-            num = 0
-            for m in vr:
-                mask = []
-                for _ in range(len(m)):
-                    mask.append(num)
-                    num += 1
-                masks.append(mask)
-    f.write("{}\n".format(conv_count))
-    f.write(wts_write)
+for k, v in model.state_dict().items():
+    if "anchor_grid" in k:
+        vr = v.cpu().numpy().tolist()
+        a = v.reshape(-1).cpu().numpy().astype(float).tolist()
+        anchors = str(a)[1:-1]
+        num = 0
+        for m in vr:
+            mask = []
+            for _ in range(len(m)):
+                mask.append(num)
+                num += 1
+            masks.append(mask)
+
+spp_idx = 0
 
 with open(cfg_file, "w") as c:
     with open(yaml_file, "r", encoding="utf-8") as f:
@@ -195,6 +159,15 @@ with open(cfg_file, "w") as c:
                 width_multiple = f[topic]
             elif topic == "backbone" or topic == "head":
                 for v in f[topic]:
+                    if v[2] == "Focus":
+                        layer = "\n# Focus\n"
+                        blocks = 0
+                        layer += yoloLayers.reorg()
+                        blocks += 1
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple), size=v[3][1],
+                                                          activation="silu")
+                        blocks += 1
+                        layers.append([layer, blocks])
                     if v[2] == "Conv":
                         layer = "\n# Conv\n"
                         blocks = 0
@@ -244,7 +217,31 @@ with open(cfg_file, "w") as c:
                                                           activation="silu")
                         blocks += 1
                         layers.append([layer, blocks])
+                    elif v[2] == "SPP":
+                        spp_idx = len(layers)
+                        layer = "\n# SPP\n"
+                        blocks = 0
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
+                                                          activation="silu")
+                        blocks += 1
+                        layer += yoloLayers.maxpool(size=v[3][1][0])
+                        blocks += 1
+                        layer += yoloLayers.route(layers="-2")
+                        blocks += 1
+                        layer += yoloLayers.maxpool(size=v[3][1][1])
+                        blocks += 1
+                        layer += yoloLayers.route(layers="-4")
+                        blocks += 1
+                        layer += yoloLayers.maxpool(size=v[3][1][2])
+                        blocks += 1
+                        layer += yoloLayers.route(layers="-6, -5, -3, -1")
+                        blocks += 1
+                        layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple),
+                                                          activation="silu")
+                        blocks += 1
+                        layers.append([layer, blocks])
                     elif v[2] == "SPPF":
+                        spp_idx = len(layers)
                         layer = "\n# SPPF\n"
                         blocks = 0
                         layer += yoloLayers.convolutional(bn=True, filters=get_width(v[3][0], width_multiple) / 2,
@@ -291,3 +288,45 @@ with open(cfg_file, "w") as c:
                             layers.append([layer, blocks])
         for layer in layers:
             c.write(layer[0])
+
+with open(wts_file, "w") as f:
+    wts_write = ""
+    conv_count = 0
+    cv1 = ""
+    cv3 = ""
+    cv3_idx = 0
+    for k, v in model.state_dict().items():
+        if "num_batches_tracked" not in k and "anchors" not in k and "anchor_grid" not in k:
+            vr = v.reshape(-1).cpu().numpy()
+            idx = int(k.split(".")[1])
+            if ".cv1." in k and ".m." not in k and idx != spp_idx:
+                cv1 += "{} {} ".format(k, len(vr))
+                for vv in vr:
+                    cv1 += " "
+                    cv1 += struct.pack(">f", float(vv)).hex()
+                cv1 += "\n"
+                conv_count += 1
+            elif cv1 != "" and ".m." in k:
+                wts_write += cv1
+                cv1 = ""
+            if ".cv3." in k:
+                cv3 += "{} {} ".format(k, len(vr))
+                for vv in vr:
+                    cv3 += " "
+                    cv3 += struct.pack(">f", float(vv)).hex()
+                cv3 += "\n"
+                cv3_idx = idx
+                conv_count += 1
+            elif cv3 != "" and cv3_idx != idx:
+                wts_write += cv3
+                cv3 = ""
+                cv3_idx = 0
+            if ".cv3." not in k and not (".cv1." in k and ".m." not in k and idx != spp_idx):
+                wts_write += "{} {} ".format(k, len(vr))
+                for vv in vr:
+                    wts_write += " "
+                    wts_write += struct.pack(">f", float(vv)).hex()
+                wts_write += "\n"
+                conv_count += 1
+    f.write("{}\n".format(conv_count))
+    f.write(wts_write)

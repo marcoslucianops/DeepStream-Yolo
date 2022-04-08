@@ -301,15 +301,15 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         }
 
         else if (m_ConfigBlocks.at(i).at("type") == "reorg") {
-            if (m_NetworkType.find("yolor") != std::string::npos) {
+            if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolor") != std::string::npos) {
                 std::string inputVol = dimsToString(previous->getDimensions());
-                nvinfer1::ILayer* out = reorgRLayer(i, previous, &network);
+                nvinfer1::ILayer* out = reorgV5Layer(i, previous, &network);
                 previous = out->getOutput(0);
                 assert(previous != nullptr);
                 channels = getNumChannels(previous);
                 std::string outputVol = dimsToString(previous->getDimensions());
                 tensorOutputs.push_back(previous);
-                std::string layerType = "reorgR";
+                std::string layerType = "reorgV5";
                 printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
             }
             else {
