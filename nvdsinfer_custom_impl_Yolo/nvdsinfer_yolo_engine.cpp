@@ -50,7 +50,6 @@ static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContext
     networkInfo.deviceType = (initParams->useDLA ? "kDLA" : "kGPU");
     networkInfo.numDetectedClasses = initParams->numDetectedClasses;
     networkInfo.clusterMode = initParams->clusterMode;
-    networkInfo.iouThreshold = initParams->perClassDetectionParams->nmsIOUThreshold;
 
     if(initParams->networkMode == 0) {
         networkInfo.networkMode = "FP32";

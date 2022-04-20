@@ -40,15 +40,13 @@ Yolo::Yolo(const NetworkInfo& networkInfo)
       m_DeviceType(networkInfo.deviceType),
       m_NumDetectedClasses(networkInfo.numDetectedClasses),
       m_ClusterMode(networkInfo.clusterMode),
-      m_IouThreshold(networkInfo.iouThreshold),
       m_NetworkMode(networkInfo.networkMode),
       m_InputH(0),
       m_InputW(0),
       m_InputC(0),
       m_InputSize(0),
       m_NumClasses(0),
-      m_LetterBox(0),
-      m_BetaNMS(networkInfo.iouThreshold)
+      m_LetterBox(0)
 {}
 
 Yolo::~Yolo()
@@ -76,9 +74,6 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder, nvinfer1
     }
     if (m_LetterBox == 1) {
         std::cout << "\nNOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file to get better accuracy" << std::endl;
-    }
-    if (m_BetaNMS != m_IouThreshold) {
-        std::cout << "\nNOTE: beta_nms is set in cfg file, make sure to set nms-iou-threshold=" << m_BetaNMS << " in config_infer file to get better accuracy" << std::endl;
     }
     if (m_ClusterMode != 2) {
         std::cout << "\nNOTE: Wrong cluster-mode is set, make sure to set cluster-mode=2 in config_infer file" << std::endl;
@@ -174,9 +169,12 @@ NvDsInferStatus Yolo::buildYoloNetwork(
         
         else if (m_ConfigBlocks.at(i).at("type") == "convolutional") {
             float eps = 1.0e-5;
-            /*if (m_NetworkType.find("yolov5") != std::string::npos) {
+            if (m_NetworkType.find("yolov5") != std::string::npos) {
                 eps = 1.0e-3;
-            }*/
+            }
+            else if (m_NetworkType.find("yolor") != std::string::npos) {
+                eps = 1.0e-4;
+            }
             std::string inputVol = dimsToString(previous->getDimensions());
             nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, eps, previous, &network);
             previous = out->getOutput(0);
@@ -342,9 +340,6 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             }
             if (m_ConfigBlocks.at(i).find("scale_x_y") != m_ConfigBlocks.at(i).end()) {
                 scaleXY = std::stof(m_ConfigBlocks.at(i).at("scale_x_y"));
-            }
-            if (m_ConfigBlocks.at(i).find("beta_nms") != m_ConfigBlocks.at(i).end()) {
-                m_BetaNMS = std::stof(m_ConfigBlocks.at(i).at("beta_nms"));
             }
 
             std::string layerName = "yolo_" + std::to_string(i);

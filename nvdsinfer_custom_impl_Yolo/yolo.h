@@ -48,7 +48,6 @@ struct NetworkInfo
     std::string deviceType;
     uint numDetectedClasses;
     int clusterMode;
-    float iouThreshold;
     std::string networkMode;
 };
 
@@ -83,7 +82,6 @@ protected:
     const std::string m_DeviceType;
     const uint m_NumDetectedClasses;
     const int m_ClusterMode;
-    const float m_IouThreshold;
     const std::string m_NetworkMode;
 
     uint m_InputH;
@@ -92,7 +90,6 @@ protected:
     uint64_t m_InputSize;
     uint m_NumClasses;
     uint m_LetterBox;
-    float m_BetaNMS;
 
     std::vector<TensorInfo> m_OutputTensors;
     std::vector<std::map<std::string, std::string>> m_ConfigBlocks;

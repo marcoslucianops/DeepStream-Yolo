@@ -85,7 +85,7 @@ NVIDIA DeepStream SDK 6.0.1 configuration for YOLO models
 ### Benchmarks
 
 ```
-nms = 0.45 (changed to beta_nms when used in Darknet cfg file) / 0.6 (YOLOv5 and YOLOR models)
+nms-iou-threshold = 0.6
 pre-cluster-threshold = 0.001 (mAP eval) / 0.25 (FPS measurement)
 batch-size = 1
 valid = val2017 (COCO) - 1000 random images for INT8 calibration
@@ -175,6 +175,7 @@ sudo reboot
 sudo apt-get install gcc make git libtool autoconf autogen pkg-config cmake
 sudo apt-get install python3 python3-dev python3-pip
 sudo apt install libssl1.0.0 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstrtspserver-1.0-0 libjansson4
+sudo apt-get install libglvnd-dev
 sudo apt-get install linux-headers-$(uname -r)
 ```
 
@@ -351,8 +352,8 @@ num-detected-classes=80
 ...
 [class-attrs-all]
 # IOU threshold
-nms-iou-threshold=0.6
-# Socre threshold
+nms-iou-threshold=0.45
+# Score threshold
 pre-cluster-threshold=0.25
 ```
 
@@ -438,8 +439,8 @@ num-detected-classes=80
 ...
 [class-attrs-all]
 # IOU threshold
-nms-iou-threshold=0.6
-# Socre threshold
+nms-iou-threshold=0.45
+# Score threshold
 pre-cluster-threshold=0.25
 ```
 
@@ -557,8 +558,8 @@ num-detected-classes=80
 ...
 [class-attrs-all]
 # IOU threshold
-nms-iou-threshold=0.6
-# Socre threshold
+nms-iou-threshold=0.5
+# Score threshold
 pre-cluster-threshold=0.25
 ```
 
