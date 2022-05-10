@@ -65,9 +65,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="PyTorch YOLOv5 conversion")
     parser.add_argument("-w", "--weights", required=True, help="Input weights (.pt) file path (required)")
     parser.add_argument("-c", "--yaml", help="Input cfg (.yaml) file path")
-    parser.add_argument("-mw", "--width", help="Model width (default = 640 / 1280 [P6])")
-    parser.add_argument("-mh", "--height", help="Model height (default = 640 / 1280 [P6])")
-    parser.add_argument("-mc", "--channels", help="Model channels (default = 3)")
+    parser.add_argument("-mw", "--width", type=int, help="Model width (default = 640 / 1280 [P6])")
+    parser.add_argument("-mh", "--height", type=int, help="Model height (default = 640 / 1280 [P6])")
+    parser.add_argument("-mc", "--channels", type=int, help="Model channels (default = 3)")
     parser.add_argument("--p6", action="store_true", help="P6 model")
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
