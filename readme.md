@@ -2,6 +2,9 @@
 
 NVIDIA DeepStream SDK 6.0.1 configuration for YOLO models
 
+<img src="assets/deepstream-gif.gif" width="600"/>
+
+
 ### Future updates
 
 * New documentation for multiple models
@@ -25,6 +28,7 @@ NVIDIA DeepStream SDK 6.0.1 configuration for YOLO models
 * Models benchmarks (**outdated**)
 * **GPU YOLO Decoder (moved from CPU to GPU to get better performance)** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
 * **Improved NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
+* Added Tracker Implementation and documentation
 
 ##
 
@@ -39,6 +43,7 @@ NVIDIA DeepStream SDK 6.0.1 configuration for YOLO models
 * [YOLOR usage](#yolor-usage)
 * [INT8 calibration](#int8-calibration)
 * [Using your custom model](docs/customModels.md)
+* [Implement Trackers (like DeepSort)](#implement-tracking)
 
 ##
 
@@ -666,6 +671,99 @@ deepstream-app -c deepstream_app_config.txt
 
 ##
 
+### Implement Tracking
+
+The Deepstream allows you easy acess to different trackers with different settings. Among them are:
+- IoU Tracker (Very simple one, should only be used as a Base case to compare)
+- NvDCF (Nvidia's Tracker)
+- DeepSORT (Alpha)
+
+You can find more information about each specific tracker and it's settings on the [NVIDIA website](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#low-level-tracker-comparisons-and-tradeoffs).
+
+For a quickstart you can run the following configs (edit first to choose which yolo you want).
+```
+deepstream-app -c deepstream_app_config-tracker.txt
+```
+
+```
+deepstream-app -c deepstream_app_config-tracker-webcam.txt
+```
+
+If you want to customize which tracker you are using you have to edit the following lines in the deepstream config file.
+
+You can also change the interval of the detector for faster inference. We don't need to detect every single frame if we have a tracker on, this will boost the FPS. We might loose some detections so consider the interval gap according to the use of your application.
+
+
+```
+[primary-gie]
+enable=1
+gpu-id=0
+interval=2
+gie-unique-id=1
+nvbuf-memory-type=0
+config-file=config_infer_primary_yolor.txt
+```
+
+
+More of these config instructions can be found on  [Using your custom model](docs/customModels.md) 
+
+```
+[tracker]
+enable=1
+tracker-width=640
+tracker-height=384
+gpu-id=0
+ll-lib-file=/opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so
+#ll-config-file=/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_DeepSORT.yml
+#enable-past-frame=1
+enable-batch-process=1
+```
+
+#### Choosing different Trackers
+
+The NVIDIA tracker plugin unites all trackers under the same common library called nvmultiobjecttracker
+
+Each different tracker can be choosen with a config-file
+
+For example to use the IoU Tracker you would use:
+```
+ll-config-file=/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IoU.yml
+```
+
+To use NvDCF with max performance
+```
+ll-config-file=/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_max_perf.yml
+```
+
+To use DeepSORT:
+```
+ll-config-file=/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_DeepSORT.yml
+```
+
+Note to make DeepStream work you first need to compile the engine according to the instructions in: [TODO: Instructions]
+
+#### Using Webcam with DeepStream
+
+To use the USB-Cam (or any type of cam) in DeepStream you must eddit the [source] on the deepstream-config. 
+
+More of these config instructions on different type of sources can be found on  [Using your custom model](docs/customModels.md) 
+
+
+It's important that the camera fps / width / height match the settings of your camera.
+```
+#Camera Source
+[source0]
+enable=1
+# Type – 1=CameraV4L2 2=URI 3=MultiURI
+type=1
+camera-width=640
+camera-height=480
+camera-fps-n=30
+camera-fps-d=1
+camera-v4l2-dev-node=1
+num-sources=1
+```
+
 ### Extract metadata
 
 You can get metadata from deepstream in Python and C++. For C++, you need edit deepstream-app or deepstream-test code. For Python your need install and edit [deepstream_python_apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps).
@@ -675,6 +773,31 @@ You need manipulate NvDsObjectMeta ([Python](https://docs.nvidia.com/metropolis/
 In C++ deepstream-app application, your code need be in analytics_done_buf_prob function.
 In C++/Python deepstream-test application, your code need be in osd_sink_pad_buffer_probe/tiler_src_pad_buffer_probe function.
 
+To extract meta-data on the kitti format from the trackers and detectors you can add the following likes to your deepstream-app config under the [application] part.
+
+Make sure to choose the directory you wish to save the metadata accordingly (create the directory previously).
+```
+[application]
+enable-perf-measurement=1
+perf-measurement-interval-sec=5
+kitti-track-output-dir=/home/Tracker_Info
+gie-kitti-output-dir=/home/Detector_Info
+```
+#### Saving Video Output of DeepStream app
+To save the video output of your DeepStream app you must add another [sink] to your config file as such. 
+
+```
+[sink1]
+enable=1
+type=3
+container=1
+sync=0
+codec=1
+bitrate=2000000
+output-file=out.mp4
+```
+
 ##
 
 My projects: https://www.youtube.com/MarcosLucianoTV
+
