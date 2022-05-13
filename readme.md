@@ -740,7 +740,10 @@ To use DeepSORT:
 ll-config-file=/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_DeepSORT.yml
 ```
 
-Note to make DeepStream work you first need to compile the engine according to the instructions in: [TODO: Instructions]
+Note to make DeepStream work you first need to compile the engine according to the instructions in: [DeepSORT DeepStream Tutorial](docs/DeepSORT-YOLO-DeepStream.md) 
+
+You can try different trackers outisde of DeepStream default library such as Byte. Instructions can be found here.
+[ByteTrack DeepStream](https://github.com/chirag4798/Byte-Deepstream/)
 
 #### Using Webcam with DeepStream
 
