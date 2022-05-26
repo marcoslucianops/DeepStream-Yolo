@@ -81,8 +81,8 @@ public:
     int initialize () noexcept override { return 0; }
     void terminate () noexcept override {}
     size_t getWorkspaceSize (int maxBatchSize) const noexcept override { return 0; }
-    int enqueue (
-        int batchSize, void const* const* inputs, void* const* outputs,
+    int32_t enqueue (
+        int32_t batchSize, void const* const* inputs, void* const* outputs,
         void* workspace, cudaStream_t stream) noexcept override;
     size_t getSerializationSize() const noexcept override;
     void serialize (void* buffer) const noexcept override;

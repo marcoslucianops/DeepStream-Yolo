@@ -193,8 +193,8 @@ YoloLayer::configureWithFormat (
     assert(inputDims != nullptr);
 }
 
-int YoloLayer::enqueue (
-    int batchSize, void const* const* inputs, void* const* outputs, void* workspace,	
+int32_t YoloLayer::enqueue (
+    int32_t batchSize, void const* const* inputs, void* const* outputs, void* workspace,	
     cudaStream_t stream) noexcept
 {
     if (m_Type == 2) { // YOLOR incorrect param: scale_x_y = 2.0
