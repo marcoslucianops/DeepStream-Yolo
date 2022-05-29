@@ -20,7 +20,7 @@ def parse_args():
 
 pt_file, cfg_file = parse_args()
 
-wts_file = cfg_file.split(".cfg")[0] + ".wts"
+wts_file = "%s.wts" % cfg_file.rsplit("/")[1].split(".cfg")[0]
 
 device = select_device("cpu")
 model = Darknet(cfg_file).to(device)
@@ -41,3 +41,5 @@ with open(wts_file, "w") as f:
             conv_count += 1
     f.write("{}\n".format(conv_count))
     f.write(wts_write)
+
+os.system("cp %s ./" % cfg_file)
