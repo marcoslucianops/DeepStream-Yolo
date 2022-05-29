@@ -218,10 +218,22 @@ wget https://us.download.nvidia.com/XFree86/Linux-x86_64/510.47.03/NVIDIA-Linux-
 wget https://us.download.nvidia.com/tesla/510.47.03/NVIDIA-Linux-x86_64-510.47.03.run
 ```
 
+* Run
+
+```
+sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --disable-nouveau
+```
+
+* Reboot
+
+```
+sudo reboot
+```
+
 * Install
 
 ```
-sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --no-nouveau-check --disable-nouveau --dkms --install-libglvnd
+sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --dkms --install-libglvnd
 ```
 
 **NOTE**: If you are using a laptop with NVIDIA Optimius, run
@@ -354,10 +366,22 @@ wget https://us.download.nvidia.com/XFree86/Linux-x86_64/470.129.06/NVIDIA-Linux
 wget https://us.download.nvidia.com/tesla/470.129.06/NVIDIA-Linux-x86_64-470.129.06.run
 ```
 
+* Run
+
+```
+sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau
+```
+
+* Reboot
+
+```
+sudo reboot
+```
+
 * Install
 
 ```
-sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --no-nouveau-check --disable-nouveau --dkms --install-libglvnd
+sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --dkms --install-libglvnd
 ```
 
 **NOTE**: If you are using a laptop with NVIDIA Optimius, run
