@@ -46,7 +46,12 @@ Yolo::Yolo(const NetworkInfo& networkInfo)
       m_InputC(0),
       m_InputSize(0),
       m_NumClasses(0),
-      m_LetterBox(0)
+      m_LetterBox(0),
+      m_NewCoords(0),
+      m_YoloCount(0),
+      m_IouThreshold(0),
+      m_ScoreThreshold(0),
+      m_TopK(0)
 {}
 
 Yolo::~Yolo()
@@ -61,59 +66,75 @@ nvinfer1::ICudaEngine *Yolo::createEngine (nvinfer1::IBuilder* builder, nvinfer1
     m_ConfigBlocks = parseConfigFile(m_ConfigFilePath);
     parseConfigBlocks();
 
+    std::string configNMS = getAbsPath(m_WtsFilePath) + "/config_nms.txt";
+    if (!fileExists(configNMS))
+    {
+        std::cerr << "YOLO config_nms.txt file is not specified\n" << std::endl;
+        assert(0);
+    }
+    m_ConfigNMSBlocks = parseConfigFile(configNMS);
+    parseConfigNMSBlocks();
+
     nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
-    if (parseModel(*network) != NVDSINFER_SUCCESS) {
+    if (parseModel(*network) != NVDSINFER_SUCCESS)
+    {
         delete network;
         return nullptr;
     }
 
-    std::cout << "Building the TensorRT Engine" << std::endl;
+    std::cout << "Building the TensorRT Engine\n" << std::endl;
 
-    if (m_NumClasses != m_NumDetectedClasses) {
-        std::cout << "\nNOTE: Number of classes mismatch, make sure to set num-detected-classes=" << m_NumClasses << " in config_infer file" << std::endl;
+    if (m_NumClasses != m_NumDetectedClasses)
+    {
+        std::cout << "NOTE: Number of classes mismatch, make sure to set num-detected-classes=" << m_NumClasses
+                  << " in config_infer file\n" << std::endl;
     }
-    if (m_LetterBox == 1) {
-        std::cout << "\nNOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file to get better accuracy" << std::endl;
+    if (m_LetterBox == 1)
+    {
+        std::cout << "NOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file"
+                  << " to get better accuracy\n" << std::endl;
     }
-    if (m_ClusterMode != 2) {
-        std::cout << "\nNOTE: Wrong cluster-mode is set, make sure to set cluster-mode=2 in config_infer file" << std::endl;
+    if (m_ClusterMode != 4)
+    {
+        std::cout << "NOTE: Wrong cluster-mode is set, make sure to set cluster-mode=4 in config_infer file\n"
+                  << std::endl;
     }
-    std::cout << "" << std::endl;
 
-    if (m_NetworkMode == "INT8" && !fileExists(m_Int8CalibPath)) {
+    if (m_NetworkMode == "INT8" && !fileExists(m_Int8CalibPath))
+    {
         assert(builder->platformHasFastInt8());
 #ifdef OPENCV
         std::string calib_image_list;
         int calib_batch_size;
-        if (getenv("INT8_CALIB_IMG_PATH")) {
+        if (getenv("INT8_CALIB_IMG_PATH"))
             calib_image_list = getenv("INT8_CALIB_IMG_PATH");
-        }
-        else {
+        else
+        {
             std::cerr << "INT8_CALIB_IMG_PATH not set" << std::endl;
             std::abort();
         }
-        if (getenv("INT8_CALIB_BATCH_SIZE")) {
+        if (getenv("INT8_CALIB_BATCH_SIZE"))
             calib_batch_size = std::stoi(getenv("INT8_CALIB_BATCH_SIZE"));
-        }
-        else {
+        else
+        {
             std::cerr << "INT8_CALIB_BATCH_SIZE not set" << std::endl;
             std::abort();
         }
-        nvinfer1::Int8EntropyCalibrator2 *calibrator = new nvinfer1::Int8EntropyCalibrator2(calib_batch_size, m_InputC, m_InputH, m_InputW, m_LetterBox, calib_image_list, m_Int8CalibPath);
+        nvinfer1::Int8EntropyCalibrator2 *calibrator = new nvinfer1::Int8EntropyCalibrator2(
+            calib_batch_size, m_InputC, m_InputH, m_InputW, m_LetterBox, calib_image_list, m_Int8CalibPath);
         config->setFlag(nvinfer1::BuilderFlag::kINT8);
         config->setInt8Calibrator(calibrator);
 #else
-        std::cerr << "OpenCV is required to run INT8 calibrator" << std::endl;
-        std::abort();
+        std::cerr << "OpenCV is required to run INT8 calibrator\n" << std::endl;
+        assert(0);
 #endif
     }
 
     nvinfer1::ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
-    if (engine) {
+    if (engine)
         std::cout << "Building complete\n" << std::endl;
-    } else {
+    else
         std::cerr << "Building engine failed\n" << std::endl;
-    }
 
     delete network;
     return engine;
@@ -126,28 +147,30 @@ NvDsInferStatus Yolo::parseModel(nvinfer1::INetworkDefinition& network) {
     std::cout << "Building YOLO network\n" << std::endl;
     NvDsInferStatus status = buildYoloNetwork(weights, network);
 
-    if (status == NVDSINFER_SUCCESS) {
+    if (status == NVDSINFER_SUCCESS)
         std::cout << "Building YOLO network complete" << std::endl;
-    } else {
+    else
         std::cerr << "Building YOLO network failed" << std::endl;
-    }
 
     return status;
 }
 
-NvDsInferStatus Yolo::buildYoloNetwork(
-    std::vector<float>& weights, nvinfer1::INetworkDefinition& network) {
+NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition& network)
+{
     int weightPtr = 0;
     int channels = m_InputC;
 
     std::string weightsType;
-
-    if (m_WtsFilePath.find(".weights") != std::string::npos) {
+    if (m_WtsFilePath.find(".weights") != std::string::npos)
         weightsType = "weights";
-    }
-    else {
+    else
         weightsType = "wts";
-    }
+
+    float eps = 1.0e-5;
+    if (m_NetworkType.find("yolov5") != std::string::npos)
+        eps = 1.0e-3;
+    else if (m_NetworkType.find("yolor") != std::string::npos)
+        eps = 1.0e-4;
 
     nvinfer1::ITensor* data =
         network.addInput(m_InputBlobName.c_str(), nvinfer1::DataType::kFLOAT,
@@ -157,26 +180,24 @@ NvDsInferStatus Yolo::buildYoloNetwork(
 
     nvinfer1::ITensor* previous = data;
     std::vector<nvinfer1::ITensor*> tensorOutputs;
-    uint outputTensorCount = 0;
+    std::vector<nvinfer1::ITensor*> yoloInputs;
+    uint inputYoloCount = 0;
 
-    for (uint i = 0; i < m_ConfigBlocks.size(); ++i) {
+    int modelType = -1;
+
+    for (uint i = 0; i < m_ConfigBlocks.size(); ++i)
+    {
         assert(getNumChannels(previous) == channels);
         std::string layerIndex = "(" + std::to_string(tensorOutputs.size()) + ")";
 
-        if (m_ConfigBlocks.at(i).at("type") == "net") {
+        if (m_ConfigBlocks.at(i).at("type") == "net")
             printLayerInfo("", "layer", "     input", "     output", "weightPtr");
-        }
         
-        else if (m_ConfigBlocks.at(i).at("type") == "convolutional") {
-            float eps = 1.0e-5;
-            if (m_NetworkType.find("yolov5") != std::string::npos) {
-                eps = 1.0e-3;
-            }
-            else if (m_NetworkType.find("yolor") != std::string::npos) {
-                eps = 1.0e-4;
-            }
+        else if (m_ConfigBlocks.at(i).at("type") == "convolutional")
+        {
             std::string inputVol = dimsToString(previous->getDimensions());
-            nvinfer1::ILayer* out = convolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, eps, previous, &network);
+            nvinfer1::ILayer* out = convolutionalLayer(
+                i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels, eps, previous, &network);
             previous = out->getOutput(0);
             assert(previous != nullptr);
             channels = getNumChannels(previous);
@@ -186,14 +207,13 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "implicit_add" || m_ConfigBlocks.at(i).at("type") == "implicit_mul") {
+        else if (m_ConfigBlocks.at(i).at("type") == "implicit_add" || m_ConfigBlocks.at(i).at("type") == "implicit_mul")
+        {
             std::string type;
-            if (m_ConfigBlocks.at(i).at("type") == "implicit_add") {
+            if (m_ConfigBlocks.at(i).at("type") == "implicit_add")
                 type = "add";
-            }
-            else if (m_ConfigBlocks.at(i).at("type") == "implicit_mul") {
+            else if (m_ConfigBlocks.at(i).at("type") == "implicit_mul")
                 type = "mul";
-            }
             assert(m_ConfigBlocks.at(i).find("filters") != m_ConfigBlocks.at(i).end());
             int filters = std::stoi(m_ConfigBlocks.at(i).at("filters"));
             nvinfer1::ILayer* out = implicitLayer(filters, weights, m_TrtWeights, weightPtr, &network);
@@ -206,19 +226,17 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, layerType, "        -", outputVol, std::to_string(weightPtr));
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "shift_channels" || m_ConfigBlocks.at(i).at("type") == "control_channels") {
+        else if (m_ConfigBlocks.at(i).at("type") == "shift_channels" || m_ConfigBlocks.at(i).at("type") == "control_channels")
+        {
             std::string type;
-            if (m_ConfigBlocks.at(i).at("type") == "shift_channels") {
+            if (m_ConfigBlocks.at(i).at("type") == "shift_channels")
                 type = "shift";
-            }
-            else if (m_ConfigBlocks.at(i).at("type") == "control_channels") {
+            else if (m_ConfigBlocks.at(i).at("type") == "control_channels")
                 type = "control";
-            }
             assert(m_ConfigBlocks.at(i).find("from") != m_ConfigBlocks.at(i).end());
             int from = stoi(m_ConfigBlocks.at(i).at("from"));
-            if (from > 0) {
+            if (from > 0)
                 from = from - i + 1;
-            }
             assert((i - 2 >= 0) && (i - 2 < tensorOutputs.size()));
             assert((i + from - 1 >= 0) && (i + from - 1 < tensorOutputs.size()));
             assert(i + from - 1 < i - 2);
@@ -231,25 +249,22 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, layerType, "        -", outputVol, "    -");
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "dropout") {
+        else if (m_ConfigBlocks.at(i).at("type") == "dropout")
+        {
             // Skip dropout layer
-            assert(m_ConfigBlocks.at(i).find("probability") != m_ConfigBlocks.at(i).end());
-            /*float probability = std::stof(m_ConfigBlocks.at(i).at("probability"));
-            nvinfer1::ILayer* out = dropoutLayer(probability, previous, &network);
-            previous = out->getOutput(0);*/
             assert(previous != nullptr);
             tensorOutputs.push_back(previous);
             printLayerInfo(layerIndex, "dropout", "        -", "        -", "    -");
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "shortcut") {
+        else if (m_ConfigBlocks.at(i).at("type") == "shortcut")
+        {
             assert(m_ConfigBlocks.at(i).find("activation") != m_ConfigBlocks.at(i).end());
             assert(m_ConfigBlocks.at(i).find("from") != m_ConfigBlocks.at(i).end());
             std::string activation = m_ConfigBlocks.at(i).at("activation");
             int from = stoi(m_ConfigBlocks.at(i).at("from"));
-            if (from > 0) {
+            if (from > 0)
                 from = from - i + 1;
-            }
             assert((i - 2 >= 0) && (i - 2 < tensorOutputs.size()));
             assert((i + from - 1 >= 0) && (i + from - 1 < tensorOutputs.size()));
             assert(i + from - 1 < i - 2);
@@ -267,7 +282,8 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             }
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "route") {
+        else if (m_ConfigBlocks.at(i).at("type") == "route")
+        {
             assert(m_ConfigBlocks.at(i).find("layers") != m_ConfigBlocks.at(i).end());
             nvinfer1::ILayer* out = routeLayer(i, m_ConfigBlocks.at(i), tensorOutputs, &network);
             previous = out->getOutput(0);
@@ -278,7 +294,8 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, "route", "        -", outputVol, std::to_string(weightPtr));
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "upsample") {
+        else if (m_ConfigBlocks.at(i).at("type") == "upsample")
+        {
             std::string inputVol = dimsToString(previous->getDimensions());
             nvinfer1::ILayer* out = upsampleLayer(i - 1, m_ConfigBlocks[i], previous, &network);
             previous = out->getOutput(0);
@@ -288,7 +305,8 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, "upsample", inputVol, outputVol, "    -");
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "maxpool") {
+        else if (m_ConfigBlocks.at(i).at("type") == "maxpool")
+        {
             std::string inputVol = dimsToString(previous->getDimensions());
             nvinfer1::ILayer* out = maxpoolLayer(i, m_ConfigBlocks.at(i), previous, &network);
             previous = out->getOutput(0);
@@ -298,8 +316,10 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             printLayerInfo(layerIndex, "maxpool", inputVol, outputVol, std::to_string(weightPtr));
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "reorg") {
-            if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolor") != std::string::npos) {
+        else if (m_ConfigBlocks.at(i).at("type") == "reorg")
+        {
+            if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolor") != std::string::npos)
+            {
                 std::string inputVol = dimsToString(previous->getDimensions());
                 nvinfer1::ILayer* out = reorgV5Layer(i, previous, &network);
                 previous = out->getOutput(0);
@@ -310,7 +330,8 @@ NvDsInferStatus Yolo::buildYoloNetwork(
                 std::string layerType = "reorgV5";
                 printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
             }
-            else {
+            else 
+            {
                 std::string inputVol = dimsToString(previous->getDimensions());
                 nvinfer1::IPluginV2* reorgPlugin = createReorgPlugin(2);
                 assert(reorgPlugin != nullptr);
@@ -328,95 +349,127 @@ NvDsInferStatus Yolo::buildYoloNetwork(
             }
         }
 
-        else if (m_ConfigBlocks.at(i).at("type") == "yolo") {
-            uint modelType = 1;
-            uint newCoords = 0;
-            float scaleXY = 1.0;
-            if (m_NetworkType.find("yolor") != std::string::npos) {
-                modelType = 2;
+        else if (m_ConfigBlocks.at(i).at("type") == "yolo" || m_ConfigBlocks.at(i).at("type") == "region")
+        {
+            if (m_ConfigBlocks.at(i).at("type") == "yolo")
+            {
+                if (m_NetworkType.find("yolor") != std::string::npos)
+                    modelType = 2;
+                else
+                    modelType = 1;
             }
-            if (m_ConfigBlocks.at(i).find("new_coords") != m_ConfigBlocks.at(i).end()) {
-                newCoords = std::stoi(m_ConfigBlocks.at(i).at("new_coords"));
-            }
-            if (m_ConfigBlocks.at(i).find("scale_x_y") != m_ConfigBlocks.at(i).end()) {
-                scaleXY = std::stof(m_ConfigBlocks.at(i).at("scale_x_y"));
-            }
+            else
+                modelType = 0;
 
-            std::string layerName = "yolo_" + std::to_string(i);
+            std::string layerName = modelType != 0 ? "yolo_" + std::to_string(i) : "region_" + std::to_string(i);
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            TensorInfo& curYoloTensor = m_OutputTensors.at(outputTensorCount);
-            m_NumClasses = curYoloTensor.numClasses;
+            TensorInfo& curYoloTensor = m_YoloTensors.at(inputYoloCount);
             curYoloTensor.blobName = layerName;
-            nvinfer1::IPluginV2* yoloPlugin
-                = new YoloLayer(curYoloTensor.numBBoxes, curYoloTensor.numClasses, m_InputW, m_InputH,
-                                prevTensorDims.d[2], prevTensorDims.d[1], modelType, newCoords, scaleXY,
-                                curYoloTensor.anchors, curYoloTensor.mask);
-            assert(yoloPlugin != nullptr);
-            nvinfer1::IPluginV2Layer* yolo =
-                network.addPluginV2(&previous, 1, *yoloPlugin);
-            assert(yolo != nullptr);
-            yolo->setName(layerName.c_str());
-            std::string inputVol = dimsToString(previous->getDimensions());
-            previous = yolo->getOutput(0);
-            assert(previous != nullptr);
-            previous->setName(layerName.c_str());
-            std::string outputVol = dimsToString(previous->getDimensions());
-            network.markOutput(*previous);
-            channels = getNumChannels(previous);
-            tensorOutputs.push_back(yolo->getOutput(0));
-            printLayerInfo(layerIndex, "yolo", inputVol, outputVol, std::to_string(weightPtr));
-            ++outputTensorCount;
-        }
+            curYoloTensor.gridSizeX = prevTensorDims.d[2];
+            curYoloTensor.gridSizeY = prevTensorDims.d[1];
 
-        else if (m_ConfigBlocks.at(i).at("type") == "region") {
-            std::vector<int> mask;
-            std::string layerName = "region_" + std::to_string(i);
-            nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            TensorInfo& curRegionTensor = m_OutputTensors.at(outputTensorCount);
-            m_NumClasses = curRegionTensor.numClasses;
-            curRegionTensor.blobName = layerName;
-            nvinfer1::IPluginV2* regionPlugin
-                = new YoloLayer(curRegionTensor.numBBoxes, curRegionTensor.numClasses, m_InputW, m_InputH,
-                                prevTensorDims.d[2], prevTensorDims.d[1], 0, 0, 1.0, curRegionTensor.anchors,
-                                mask);
-            assert(regionPlugin != nullptr);
-            nvinfer1::IPluginV2Layer* region =
-                network.addPluginV2(&previous, 1, *regionPlugin);
-            assert(region != nullptr);
-            region->setName(layerName.c_str());
             std::string inputVol = dimsToString(previous->getDimensions());
-            previous = region->getOutput(0);
-            assert(previous != nullptr);
-            previous->setName(layerName.c_str());
-            std::string outputVol = dimsToString(previous->getDimensions());
-            network.markOutput(*previous);
             channels = getNumChannels(previous);
-            tensorOutputs.push_back(region->getOutput(0));
-            printLayerInfo(layerIndex, "region", inputVol, outputVol, std::to_string(weightPtr));
-            ++outputTensorCount;
+            tensorOutputs.push_back(previous);
+            yoloInputs.push_back(previous);
+            ++inputYoloCount;
+            printLayerInfo(layerIndex, modelType != 0 ? "yolo" : "region", inputVol, "        -", "    -");
         }
 
         else
         {
-            std::cout << "Unsupported layer type --> \""
-                      << m_ConfigBlocks.at(i).at("type") << "\"" << std::endl;
+            std::cout << "\nUnsupported layer type --> \"" << m_ConfigBlocks.at(i).at("type") << "\"" << std::endl;
             assert(0);
         }
     }
 
     if ((int)weights.size() != weightPtr)
     {
-        std::cout << "Number of unused weights left: " << weights.size() - weightPtr << std::endl;
+        std::cout << "\nNumber of unused weights left: " << weights.size() - weightPtr << std::endl;
         assert(0);
     }
 
-    std::cout << "Output YOLO blob names: " << std::endl;
-    for (auto& tensor : m_OutputTensors) {
+    if (m_YoloCount == inputYoloCount)
+    {
+        assert((modelType != -1) && "\nCould not determine model type"); 
+
+        nvinfer1::ITensor* yoloInputTensors[inputYoloCount];
+        uint64_t outputSize = 0;
+        for (uint j = 0; j < inputYoloCount; ++j)
+        {
+            yoloInputTensors[j] = yoloInputs[j];
+            TensorInfo& curYoloTensor = m_YoloTensors.at(j);
+            outputSize += curYoloTensor.gridSizeX * curYoloTensor.gridSizeY * curYoloTensor.numBBoxes;
+        }
+
+        if (m_TopK > outputSize) {
+            std::cout << "\ntopk > Number of outputs\nPlease change the topk to " << outputSize
+                      << " or less in config_nms.txt file\n" << std::endl;
+            assert(0);
+        }
+
+        std::string layerName = "yolo";
+        nvinfer1::IPluginV2* yoloPlugin = new YoloLayer(
+            m_InputW, m_InputH, m_NumClasses, m_NewCoords, m_YoloTensors, outputSize, modelType, m_TopK,
+            m_ScoreThreshold);
+        assert(yoloPlugin != nullptr);
+        nvinfer1::IPluginV2Layer* yolo = network.addPluginV2(yoloInputTensors, inputYoloCount, *yoloPlugin);
+        assert(yolo != nullptr);
+        yolo->setName(layerName.c_str());
+        previous = yolo->getOutput(0);
+        assert(previous != nullptr);
+        previous->setName(layerName.c_str());
+        tensorOutputs.push_back(yolo->getOutput(0));
+
+        nvinfer1::ITensor* yoloTensors[] = {yolo->getOutput(0), yolo->getOutput(1)};
+        std::string outputVol = dimsToString(previous->getDimensions());
+
+        nvinfer1::plugin::NMSParameters nmsParams;
+        nmsParams.shareLocation = true;
+        nmsParams.backgroundLabelId = -1;
+        nmsParams.numClasses = m_NumClasses;
+        nmsParams.topK = m_TopK;
+        nmsParams.keepTopK = m_TopK;
+        nmsParams.scoreThreshold = m_ScoreThreshold;
+        nmsParams.iouThreshold = m_IouThreshold;
+        nmsParams.isNormalized = false;
+
+        layerName = "batchedNMS";
+        nvinfer1::IPluginV2* batchedNMS = createBatchedNMSPlugin(nmsParams);
+        nvinfer1::IPluginV2Layer* nms = network.addPluginV2(yoloTensors, 2, *batchedNMS);
+        nms->setName(layerName.c_str());
+        nvinfer1::ITensor* num_detections = nms->getOutput(0);
+        layerName = "num_detections";
+        num_detections->setName(layerName.c_str());
+        nvinfer1::ITensor* nmsed_boxes = nms->getOutput(1);
+        layerName = "nmsed_boxes";
+        nmsed_boxes->setName(layerName.c_str());
+        nvinfer1::ITensor* nmsed_scores = nms->getOutput(2);
+        layerName = "nmsed_scores";
+        nmsed_scores->setName(layerName.c_str());
+        nvinfer1::ITensor* nmsed_classes = nms->getOutput(3);
+        layerName = "nmsed_classes";
+        nmsed_classes->setName(layerName.c_str());
+        network.markOutput(*num_detections);
+        network.markOutput(*nmsed_boxes);
+        network.markOutput(*nmsed_scores);
+        network.markOutput(*nmsed_classes);
+
+        printLayerInfo("", "batched_nms", "        -", outputVol, "    -");
+    }
+    else {
+        std::cout << "\nError in yolo cfg file" << std::endl;
+        assert(0);
+    }
+
+    std::cout << "\nOutput YOLO blob names: " << std::endl;
+    for (auto& tensor : m_YoloTensors)
+    {
         std::cout << tensor.blobName << std::endl;
     }
 
     int nbLayers = network.getNbLayers();
-    std::cout << "Total number of YOLO layers: " << nbLayers << std::endl;
+    std::cout << "\nTotal number of YOLO layers: " << nbLayers << "\n" << std::endl;
 
     return NVDSINFER_SUCCESS;
 }
@@ -462,39 +515,44 @@ Yolo::parseConfigFile (const std::string cfgFilePath)
 
 void Yolo::parseConfigBlocks()
 {
-    for (auto block : m_ConfigBlocks) {
+    for (auto block : m_ConfigBlocks)
+    {
         if (block.at("type") == "net")
         {
-            assert((block.find("height") != block.end())
-                   && "Missing 'height' param in network cfg");
+            assert((block.find("height") != block.end()) && "Missing 'height' param in network cfg");
             assert((block.find("width") != block.end()) && "Missing 'width' param in network cfg");
-            assert((block.find("channels") != block.end())
-                   && "Missing 'channels' param in network cfg");
+            assert((block.find("channels") != block.end()) && "Missing 'channels' param in network cfg");
 
             m_InputH = std::stoul(block.at("height"));
             m_InputW = std::stoul(block.at("width"));
             m_InputC = std::stoul(block.at("channels"));
             m_InputSize = m_InputC * m_InputH * m_InputW;
 
-            if (block.find("letter_box") != block.end()) {
+            if (block.find("letter_box") != block.end())
+            {
                 m_LetterBox = std::stoul(block.at("letter_box"));
             }
-            else {
-                m_LetterBox = 0;
-            }
         }
-        else if ((block.at("type") == "region") || (block.at("type") == "yolo") || (block.at("type") == "detect"))
+        else if ((block.at("type") == "region") || (block.at("type") == "yolo"))
         {
             assert((block.find("num") != block.end())
                    && std::string("Missing 'num' param in " + block.at("type") + " layer").c_str());
             assert((block.find("classes") != block.end())
-                   && std::string("Missing 'classes' param in " + block.at("type") + " layer")
-                          .c_str());
+                   && std::string("Missing 'classes' param in " + block.at("type") + " layer").c_str());
             assert((block.find("anchors") != block.end())
-                   && std::string("Missing 'anchors' param in " + block.at("type") + " layer")
-                          .c_str());
+                   && std::string("Missing 'anchors' param in " + block.at("type") + " layer").c_str());
+
+            ++m_YoloCount;
+
+            m_NumClasses = std::stoul(block.at("classes"));
+
+            if (block.find("new_coords") != block.end())
+            {
+                m_NewCoords = std::stoul(block.at("new_coords"));
+            }
 
             TensorInfo outputTensor;
+
             std::string anchorString = block.at("anchors");
             while (!anchorString.empty())
             {
@@ -513,7 +571,8 @@ void Yolo::parseConfigBlocks()
                 }
             }
 
-            if (block.find("mask") != block.end()) {
+            if (block.find("mask") != block.end())
+            {
                 std::string maskString = block.at("mask");
                 while (!maskString.empty())
                 {
@@ -533,17 +592,41 @@ void Yolo::parseConfigBlocks()
                 }
             }
 
-            outputTensor.numBBoxes = outputTensor.mask.size() > 0
-                ? outputTensor.mask.size()
-                : std::stoul(trim(block.at("num")));
-            outputTensor.numClasses = std::stoul(block.at("classes"));
-            m_OutputTensors.push_back(outputTensor);
+            if (block.find("scale_x_y") != block.end())
+            {
+                outputTensor.scaleXY = std::stof(block.at("scale_x_y"));
+            }
+            else
+            {
+                outputTensor.scaleXY = 1.0;
+            }
+
+            outputTensor.numBBoxes
+                = outputTensor.mask.size() > 0 ? outputTensor.mask.size() : std::stoul(trim(block.at("num")));
+            
+            m_YoloTensors.push_back(outputTensor);
         }
     }
 }
 
-void Yolo::destroyNetworkUtils() {
-    for (uint i = 0; i < m_TrtWeights.size(); ++i) {
+void Yolo::parseConfigNMSBlocks()
+{
+    auto block = m_ConfigNMSBlocks[0];
+
+    assert((block.at("type") == "property") && "Missing 'property' param in nms cfg");
+    assert((block.find("iou-threshold") != block.end()) && "Missing 'iou-threshold' param in nms cfg");
+    assert((block.find("score-threshold") != block.end()) && "Missing 'score-threshold' param in nms cfg");
+    assert((block.find("topk") != block.end()) && "Missing 'topk' param in nms cfg");
+
+    m_IouThreshold = std::stof(block.at("iou-threshold"));
+    m_ScoreThreshold = std::stof(block.at("score-threshold"));
+    m_TopK = std::stoul(block.at("topk"));
+}
+
+void Yolo::destroyNetworkUtils()
+{
+    for (uint i = 0; i < m_TrtWeights.size(); ++i)
+    {
         if (m_TrtWeights[i].count > 0)
             free(const_cast<void*>(m_TrtWeights[i].values));
     }

@@ -144,6 +144,7 @@ with open(cfg_file, "w") as c:
         c.write("width=%d\n" % model_width)
         c.write("height=%d\n" % model_height)
         c.write("channels=%d\n" % model_channels)
+        c.write("letter_box=1\n")
         nc = 0
         depth_multiple = 0
         width_multiple = 0

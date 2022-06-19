@@ -55,7 +55,6 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            layers/convolutional_layer.cpp \
            layers/implicit_layer.cpp \
            layers/channels_layer.cpp \
-           layers/dropout_layer.cpp \
            layers/shortcut_layer.cpp \
            layers/route_layer.cpp \
            layers/upsample_layer.cpp \
@@ -67,7 +66,8 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            yoloForward.cu \
            yoloForward_v2.cu \
            yoloForward_nc.cu \
-           yoloForward_r.cu
+           yoloForward_r.cu \
+           sortDetections.cu
 
 ifeq ($(OPENCV), 1)
 SRCFILES+= calibrator.cpp

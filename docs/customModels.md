@@ -272,24 +272,6 @@ interval=0
 
 ##
 
-#### nms-iou-threshold
-
-```
-# IOU threshold
-nms-iou-threshold=0.6
-```
-
-##
-
-#### pre-cluster-threshold
-
-```
-# Socre threshold
-pre-cluster-threshold=0.25
-```
-
-##
-
 ### Testing model
 
 ```

@@ -41,8 +41,8 @@ bool fileExists(const std::string fileName, bool verbose = true);
 std::vector<float> loadWeights(const std::string weightsFilePath, const std::string& networkType);
 std::string dimsToString(const nvinfer1::Dims d);
 int getNumChannels(nvinfer1::ITensor* t);
-
-void printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput,
-                    std::string layerOutput, std::string weightPtr);
+void printLayerInfo(
+    std::string layerIndex, std::string layerName, std::string layerInput,  std::string layerOutput, std::string weightPtr);
+std::string getAbsPath(std::string path);
 
 #endif

@@ -1,0 +1,4 @@
+[property]
+iou-threshold=0.45
+score-threshold=0.25
+topk=300

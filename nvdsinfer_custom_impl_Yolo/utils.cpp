@@ -57,7 +57,7 @@ bool fileExists(const std::string fileName, bool verbose)
 {
     if (!std::experimental::filesystem::exists(std::experimental::filesystem::path(fileName)))
     {
-        if (verbose) std::cout << "File does not exist: " << fileName << std::endl;
+        if (verbose) std::cout << "\nFile does not exist: " << fileName << std::endl;
         return false;
     }
     return true;
@@ -101,7 +101,7 @@ std::vector<float> loadWeights(const std::string weightsFilePath, const std::str
         assert(file.good());
         int32_t count;
         file >> count;
-        assert(count > 0 && "Invalid .wts file.");
+        assert(count > 0 && "\nInvalid .wts file.");
 
         uint32_t floatWeight;
         std::string name;
@@ -118,7 +118,7 @@ std::vector<float> loadWeights(const std::string weightsFilePath, const std::str
     }
 
     else {
-        std::cerr << "File " << weightsFilePath << " is not supported" << std::endl;
+        std::cerr << "\nFile " << weightsFilePath << " is not supported" << std::endl;
         std::abort();
     }
 
@@ -149,11 +149,19 @@ int getNumChannels(nvinfer1::ITensor* t)
     return d.d[0];
 }
 
-void printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput,
-                    std::string layerOutput, std::string weightPtr)
+void printLayerInfo(
+    std::string layerIndex, std::string layerName, std::string layerInput, std::string layerOutput, std::string weightPtr)
 {
     std::cout << std::setw(6) << std::left << layerIndex << std::setw(24) << std::left << layerName;
     std::cout << std::setw(20) << std::left << layerInput << std::setw(20) << std::left
               << layerOutput;
     std::cout << std::setw(7) << std::left << weightPtr << std::endl;
+}
+
+std::string getAbsPath(std::string path)
+{
+    std::size_t found = path.rfind("/");
+    if (found != std::string::npos)
+        path.erase(path.begin() + found, path.end());
+    return path;
 }

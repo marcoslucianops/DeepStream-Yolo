@@ -63,15 +63,13 @@ static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContext
 
     if (networkInfo.configFilePath.empty() ||
         networkInfo.wtsFilePath.empty()) {
-        std::cerr << "YOLO config file or weights file is not specified"
-                  << std::endl;
+        std::cerr << "YOLO config file or weights file is not specified\n" << std::endl;
         return false;
     }
 
     if (!fileExists(networkInfo.configFilePath) ||
         !fileExists(networkInfo.wtsFilePath)) {
-        std::cerr << "YOLO config file or weights file is not exist"
-                  << std::endl;
+        std::cerr << "YOLO config file or weights file is not exist\n" << std::endl;
         return false;
     }
 
