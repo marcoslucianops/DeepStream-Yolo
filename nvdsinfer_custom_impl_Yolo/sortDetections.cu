@@ -75,7 +75,7 @@ cudaError_t sortDetections(
         int threads_per_block = 0;
         int number_of_blocks = 4;
 
-        if (_topK % 2 == 0)
+        if (_topK % 2 == 0 || _topK >= number_of_blocks)
             threads_per_block = _topK / number_of_blocks;
         else
             threads_per_block = (_topK / number_of_blocks) + 1;
