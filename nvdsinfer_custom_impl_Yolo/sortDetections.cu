@@ -7,9 +7,12 @@
 
 __global__ void sortOutput(
     int* d_indexes, float* d_scores, float* d_boxes, int* d_classes, float* bboxData, float* scoreData,
-    const uint numOutputClasses)
+    const uint numOutputClasses, const int topk)
 {
     uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (x_id >= topk)
+        return;
 
     int index = d_indexes[x_id];
     int maxIndex = d_classes[index];
@@ -67,12 +70,20 @@ cudaError_t sortDetections(
         cudaMemcpy(_d_scores, d_keys_out, count * sizeof(float), cudaMemcpyDeviceToDevice);
         cudaMemcpy(_d_indexes, d_values_out, count * sizeof(int), cudaMemcpyDeviceToDevice);
 
-        int threads_per_block = count < topK ? count : topK;
+        int _topK = count < topK ? count : topK;
 
-        sortOutput<<<1, threads_per_block, 0, stream>>>(
+        int threads_per_block = 0;
+        int number_of_blocks = 4;
+
+        if (_topK % 2 == 0)
+            threads_per_block = _topK / number_of_blocks;
+        else
+            threads_per_block = (_topK / number_of_blocks) + 1;
+
+        sortOutput<<<number_of_blocks, threads_per_block, 0, stream>>>(
             _d_indexes, _d_scores, reinterpret_cast<float*>(d_boxes) + (batch * 4 * outputSize),
             reinterpret_cast<int*>(d_classes) + (batch * outputSize), reinterpret_cast<float*>(bboxData) + (batch * topK),
-            reinterpret_cast<float*>(scoreData) + (batch * topK), numOutputClasses);
+            reinterpret_cast<float*>(scoreData) + (batch * topK), numOutputClasses, _topK);
 
         cudaFree(d_keys_out);
         cudaFree(d_values_out);

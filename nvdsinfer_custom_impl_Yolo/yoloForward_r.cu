@@ -16,10 +16,8 @@ __global__ void gpuYoloLayer_r(
     uint y_id = blockIdx.y * blockDim.y + threadIdx.y;
     uint z_id = blockIdx.z * blockDim.z + threadIdx.z;
 
-    if ((x_id >= gridSizeX) || (y_id >= gridSizeY) || (z_id >= numBBoxes))
-    {
+    if (x_id >= gridSizeX || y_id >= gridSizeY || z_id >= numBBoxes)
         return;
-    }
 
     const int numGridCells = gridSizeX * gridSizeY;
     const int bbindex = y_id * gridSizeX + x_id;
@@ -27,7 +25,8 @@ __global__ void gpuYoloLayer_r(
     const float objectness
         = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)]);
 
-    if (objectness < scoreThreshold) return;
+    if (objectness < scoreThreshold)
+        return;
 
     int count = (int)atomicAdd(&countData[0], 1);
 
