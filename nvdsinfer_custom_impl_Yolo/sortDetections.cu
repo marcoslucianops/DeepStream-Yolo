@@ -3,7 +3,7 @@
  * https://www.github.com/marcoslucianops
  */
 
-#include <cub/cub.cuh>
+#include <cub/device/device_radix_sort.cuh>
 
 __global__ void sortOutput(
     int* d_indexes, float* d_scores, float* d_boxes, int* d_classes, float* bboxData, float* scoreData,
