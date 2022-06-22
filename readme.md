@@ -196,20 +196,7 @@ sudo sh cuda_11.6.1_510.47.03_linux.run --silent --toolkit
 * Export environment variables
 
 ```
-nano ~/.bashrc
-```
-
-* Add
-
-```
-export PATH=/usr/local/cuda-11.6/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64\${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-```
-
-* Run
-
-```
-source ~/.bashrc
+echo $'export PATH=/usr/local/cuda-11.6/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
 ```
 
 
@@ -346,20 +333,7 @@ sudo sh cuda_11.4.1_470.57.02_linux.run --silent --toolkit
 * Export environment variables
 
 ```
-nano ~/.bashrc
-```
-
-* Add
-
-```
-export PATH=/usr/local/cuda-11.4/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-11.4/lib64\${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-```
-
-* Run
-
-```
-source ~/.bashrc
+echo $'export PATH=/usr/local/cuda-11.4/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.4/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
 ```
 
 
