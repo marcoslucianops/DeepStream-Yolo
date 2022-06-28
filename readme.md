@@ -304,6 +304,8 @@ sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau --dkms --i
 
 **NOTE**: This step will disable the nouveau drivers.
 
+**NOTE**: Remove --dkms flag if you installed the 5.11.0 kernel.
+
 * Reboot
 
 ```
@@ -315,6 +317,8 @@ sudo reboot
 ```
 sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau --dkms --install-libglvnd
 ```
+
+**NOTE**: Remove --dkms flag if you installed the 5.11.0 kernel.
 
 **NOTE**: If you are using a laptop with NVIDIA Optimius, run
 
@@ -601,7 +605,7 @@ or
 python3 gen_wts_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg
 ```
 
-#### 5. Copy cfg and generated wts files to DeepStream-Yolo folder
+#### 5. Copy generated cfg and wts files to DeepStream-Yolo folder
 
 #### 6. Open DeepStream-Yolo folder
 
