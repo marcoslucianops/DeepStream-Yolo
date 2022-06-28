@@ -478,7 +478,7 @@ wget https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5n.pt
 #### 4. Generate cfg and wts files (example for YOLOv5n)
 
 ```
-python3 gen_wts_yoloV5.py -w yolov5n.pt
+python3 gen_wts_yoloV5.py -w yolov5n.pt -c models/yolov5n.yaml
 ```
 
 #### 5. Copy generated cfg and wts files to DeepStream-Yolo folder
@@ -567,28 +567,22 @@ deepstream-app -c deepstream_app_config.txt
 -c or --yaml
 ```
 
-* Model width **(default = 640 / 1280 [P6])**
+* Inference size [size] or [height , weight] **(default [640] / [1280] if --p6)**
 
 ```
--mw or --width
+-s or --size
 ```
 
-* Model height **(default = 640 / 1280 [P6])**
+Example for 1280
 
 ```
--mh or --height
+-s 1280
 ```
 
-* Model channels **(default = 3)**
+or
 
 ```
--mc or --channels
-```
-
-* P6 model
-
-```
---p6
+-s 1280 1280
 ```
 
 ##
@@ -687,7 +681,9 @@ To change the `iou-threshold`, `score-threshold` and `topk` values, modify the `
 
 **NOTE**: Lower `topk` values will result in more performance.
 
-**NOTE**: Make sure to set cluster-mode=4 and pre-cluster-threshold=0 in config_infer file.
+**NOTE**: Make sure to set cluster-mode=4 in config_infer file.
+
+**NOTE**: You are still able to change the `pre-cluster-threshold` values in the `config_infer.txt` file.
 
 ```
 [property]
