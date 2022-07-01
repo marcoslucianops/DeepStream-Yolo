@@ -4,28 +4,29 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
 ### Future updates
 
-* New documentation for multiple models
+* Models benchmarks
 * DeepStream tutorials
-* Native YOLOX support
-* Native PP-YOLO support
+* YOLOX support
+* PP-YOLO support
+* YOLOv6 support
 * Dynamic batch-size
 
 ### Improvements on this repository
 
-* Darknet CFG params parser (no need to edit nvdsparsebbox_Yolo.cpp or another file)
-* Support for new_coords, beta_nms and scale_x_y params
+* Darknet cfg params parser (no need to edit `nvdsparsebbox_Yolo.cpp` or other files)
+* Support for `new_coords`, `beta_nms` and `scale_x_y` params
 * Support for new models
 * Support for new layers
 * Support for new activations
 * Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
-* Support for reorg, implicit and channel layers (YOLOR)
-* YOLOv5 4.0, 5.0, 6.0 and 6.1 native support
-* YOLOR native support
-* Models benchmarks (**outdated**)
+* Support for `reorg`, `implicit` and `channel` layers (YOLOR)
+* YOLOv5 4.0, 5.0, 6.0 and 6.1 support
+* YOLOR support
 * **GPU YOLO Decoder (moved from CPU to GPU to get better performance)** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
 * **GPU Batched NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
+* **New documentation for multiple models**
 
 ##
 
@@ -41,6 +42,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [NMS configuration](#nms-configuration)
 * [INT8 calibration](#int8-calibration)
 * [Using your custom model](docs/customModels.md)
+* [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
 ##
 
@@ -125,7 +127,7 @@ sudo apt-get install libssl1.1 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0
 sudo apt-get install linux-headers-$(uname -r)
 ```
 
-**NOTE**: Purge all NVIDIA driver, CUDA, etc (replace $CUDA_PATH to your CUDA path).
+**NOTE**: Purge all NVIDIA driver, CUDA, etc (replace $CUDA_PATH to your CUDA path)
 
 ```
 sudo nvidia-uninstall
@@ -149,35 +151,35 @@ sudo apt-get update
 
 * TITAN, GeForce RTX / GTX series and RTX / Quadro series
 
-```
-wget https://us.download.nvidia.com/XFree86/Linux-x86_64/510.47.03/NVIDIA-Linux-x86_64-510.47.03.run
-```
+  ```
+  wget https://us.download.nvidia.com/XFree86/Linux-x86_64/510.47.03/NVIDIA-Linux-x86_64-510.47.03.run
+  ```
 
 * Data center / Tesla series
 
-```
-wget https://us.download.nvidia.com/tesla/510.47.03/NVIDIA-Linux-x86_64-510.47.03.run
-```
+  ```
+  wget https://us.download.nvidia.com/tesla/510.47.03/NVIDIA-Linux-x86_64-510.47.03.run
+  ```
 
 * Run
 
-```
-sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --disable-nouveau --dkms --install-libglvnd
-```
+  ```
+  sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --disable-nouveau --dkms --install-libglvnd
+  ```
 
-**NOTE**: This step will disable the nouveau drivers.
+  **NOTE**: This step will disable the nouveau drivers.
 
 * Reboot
 
-```
-sudo reboot
-```
+  ```
+  sudo reboot
+  ```
 
 * Install
 
-```
-sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --disable-nouveau --dkms --install-libglvnd
-```
+  ```
+  sudo sh NVIDIA-Linux-x86_64-510.47.03.run --silent --disable-nouveau --dkms --install-libglvnd
+  ```
 
 **NOTE**: If you are using a laptop with NVIDIA Optimius, run
 
@@ -195,10 +197,9 @@ sudo sh cuda_11.6.1_510.47.03_linux.run --silent --toolkit
 
 * Export environment variables
 
-```
-echo $'export PATH=/usr/local/cuda-11.6/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
-```
-
+  ```
+  echo $'export PATH=/usr/local/cuda-11.6/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
+  ```
 
 #### 6. Download from [NVIDIA website](https://developer.nvidia.com/nvidia-tensorrt-8x-download) and install the TensorRT
 
@@ -256,13 +257,13 @@ sudo apt install libssl1.0.0 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-p
 sudo apt-get install linux-headers-$(uname -r)
 ```
 
-**NOTE**: Install DKMS only if you are using the default Ubuntu kernel.
+**NOTE**: Install DKMS only if you are using the default Ubuntu kernel
 
 ```
 sudo apt-get install dkms
 ```
 
-**NOTE**: Purge all NVIDIA driver, CUDA, etc (replace $CUDA_PATH to your CUDA path).
+**NOTE**: Purge all NVIDIA driver, CUDA, etc (replace $CUDA_PATH to your CUDA path)
 
 ```
 sudo nvidia-uninstall
@@ -286,39 +287,39 @@ sudo apt-get update
 
 * TITAN, GeForce RTX / GTX series and RTX / Quadro series
 
-```
-wget https://us.download.nvidia.com/XFree86/Linux-x86_64/470.129.06/NVIDIA-Linux-x86_64-470.129.06.run
-```
+  ```
+  wget https://us.download.nvidia.com/XFree86/Linux-x86_64/470.129.06/NVIDIA-Linux-x86_64-470.129.06.run
+  ```
 
 * Data center / Tesla series
 
-```
-wget https://us.download.nvidia.com/tesla/470.129.06/NVIDIA-Linux-x86_64-470.129.06.run
-```
+  ```
+  wget https://us.download.nvidia.com/tesla/470.129.06/NVIDIA-Linux-x86_64-470.129.06.run
+  ```
 
 * Run
 
-```
-sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau --dkms --install-libglvnd
-```
+  ```
+  sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau --dkms --install-libglvnd
+  ```
 
-**NOTE**: This step will disable the nouveau drivers.
+  **NOTE**: This step will disable the nouveau drivers.
 
-**NOTE**: Remove --dkms flag if you installed the 5.11.0 kernel.
+  **NOTE**: Remove --dkms flag if you installed the 5.11.0 kernel.
 
 * Reboot
 
-```
-sudo reboot
-```
+  ```
+  sudo reboot
+  ```
 
 * Install
 
-```
-sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau --dkms --install-libglvnd
-```
+  ```
+  sudo sh NVIDIA-Linux-x86_64-470.129.06.run --silent --disable-nouveau --dkms --install-libglvnd
+  ```
 
-**NOTE**: Remove --dkms flag if you installed the 5.11.0 kernel.
+  **NOTE**: Remove --dkms flag if you installed the 5.11.0 kernel.
 
 **NOTE**: If you are using a laptop with NVIDIA Optimius, run
 
@@ -336,10 +337,9 @@ sudo sh cuda_11.4.1_470.57.02_linux.run --silent --toolkit
 
 * Export environment variables
 
-```
-echo $'export PATH=/usr/local/cuda-11.4/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.4/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
-```
-
+  ```
+  echo $'export PATH=/usr/local/cuda-11.4/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.4/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
+  ```
 
 #### 6. Download from [NVIDIA website](https://developer.nvidia.com/nvidia-tensorrt-8x-download) and install the TensorRT
 
@@ -356,22 +356,22 @@ sudo apt-get install libnvinfer8=8.0.1-1+cuda11.3 libnvinfer-plugin8=8.0.1-1+cud
 
 * DeepStream 6.0.1 for Servers and Workstations (.deb)
 
-```
-sudo apt-get install ./deepstream-6.0_6.0.1-1_amd64.deb
-```
+  ```
+  sudo apt-get install ./deepstream-6.0_6.0.1-1_amd64.deb
+  ```
 
 * DeepStream 6.0 for Servers and Workstations (.deb)
 
-```
-sudo apt-get install ./deepstream-6.0_6.0.0-1_amd64.deb
-```
+  ```
+  sudo apt-get install ./deepstream-6.0_6.0.0-1_amd64.deb
+  ```
 
 * Run
 
-```
-rm ${HOME}/.cache/gstreamer-1.0/registry.x86_64.bin
-sudo ln -snf /usr/local/cuda-11.4 /usr/local/cuda
-```
+  ```
+  rm ${HOME}/.cache/gstreamer-1.0/registry.x86_64.bin
+  sudo ln -snf /usr/local/cuda-11.4 /usr/local/cuda
+  ```
 
 #### 8. Reboot the computer
 
@@ -392,55 +392,41 @@ git clone https://github.com/marcoslucianops/DeepStream-Yolo.git
 cd DeepStream-Yolo
 ```
 
-#### 2. Download cfg and weights files from your model and move to DeepStream-Yolo folder
+#### 2. Download the `cfg` and `weights` files from [Darknet](https://github.com/AlexeyAB/darknet) repo to the DeepStream-Yolo folder
 
-#### 3. Compile lib
+#### 3. Compile the lib
 
 * DeepStream 6.1 on x86 platform
 
-```
-CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on x86 platform
 
-```
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.1 on Jetson platform
 
-```
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on Jetson platform
 
-```
-CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
-#### 4. Edit config_infer_primary.txt for your model (example for YOLOv4)
+#### 4. Edit the `config_infer_primary.txt` file according to your model (example for YOLOv4)
 
 ```
 [property]
 ...
-# 0=RGB, 1=BGR, 2=GRAYSCALE
-model-color-format=0
-# YOLO cfg
 custom-network-config=yolov4.cfg
-# YOLO weights
 model-file=yolov4.weights
-# Generated TensorRT model (will be created if it doesn't exist)
-model-engine-file=model_b1_gpu0_fp32.engine
-# Model labels file
-labelfile-path=labels.txt
-# Batch size
-batch-size=1
-# 0=FP32, 1=INT8, 2=FP16 mode
-network-mode=0
-# Number of classes in label file
-num-detected-classes=80
 ...
 ```
 
@@ -450,15 +436,12 @@ num-detected-classes=80
 deepstream-app -c deepstream_app_config.txt
 ```
 
-**NOTE**: If you want to use YOLOv2 or YOLOv2-Tiny models, change the deepstream_app_config.txt file before run it
+**NOTE**: If you want to use YOLOv2 or YOLOv2-Tiny models, change the `deepstream_app_config.txt` file before run it
 
 ```
 ...
 [primary-gie]
-enable=1
-gpu-id=0
-gie-unique-id=1
-nvbuf-memory-type=0
+...
 config-file=config_infer_primary_yoloV2.txt
 ...
 ```
@@ -467,211 +450,179 @@ config-file=config_infer_primary_yoloV2.txt
 
 ### YOLOv5 usage
 
-**NOTE**: Make sure to change the YOLOv5 repo version to your model version before conversion.
+**NOTE**: Make sure to change the YOLOv5 repo version according to your model version before the conversion.
 
-#### 1. Copy gen_wts_yoloV5.py from DeepStream-Yolo/utils to [ultralytics/yolov5](https://github.com/ultralytics/yolov5) folder
+#### 1. Copy the `gen_wts_yoloV5.py` file from `DeepStream-Yolo/utils` directory to the [YOLOv5](https://github.com/ultralytics/yolov5) folder
 
-#### 2. Open the ultralytics/yolov5 folder
+#### 2. Open the YOLOv5 folder
 
-#### 3. Download pt file from [ultralytics/yolov5](https://github.com/ultralytics/yolov5/releases/) website (example for YOLOv5n 6.1)
+#### 3. Download the `pt` file from [YOLOv5](https://github.com/ultralytics/yolov5/releases/) repo (example for YOLOv5n 6.1)
 
 ```
 wget https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5n.pt
 ```
 
-#### 4. Generate cfg and wts files (example for YOLOv5n)
+#### 4. Generate the `cfg` and `wts` files (example for YOLOv5n)
 
 ```
 python3 gen_wts_yoloV5.py -w yolov5n.pt -c models/yolov5n.yaml
 ```
 
-#### 5. Copy generated cfg and wts files to DeepStream-Yolo folder
+#### 5. Copy the generated `cfg` and `wts` files to the DeepStream-Yolo folder
 
-#### 6. Open DeepStream-Yolo folder
+#### 6. Open the DeepStream-Yolo folder
 
-#### 7. Compile lib
+#### 7. Compile the lib
 
 * DeepStream 6.1 on x86 platform
 
-```
-CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on x86 platform
 
-```
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.1 on Jetson platform
 
-```
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on Jetson platform
 
-```
-CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
-#### 8. Edit config_infer_primary_yoloV5.txt for your model (example for YOLOv5n)
+#### 8. Edit the `config_infer_primary_yoloV5.txt` file according to your model (example for YOLOv5n)
 
 ```
 [property]
 ...
-# 0=RGB, 1=BGR, 2=GRAYSCALE
-model-color-format=0
-# CFG
 custom-network-config=yolov5n.cfg
-# WTS
 model-file=yolov5n.wts
-# Generated TensorRT model (will be created if it doesn't exist)
-model-engine-file=model_b1_gpu0_fp32.engine
-# Model labels file
-labelfile-path=labels.txt
-# Batch size
-batch-size=1
-# 0=FP32, 1=INT8, 2=FP16 mode
-network-mode=0
-# Number of classes in label file
-num-detected-classes=80
 ...
 ```
 
-#### 8. Change the deepstream_app_config.txt file
+#### 9. Edit the `deepstream_app_config.txt` file
 
 ```
 ...
 [primary-gie]
-enable=1
-gpu-id=0
-gie-unique-id=1
-nvbuf-memory-type=0
+...
 config-file=config_infer_primary_yoloV5.txt
 ```
 
-#### 9. Run
+#### 10. Run
 
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
 
-**NOTE**: For YOLOv5 P6 or custom models, check the gen_wts_yoloV5.py args and use them according to your model
+**NOTE**: For YOLOv5 P6, check the `gen_wts_yoloV5.py` file args and set them according to your model.
 
-* Input weights (.pt) file path **(required)**
+* Input weights (.pt) file path
 
-```
--w or --weights
-```
+  ```
+  -w or --weights
+  ```
 
 * Input cfg (.yaml) file path
 
-```
--c or --yaml
-```
+  ```
+  -c or --yaml
+  ```
 
-* Inference size [size] or [height , weight] **(default [640] / [1280] if --p6)**
+* Inference size [size] or [height , weight]
 
-```
--s or --size
-```
+  Default: 640 / 1280 (if --p6)
 
-Example for 1280
+  ```
+  -s or --size
+  ```
 
-```
--s 1280
-```
+  * Example for 1280
 
-or
+    ```
+    -s 1280
+    ```
 
-```
--s 1280 1280
-```
+    or
+
+    ```
+    -s 1280 1280
+    ```
 
 ##
 
 ### YOLOR usage
 
-#### 1. Copy gen_wts_yolor.py from DeepStream-Yolo/utils to [yolor](https://github.com/WongKinYiu/yolor) folder
+#### 1. Copy the `gen_wts_yolor.py` file from `DeepStream-Yolo/utils` directory to the [YOLOR](https://github.com/WongKinYiu/yolor) folder
 
-#### 2. Open the yolor folder
+#### 2. Open the YOLOR folder
 
-#### 3. Download pt file from [yolor](https://github.com/WongKinYiu/yolor) website
+#### 3. Download the `pt` file from [YOLOR](https://github.com/WongKinYiu/yolor) repo
 
-#### 4. Generate wts file (example for YOLOR-CSP)
+#### 4. Generate the `cfg` and `wts` files (example for YOLOR-CSP)
 
 ```
 python3 gen_wts_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg
 ```
 
-#### 5. Copy generated cfg and wts files to DeepStream-Yolo folder
+#### 5. Copy the generated `cfg` and `wts` files to the DeepStream-Yolo folder
 
-#### 6. Open DeepStream-Yolo folder
+#### 6. Open the DeepStream-Yolo folder
 
-#### 7. Compile lib
+#### 7. Compile the lib
 
 * DeepStream 6.1 on x86 platform
 
-```
-CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on x86 platform
 
-```
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.1 on Jetson platform
 
-```
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on Jetson platform
 
-```
-CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
-#### 8. Edit config_infer_primary_yolor.txt for your model (example for YOLOR-CSP)
+#### 8. Edit the `config_infer_primary_yolor.txt` file according to your model (example for YOLOR-CSP)
 
 ```
 [property]
 ...
-# 0=RGB, 1=BGR, 2=GRAYSCALE
-model-color-format=0
-# CFG
 custom-network-config=yolor_csp.cfg
-# WTS
 model-file=yolor_csp.wts
-# Generated TensorRT model (will be created if it doesn't exist)
-model-engine-file=model_b1_gpu0_fp32.engine
-# Model labels file
-labelfile-path=labels.txt
-# Batch size
-batch-size=1
-# 0=FP32, 1=INT8, 2=FP16 mode
-network-mode=0
-# Number of classes in label file
-num-detected-classes=80
 ...
 ```
 
-#### 8. Change the deepstream_app_config.txt file
+#### 9. Edit the `deepstream_app_config.txt` file
 
 ```
 ...
 [primary-gie]
-enable=1
-gpu-id=0
-gie-unique-id=1
-nvbuf-memory-type=0
+...
 config-file=config_infer_primary_yolor.txt
 ```
 
-#### 9. Run
+#### 10. Run
 
 ```
 deepstream-app -c deepstream_app_config.txt
@@ -683,18 +634,18 @@ deepstream-app -c deepstream_app_config.txt
 
 To change the `iou-threshold`, `score-threshold` and `topk` values, modify the `config_nms.txt` file and regenerate the model engine file.
 
-**NOTE**: Lower `topk` values will result in more performance.
-
-**NOTE**: Make sure to set cluster-mode=4 in config_infer file.
-
-**NOTE**: You are still able to change the `pre-cluster-threshold` values in the `config_infer.txt` file.
-
 ```
 [property]
 iou-threshold=0.45
 score-threshold=0.25
 topk=300
 ```
+
+**NOTE**: Lower `topk` values will result in more performance.
+
+**NOTE**: Make sure to set `cluster-mode=4` in the config_infer file.
+
+**NOTE**: You are still able to change the `pre-cluster-threshold` values in the config_infer files.
 
 ##
 
@@ -706,100 +657,96 @@ topk=300
 sudo apt-get install libopencv-dev
 ```
 
-#### 2. Compile/recompile the nvdsinfer_custom_impl_Yolo lib with OpenCV support
+#### 2. Compile/recompile the `nvdsinfer_custom_impl_Yolo` lib with OpenCV support
 
 * DeepStream 6.1 on x86 platform
 
-```
-cd DeepStream-Yolo
-CUDA_VER=11.6 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.6 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on x86 platform
 
-```
-cd DeepStream-Yolo
-CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.1 on Jetson platform
 
-```
-cd DeepStream-Yolo
-CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.0.1 / 6.0 on Jetson platform
 
-```
-cd DeepStream-Yolo
-CUDA_VER=10.2 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
-```
+  ```
+  CUDA_VER=10.2 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 #### 3. For COCO dataset, download the [val2017](https://drive.google.com/file/d/1gbvfn7mcsGDRZ_luJwtITL-ru2kK99aK/view?usp=sharing), extract, and move to DeepStream-Yolo folder
 
-##### Select 1000 random images from COCO dataset to run calibration
+* Select 1000 random images from COCO dataset to run calibration
 
-```
-mkdir calibration
-```
+  ```
+  mkdir calibration
+  ```
 
-```
-for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-    cp ${jpg} calibration/; \
-done
-```
+  ```
+  for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
+      cp ${jpg} calibration/; \
+  done
+  ```
 
-##### Create the calibration.txt file with all selected images
+* Create the `calibration.txt` file with all selected images
 
-```
-realpath calibration/*jpg > calibration.txt
-```
+  ```
+  realpath calibration/*jpg > calibration.txt
+  ```
 
-##### Set environment variables
+* Set environment variables
 
-```
-export INT8_CALIB_IMG_PATH=calibration.txt
-export INT8_CALIB_BATCH_SIZE=1
-```
+  ```
+  export INT8_CALIB_IMG_PATH=calibration.txt
+  export INT8_CALIB_BATCH_SIZE=1
+  ```
 
-##### Change config_infer_primary.txt file
+* Edit the `config_infer` file
 
-```
-...
-model-engine-file=model_b1_gpu0_fp32.engine
-#int8-calib-file=calib.table
-...
-network-mode=0
-...
-```
+  ```
+  ...
+  model-engine-file=model_b1_gpu0_fp32.engine
+  #int8-calib-file=calib.table
+  ...
+  network-mode=0
+  ...
+  ```
 
-* To
+    To
 
-```
-...
-model-engine-file=model_b1_gpu0_int8.engine
-int8-calib-file=calib.table
-...
-network-mode=1
-...
-```
+  ```
+  ...
+  model-engine-file=model_b1_gpu0_int8.engine
+  int8-calib-file=calib.table
+  ...
+  network-mode=1
+  ...
+  ```
 
-##### Run
+* Run
 
-```
-deepstream-app -c deepstream_app_config.txt
-```
+  ```
+  deepstream-app -c deepstream_app_config.txt
+  ```
 
-**NOTE**: NVIDIA recommends at least 500 images to get a good accuracy. In this example I used 1000 images to get better accuracy (more images = more accuracy). Higher INT8_CALIB_BATCH_SIZE values will increase the accuracy and calibration speed. Set it according to you GPU memory. This process can take a long time.
+**NOTE**: NVIDIA recommends at least 500 images to get a good accuracy. On this example, I used 1000 images to get better accuracy (more images = more accuracy). Higher `INT8_CALIB_BATCH_SIZE` values will result in more accuracy and faster calibration speed. Set it according to you GPU memory. This process can take a long time.
 
 ##
 
 ### Extract metadata
 
-You can get metadata from deepstream in Python and C/C++. For C/C++, you need edit deepstream-app or deepstream-test code. For Python your need install and edit [deepstream_python_apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps).
+You can get metadata from DeepStream using Python and C/C++. For C/C++, you can edit the `deepstream-app` or `deepstream-test` codes. For Python, your can install and edit [deepstream_python_apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps).
 
-Basically, you need manipulate NvDsObjectMeta ([Python](https://docs.nvidia.com/metropolis/deepstream/python-api/PYTHON_API/NvDsMeta/NvDsObjectMeta.html)/[C/C++](https://docs.nvidia.com/metropolis/deepstream/sdk-api/struct__NvDsObjectMeta.html)) and NvDsFrameMeta ([Python](https://docs.nvidia.com/metropolis/deepstream/python-api/PYTHON_API/NvDsMeta/NvDsFrameMeta.html)/[C/C++](https://docs.nvidia.com/metropolis/deepstream/sdk-api/struct__NvDsFrameMeta.html)) to get label, position, etc. of bboxes.
+Basically, you need manipulate the `NvDsObjectMeta` ([Python](https://docs.nvidia.com/metropolis/deepstream/python-api/PYTHON_API/NvDsMeta/NvDsObjectMeta.html) / [C/C++](https://docs.nvidia.com/metropolis/deepstream/sdk-api/struct__NvDsObjectMeta.html)) `and NvDsFrameMeta` ([Python](https://docs.nvidia.com/metropolis/deepstream/python-api/PYTHON_API/NvDsMeta/NvDsFrameMeta.html) / [C/C++](https://docs.nvidia.com/metropolis/deepstream/sdk-api/struct__NvDsFrameMeta.html)) to get the label, position, etc. of bboxes.
 
 ##
 
