@@ -44,6 +44,11 @@ nvinfer1::ILayer* convolutionalLayer(
         groups = std::stoi(block.at("groups"));
     }
 
+    if (block.find("bias") != block.end())
+    {
+        bias = std::stoi(block.at("bias"));
+    }
+
     int pad;
     if (padding)
         pad = (kernelSize - 1) / 2;
@@ -61,14 +66,17 @@ nvinfer1::ILayer* convolutionalLayer(
     if (weightsType == "weights") {
         if (batchNormalize == false)
         {
-            float* val = new float[filters];
-            for (int i = 0; i < filters; ++i)
-            {
-                val[i] = weights[weightPtr];
-                weightPtr++;
+            float* val;
+            if (bias != 0) {
+                val = new float[filters];
+                for (int i = 0; i < filters; ++i)
+                {
+                    val[i] = weights[weightPtr];
+                    weightPtr++;
+                }
+                convBias.values = val;
+                trtWeights.push_back(convBias);
             }
-            convBias.values = val;
-            trtWeights.push_back(convBias);
             val = new float[size];
             for (int i = 0; i < size; ++i)
             {
@@ -108,7 +116,8 @@ nvinfer1::ILayer* convolutionalLayer(
             }
             convWt.values = val;
             trtWeights.push_back(convWt);
-            trtWeights.push_back(convBias);
+            if (bias != 0)
+                trtWeights.push_back(convBias);
         }
     }
     else {
@@ -122,14 +131,16 @@ nvinfer1::ILayer* convolutionalLayer(
             }
             convWt.values = val;
             trtWeights.push_back(convWt);
-            val = new float[filters];
-            for (int i = 0; i < filters; ++i)
-            {
-                val[i] = weights[weightPtr];
-                weightPtr++;
+            if (bias != 0) {
+                val = new float[filters];
+                for (int i = 0; i < filters; ++i)
+                {
+                    val[i] = weights[weightPtr];
+                    weightPtr++;
+                }
+                convBias.values = val;
+                trtWeights.push_back(convBias);
             }
-            convBias.values = val;
-            trtWeights.push_back(convBias);
         }
         else
         {
@@ -161,7 +172,8 @@ nvinfer1::ILayer* convolutionalLayer(
                 weightPtr++;
             }
             trtWeights.push_back(convWt);
-            trtWeights.push_back(convBias);
+            if (bias != 0)
+                trtWeights.push_back(convBias);
         }
     }
 

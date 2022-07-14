@@ -9,24 +9,25 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * YOLOX support
 * PP-YOLO support
 * YOLOv6 support
+* YOLOv7 support
 * Dynamic batch-size
 
 ### Improvements on this repository
 
 * Darknet cfg params parser (no need to edit `nvdsparsebbox_Yolo.cpp` or other files)
-* Support for `new_coords`, `beta_nms` and `scale_x_y` params
+* Support for `new_coords` and `scale_x_y` params
 * Support for new models
 * Support for new layers
 * Support for new activations
 * Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
-* Support for `reorg`, `implicit` and `channel` layers (YOLOR)
-* YOLOv5 4.0, 5.0, 6.0 and 6.1 support
-* YOLOR support
-* **GPU YOLO Decoder (moved from CPU to GPU to get better performance)** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
+* New documentation for multiple models
+* **YOLOv5 >= 2.0 support**
+* **YOLOR support**
+* **GPU YOLO Decoder** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
 * **GPU Batched NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
-* **New documentation for multiple models**
+* **New YOLOv5 conversion**
 
 ##
 
@@ -37,10 +38,10 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [Benchmarks](#benchmarks)
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
-* [YOLOv5 usage](#yolov5-usage)
-* [YOLOR usage](#yolor-usage)
 * [NMS configuration](#nms-configuration)
 * [INT8 calibration](#int8-calibration)
+* [YOLOv5 usage](#docs/YOLOv5.md)
+* [YOLOR usage](#docs/YOLOR.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
@@ -95,7 +96,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 ### Tested models
 
 * [Darknet YOLO](https://github.com/AlexeyAB/darknet)
-* [YOLOv5 4.0, 5.0, 6.0 and 6.1](https://github.com/ultralytics/yolov5)
+* [YOLOv5 >= 2.0](https://github.com/ultralytics/yolov5)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
@@ -444,188 +445,6 @@ deepstream-app -c deepstream_app_config.txt
 ...
 config-file=config_infer_primary_yoloV2.txt
 ...
-```
-
-##
-
-### YOLOv5 usage
-
-**NOTE**: Make sure to change the YOLOv5 repo version according to your model version before the conversion.
-
-#### 1. Copy the `gen_wts_yoloV5.py` file from `DeepStream-Yolo/utils` directory to the [YOLOv5](https://github.com/ultralytics/yolov5) folder
-
-#### 2. Open the YOLOv5 folder
-
-#### 3. Download the `pt` file from [YOLOv5](https://github.com/ultralytics/yolov5/releases/) repo (example for YOLOv5n 6.1)
-
-```
-wget https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5n.pt
-```
-
-#### 4. Generate the `cfg` and `wts` files (example for YOLOv5n)
-
-```
-python3 gen_wts_yoloV5.py -w yolov5n.pt -c models/yolov5n.yaml
-```
-
-#### 5. Copy the generated `cfg` and `wts` files to the DeepStream-Yolo folder
-
-#### 6. Open the DeepStream-Yolo folder
-
-#### 7. Compile the lib
-
-* DeepStream 6.1 on x86 platform
-
-  ```
-  CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 on x86 platform
-
-  ```
-  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.1 on Jetson platform
-
-  ```
-  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 on Jetson platform
-
-  ```
-  CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-#### 8. Edit the `config_infer_primary_yoloV5.txt` file according to your model (example for YOLOv5n)
-
-```
-[property]
-...
-custom-network-config=yolov5n.cfg
-model-file=yolov5n.wts
-...
-```
-
-#### 9. Edit the `deepstream_app_config.txt` file
-
-```
-...
-[primary-gie]
-...
-config-file=config_infer_primary_yoloV5.txt
-```
-
-#### 10. Run
-
-```
-deepstream-app -c deepstream_app_config.txt
-```
-
-**NOTE**: For YOLOv5 P6, check the `gen_wts_yoloV5.py` file args and set them according to your model.
-
-* Input weights (.pt) file path
-
-  ```
-  -w or --weights
-  ```
-
-* Input cfg (.yaml) file path
-
-  ```
-  -c or --yaml
-  ```
-
-* Inference size [size] or [height , weight]
-
-  Default: 640 / 1280 (if --p6)
-
-  ```
-  -s or --size
-  ```
-
-  * Example for 1280
-
-    ```
-    -s 1280
-    ```
-
-    or
-
-    ```
-    -s 1280 1280
-    ```
-
-##
-
-### YOLOR usage
-
-#### 1. Copy the `gen_wts_yolor.py` file from `DeepStream-Yolo/utils` directory to the [YOLOR](https://github.com/WongKinYiu/yolor) folder
-
-#### 2. Open the YOLOR folder
-
-#### 3. Download the `pt` file from [YOLOR](https://github.com/WongKinYiu/yolor) repo
-
-#### 4. Generate the `cfg` and `wts` files (example for YOLOR-CSP)
-
-```
-python3 gen_wts_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg
-```
-
-#### 5. Copy the generated `cfg` and `wts` files to the DeepStream-Yolo folder
-
-#### 6. Open the DeepStream-Yolo folder
-
-#### 7. Compile the lib
-
-* DeepStream 6.1 on x86 platform
-
-  ```
-  CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 on x86 platform
-
-  ```
-  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.1 on Jetson platform
-
-  ```
-  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 on Jetson platform
-
-  ```
-  CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-#### 8. Edit the `config_infer_primary_yolor.txt` file according to your model (example for YOLOR-CSP)
-
-```
-[property]
-...
-custom-network-config=yolor_csp.cfg
-model-file=yolor_csp.wts
-...
-```
-
-#### 9. Edit the `deepstream_app_config.txt` file
-
-```
-...
-[primary-gie]
-...
-config-file=config_infer_primary_yolor.txt
-```
-
-#### 10. Run
-
-```
-deepstream-app -c deepstream_app_config.txt
 ```
 
 ##

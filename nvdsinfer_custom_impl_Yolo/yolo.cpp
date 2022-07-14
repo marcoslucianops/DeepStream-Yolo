@@ -207,6 +207,20 @@ NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::IN
             printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
         }
 
+        else if (m_ConfigBlocks.at(i).at("type") == "batchnorm")
+        {
+            std::string inputVol = dimsToString(previous->getDimensions());
+            nvinfer1::ILayer* out = batchnormLayer(
+                i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, eps, previous, &network);
+            previous = out->getOutput(0);
+            assert(previous != nullptr);
+            channels = getNumChannels(previous);
+            std::string outputVol = dimsToString(previous->getDimensions());
+            tensorOutputs.push_back(previous);
+            std::string layerType = "bn_" + m_ConfigBlocks.at(i).at("activation");
+            printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
+        }
+
         else if (m_ConfigBlocks.at(i).at("type") == "implicit_add" || m_ConfigBlocks.at(i).at("type") == "implicit_mul")
         {
             std::string type;

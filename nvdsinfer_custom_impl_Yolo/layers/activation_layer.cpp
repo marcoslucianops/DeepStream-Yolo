@@ -12,7 +12,8 @@ nvinfer1::ILayer* activationLayer(
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
 {
-    if (activation == "linear") {
+    if (activation == "linear")
+    {
         // Pass
     }
     else if (activation == "relu")
@@ -46,8 +47,8 @@ nvinfer1::ILayer* activationLayer(
     {
         nvinfer1::IActivationLayer* leaky = network->addActivation(
             *input, nvinfer1::ActivationType::kLEAKY_RELU);
-        leaky->setAlpha(0.1);
         assert(leaky != nullptr);
+        leaky->setAlpha(0.1);
         std::string leakyLayerName = "leaky_" + std::to_string(layerIdx);
         leaky->setName(leakyLayerName.c_str());
         output = leaky;
@@ -74,7 +75,7 @@ nvinfer1::ILayer* activationLayer(
         std::string tanhLayerName = "tanh_" + std::to_string(layerIdx);
         tanh->setName(tanhLayerName.c_str());
         nvinfer1::IElementWiseLayer* mish = network->addElementWise(
-            *tanh->getOutput(0), *input,
+            *input, *tanh->getOutput(0),
             nvinfer1::ElementWiseOperation::kPROD);
         assert(mish != nullptr);
         std::string mishLayerName = "mish_" + std::to_string(layerIdx);
@@ -89,14 +90,32 @@ nvinfer1::ILayer* activationLayer(
         std::string sigmoidLayerName = "sigmoid_" + std::to_string(layerIdx);
         sigmoid->setName(sigmoidLayerName.c_str());
         nvinfer1::IElementWiseLayer* silu = network->addElementWise(
-            *sigmoid->getOutput(0), *input,
+            *input, *sigmoid->getOutput(0),
             nvinfer1::ElementWiseOperation::kPROD);
         assert(silu != nullptr);
         std::string siluLayerName = "silu_" + std::to_string(layerIdx);
         silu->setName(siluLayerName.c_str());
         output = silu;
     }
-    else {
+    else if (activation == "hardswish")
+    {
+        nvinfer1::IActivationLayer* hard_sigmoid = network->addActivation(
+            *input, nvinfer1::ActivationType::kHARD_SIGMOID);
+        assert(hard_sigmoid != nullptr);
+        hard_sigmoid->setAlpha(1.0 / 6.0);
+        hard_sigmoid->setBeta(0.5);
+        std::string hardSigmoidLayerName = "hard_sigmoid_" + std::to_string(layerIdx);
+        hard_sigmoid->setName(hardSigmoidLayerName.c_str());
+        nvinfer1::IElementWiseLayer* hard_swish = network->addElementWise(
+            *input, *hard_sigmoid->getOutput(0),
+            nvinfer1::ElementWiseOperation::kPROD);
+        assert(hard_swish != nullptr);
+        std::string hardSwishLayerName = "hard_swish_" + std::to_string(layerIdx);
+        hard_swish->setName(hardSwishLayerName.c_str());
+        output = hard_swish;
+    }
+    else
+    {
         std::cerr << "Activation not supported: " << activation << std::endl;
         std::abort();
     }

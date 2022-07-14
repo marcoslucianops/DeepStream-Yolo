@@ -21,7 +21,7 @@ cd DeepStream-Yolo
 
 #### 3. Copy the `cfg` and `weights`/`wts` files to DeepStream-Yolo folder
 
-**NOTE**: It's important to keep the YOLO model reference (`yolov4_`, `yolov5_`, `yolor_`, etc) in you `cfg` and `weights`/`wts` files to generate the engine correctly.
+**NOTE**: It is important to keep the YOLO model reference (`yolov4_`, `yolov5_`, `yolor_`, etc) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
 
 ##
 
