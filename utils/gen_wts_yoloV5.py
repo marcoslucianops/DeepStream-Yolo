@@ -210,13 +210,16 @@ class Layers(object):
 
         stride = m.stride
         size = m.kernel_size
+        pad = m.padding
         mode = m.ceil_mode
 
         m = 'maxpool_up' if mode else 'maxpool'
+        p = 'pad=%d\n' % pad if pad > 0 else ''
 
         self.fc.write('\n[%s]\n' % m +
                       'stride=%d\n' % stride +
-                      'size=%d\n' % size)
+                      'size=%d\n' % size +
+                      p)
 
     def upsample(self, child):
         self.blocks[self.current] += 1
