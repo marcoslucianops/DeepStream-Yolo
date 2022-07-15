@@ -40,8 +40,8 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [Basic usage](#basic-usage)
 * [NMS configuration](#nms-configuration)
 * [INT8 calibration](#int8-calibration)
-* [YOLOv5 usage](#docs/YOLOv5.md)
-* [YOLOR usage](#docs/YOLOR.md)
+* [YOLOv5 usage](docs/YOLOv5.md)
+* [YOLOR usage](docs/YOLOR.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
