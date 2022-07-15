@@ -23,9 +23,11 @@ nvinfer1::ILayer* maxpoolLayer(
     assert(pool);
     std::string maxpoolLayerName = "maxpool_" + std::to_string(layerIdx);
     pool->setStrideNd(nvinfer1::Dims{2, {stride, stride}});
-    if (stride == 1)
+    pool->setPaddingNd(nvinfer1::Dims{2, {(size - 1) / 2, (size - 1) / 2}});
+    if (size == 2 && stride == 1)
     {
-        pool->setPaddingNd(nvinfer1::Dims{2, {size / 2, size / 2}});
+        pool->setPrePadding(nvinfer1::Dims{2, {0, 0}});
+        pool->setPostPadding(nvinfer1::Dims{2, {1, 1}});
     }
     pool->setName(maxpoolLayerName.c_str());
 
