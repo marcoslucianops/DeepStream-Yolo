@@ -82,8 +82,9 @@ cudaError_t sortDetections(
 
         sortOutput<<<number_of_blocks, threads_per_block, 0, stream>>>(
             _d_indexes, _d_scores, reinterpret_cast<float*>(d_boxes) + (batch * 4 * outputSize),
-            reinterpret_cast<int*>(d_classes) + (batch * outputSize), reinterpret_cast<float*>(bboxData) + (batch * topK),
-            reinterpret_cast<float*>(scoreData) + (batch * topK), numOutputClasses, _topK);
+            reinterpret_cast<int*>(d_classes) + (batch * outputSize),
+            reinterpret_cast<float*>(bboxData) + (batch * topK * 4),
+            reinterpret_cast<float*>(scoreData) + (batch * topK * numOutputClasses), numOutputClasses, _topK);
 
         cudaFree(d_keys_out);
         cudaFree(d_values_out);

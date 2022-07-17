@@ -173,9 +173,9 @@ class Layers(object):
         self.fc.write('\n[convolutional]\n' +
                       b +
                       'filters=%d\n' % filters +
-                      'size=%s\n' % (size[0] if len(size) == 2 and size[0] == size[1] else str(size)[1:-1]) +
-                      'stride=%s\n' % (stride[0] if len(stride) == 2 and stride[0] == stride[1] else str(stride)[1:-1]) +
-                      'pad=%s\n' % (pad[0] if len(pad) == 2 and pad[0] == pad[1] else str(pad)[1:-1]) +
+                      'size=%s\n' % (size[0] if type(size) != int and size[0] == size[1] else str(size)[1:-1]) +
+                      'stride=%s\n' % (stride[0] if type(stride) != int and stride[0] == stride[1] else str(stride)[1:-1]) +
+                      'pad=%s\n' % (pad[0] if type(pad) != int and pad[0] == pad[1] else str(pad)[1:-1]) +
                       g +
                       w +
                       'activation=%s\n' % act)
