@@ -6,7 +6,7 @@
 #include <math.h>
 #include "batchnorm_layer.h"
 
-nvinfer1::ILayer* batchnormLayer(
+nvinfer1::ITensor* batchnormLayer(
     int layerIdx,
     std::map<std::string, std::string>& block,
     std::vector<float>& weights,
@@ -17,6 +17,8 @@ nvinfer1::ILayer* batchnormLayer(
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
 {
+    nvinfer1::ITensor* output;
+
     assert(block.at("type") == "batchnorm");
     assert(block.find("filters") != block.end());
 
@@ -28,7 +30,8 @@ nvinfer1::ILayer* batchnormLayer(
     std::vector<float> bnRunningMean;
     std::vector<float> bnRunningVar;
 
-    if (weightsType == "weights") {
+    if (weightsType == "weights")
+    {
         for (int i = 0; i < filters; ++i)
         {
             bnBiases.push_back(weights[weightPtr]);
@@ -50,7 +53,8 @@ nvinfer1::ILayer* batchnormLayer(
             weightPtr++;
         }
     }
-    else {
+    else
+    {
         for (int i = 0; i < filters; ++i)
         {
             bnWeights.push_back(weights[weightPtr]);
@@ -79,35 +83,27 @@ nvinfer1::ILayer* batchnormLayer(
     nvinfer1::Weights power{nvinfer1::DataType::kFLOAT, nullptr, size};
     float* shiftWt = new float[size];
     for (int i = 0; i < size; ++i)
-    {
-        shiftWt[i]
-            = bnBiases.at(i) - ((bnRunningMean.at(i) * bnWeights.at(i)) / bnRunningVar.at(i));
-    }
+        shiftWt[i] = bnBiases.at(i) - ((bnRunningMean.at(i) * bnWeights.at(i)) / bnRunningVar.at(i));
     shift.values = shiftWt;
     float* scaleWt = new float[size];
     for (int i = 0; i < size; ++i)
-    {
         scaleWt[i] = bnWeights.at(i) / bnRunningVar[i];
-    }
     scale.values = scaleWt;
     float* powerWt = new float[size];
     for (int i = 0; i < size; ++i)
-    {
         powerWt[i] = 1.0;
-    }
     power.values = powerWt;
     trtWeights.push_back(shift);
     trtWeights.push_back(scale);
     trtWeights.push_back(power);
 
-    nvinfer1::IScaleLayer* bn = network->addScale(
-        *input, nvinfer1::ScaleMode::kCHANNEL, shift, scale, power);
-    assert(bn != nullptr);
-    std::string bnLayerName = "batch_norm_" + std::to_string(layerIdx);
-    bn->setName(bnLayerName.c_str());
-    nvinfer1::ILayer* output = bn;
+    nvinfer1::IScaleLayer* batchnorm = network->addScale(*input, nvinfer1::ScaleMode::kCHANNEL, shift, scale, power);
+    assert(batchnorm != nullptr);
+    std::string batchnormLayerName = "batchnorm_" + std::to_string(layerIdx);
+    batchnorm->setName(batchnormLayerName.c_str());
+    output = batchnorm->getOutput(0);
 
-    output = activationLayer(layerIdx, activation, output, output->getOutput(0), network);
+    output = activationLayer(layerIdx, activation, output, network);
     assert(output != nullptr);
 
     return output;

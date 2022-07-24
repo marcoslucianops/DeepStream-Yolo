@@ -9,11 +9,11 @@ from models.models import Darknet
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch YOLOR conversion (main branch)')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
-    parser.add_argument('-c', '--cfg', help='Input cfg (.cfg) file path')
+    parser.add_argument('-c', '--cfg', default='', help='Input cfg (.cfg) file path')
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
         raise SystemExit('Invalid weights file')
-    if not os.path.isfile(args.cfg):
+    if args.cfg != '' and not os.path.isfile(args.cfg):
         raise SystemExit('Invalid cfg file')
     return args.weights, args.cfg
 

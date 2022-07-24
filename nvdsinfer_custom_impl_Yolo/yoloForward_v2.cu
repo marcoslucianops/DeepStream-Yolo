@@ -49,7 +49,7 @@ __global__ void gpuRegionLayer(
     if (objectness < scoreThreshold)
         return;
 
-    int count = (int)atomicAdd(&countData[0], 1);
+    int count = (int)atomicAdd(countData, 1);
 
     float x
         = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)])

@@ -3,15 +3,16 @@
  * https://www.github.com/marcoslucianops
  */
 
-#ifndef __MAXPOOL_LAYER_H__
-#define __MAXPOOL_LAYER_H__
+#ifndef __POOLING_LAYER_H__
+#define __POOLING_LAYER_H__
 
 #include <map>
 #include <cassert>
+#include <iostream>
 
 #include "NvInfer.h"
 
-nvinfer1::ILayer* maxpoolLayer(
+nvinfer1::ITensor* poolingLayer(
     int layerIdx,
     std::map<std::string, std::string>& block,
     nvinfer1::ITensor* input,

@@ -132,11 +132,10 @@ std::string dimsToString(const nvinfer1::Dims d)
 {
     std::stringstream s;
     assert(d.nbDims >= 1);
+    s << "[";
     for (int i = 0; i < d.nbDims - 1; ++i)
-    {
-        s << std::setw(4) << d.d[i] << " x";
-    }
-    s << std::setw(4) << d.d[d.nbDims - 1];
+        s << d.d[i] << ", ";
+    s << d.d[d.nbDims - 1] << "]";
 
     return s.str();
 }
@@ -152,10 +151,9 @@ int getNumChannels(nvinfer1::ITensor* t)
 void printLayerInfo(
     std::string layerIndex, std::string layerName, std::string layerInput, std::string layerOutput, std::string weightPtr)
 {
-    std::cout << std::setw(6) << std::left << layerIndex << std::setw(24) << std::left << layerName;
-    std::cout << std::setw(20) << std::left << layerInput << std::setw(20) << std::left
-              << layerOutput;
-    std::cout << std::setw(7) << std::left << weightPtr << std::endl;
+    std::cout << std::setw(8) << std::left << layerIndex << std::setw(30) << std::left << layerName;
+    std::cout << std::setw(20) << std::left << layerInput << std::setw(20) << std::left << layerOutput;
+    std::cout << weightPtr << std::endl;
 }
 
 std::string getAbsPath(std::string path)

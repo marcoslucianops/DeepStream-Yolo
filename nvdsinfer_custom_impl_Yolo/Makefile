@@ -59,15 +59,21 @@ SRCFILES:= nvdsinfer_yolo_engine.cpp \
            layers/shortcut_layer.cpp \
            layers/route_layer.cpp \
            layers/upsample_layer.cpp \
-           layers/maxpool_layer.cpp \
+           layers/pooling_layer.cpp \
            layers/activation_layer.cpp \
-           layers/reorgv5_layer.cpp \
+           layers/reorg_layer.cpp \
+           layers/reduce_layer.cpp \
+           layers/shuffle_layer.cpp \
+           layers/softmax_layer.cpp \
+           layers/cls_layer.cpp \
+           layers/reg_layer.cpp \
            utils.cpp \
            yolo.cpp \
            yoloForward.cu \
            yoloForward_v2.cu \
            yoloForward_nc.cu \
            yoloForward_r.cu \
+           yoloForward_e.cu \
            sortDetections.cu
 
 ifeq ($(OPENCV), 1)

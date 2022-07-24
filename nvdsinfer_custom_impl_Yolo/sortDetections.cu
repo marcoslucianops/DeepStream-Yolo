@@ -37,13 +37,11 @@ cudaError_t sortDetections(
         float* _d_scores = reinterpret_cast<float*>(d_scores) + (batch * outputSize);
 
         int* _countData = reinterpret_cast<int*>(countData) + (batch);
-        int* _count = (int*)malloc(sizeof(int));
-        cudaMemcpy(_count, (int*)&_countData[0], sizeof(int), cudaMemcpyDeviceToHost);
-        int count = _count[0];
+        int count;
+        cudaMemcpy(&count, _countData, sizeof(int), cudaMemcpyDeviceToHost);
 
         if (count == 0)
         {
-            free(_count);
             return cudaGetLastError();
         }
 
@@ -72,13 +70,13 @@ cudaError_t sortDetections(
 
         int _topK = count < topK ? count : topK;
 
-        int threads_per_block = 0;
-        int number_of_blocks = 4;
+        int threads_per_block = 16;
+        int number_of_blocks = 0;
 
-        if (_topK % 2 == 0 && _topK >= number_of_blocks)
-            threads_per_block = _topK / number_of_blocks;
+        if (_topK % 2 == 0 && _topK >= threads_per_block)
+            number_of_blocks = _topK / threads_per_block;
         else
-            threads_per_block = (_topK / number_of_blocks) + 1;
+            number_of_blocks = (_topK / threads_per_block) + 1;
 
         sortOutput<<<number_of_blocks, threads_per_block, 0, stream>>>(
             _d_indexes, _d_scores, reinterpret_cast<float*>(d_boxes) + (batch * 4 * outputSize),
@@ -89,8 +87,6 @@ cudaError_t sortDetections(
         cudaFree(d_keys_out);
         cudaFree(d_values_out);
         cudaFree(d_temp_storage);
-
-        free(_count);
     }
     return cudaGetLastError();
 }

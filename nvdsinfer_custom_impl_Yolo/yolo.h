@@ -33,8 +33,13 @@
 #include "layers/shortcut_layer.h"
 #include "layers/route_layer.h"
 #include "layers/upsample_layer.h"
-#include "layers/maxpool_layer.h"
-#include "layers/reorgv5_layer.h"
+#include "layers/pooling_layer.h"
+#include "layers/reorg_layer.h"
+#include "layers/reduce_layer.h"
+#include "layers/shuffle_layer.h"
+#include "layers/softmax_layer.h"
+#include "layers/cls_layer.h"
+#include "layers/reg_layer.h"
 
 #include "nvdsinfer_custom_impl.h"
 

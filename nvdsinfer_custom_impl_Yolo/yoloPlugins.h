@@ -85,9 +85,7 @@ public:
 
     void terminate () noexcept override {}
 
-    size_t getWorkspaceSize (int maxBatchSize) const noexcept override {
-        return maxBatchSize * sizeof(int);
-    }
+    size_t getWorkspaceSize (int maxBatchSize) const noexcept override { return 0; }
 
     int32_t enqueue (
         int batchSize, void const* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream)

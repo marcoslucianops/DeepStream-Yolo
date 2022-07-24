@@ -13,7 +13,7 @@
 
 #include "activation_layer.h"
 
-nvinfer1::ILayer* convolutionalLayer(
+nvinfer1::ITensor* convolutionalLayer(
     int layerIdx,
     std::map<std::string, std::string>& block,
     std::vector<float>& weights,

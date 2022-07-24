@@ -7,7 +7,6 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * Models benchmarks
 * DeepStream tutorials
 * YOLOX support
-* PP-YOLO support
 * YOLOv6 support
 * YOLOv7 support
 * Dynamic batch-size
@@ -23,18 +22,18 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * Support for INT8 calibration
 * Support for non square models
 * New documentation for multiple models
-* **YOLOv5 >= 2.0 support**
-* **YOLOR support**
+* YOLOv5 support
+* YOLOR support
 * **GPU YOLO Decoder** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
 * **GPU Batched NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
-* **New YOLOv5 conversion**
+* **PP-YOLOE support**
 
 ##
 
 ### Getting started
 
 * [Requirements](#requirements)
-* [Tested models](#tested-models)
+* [Suported models](#supported-models)
 * [Benchmarks](#benchmarks)
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
@@ -42,6 +41,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [INT8 calibration](#int8-calibration)
 * [YOLOv5 usage](docs/YOLOv5.md)
 * [YOLOR usage](docs/YOLOR.md)
+* [PP-YOLOE usage](docs/PPYOLOE.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
@@ -81,23 +81,14 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [NVIDIA DeepStream SDK 6.0.1 / 6.0](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
-### For YOLOv5 and YOLOR
-
-#### x86 platform
-
-* [PyTorch >= 1.7.0](https://pytorch.org/get-started/locally/)
-
-#### Jetson platform
-
-* [PyTorch >= 1.7.0](https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-11-now-available/72048)
-
 ##
 
-### Tested models
+### Suported models
 
 * [Darknet YOLO](https://github.com/AlexeyAB/darknet)
 * [YOLOv5 >= 2.0](https://github.com/ultralytics/yolov5)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
+* [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/configs/ppyoloe)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
 

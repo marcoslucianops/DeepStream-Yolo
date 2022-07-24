@@ -6,7 +6,7 @@
 #include <math.h>
 #include "convolutional_layer.h"
 
-nvinfer1::ILayer* convolutionalLayer(
+nvinfer1::ITensor* convolutionalLayer(
     int layerIdx,
     std::map<std::string, std::string>& block,
     std::vector<float>& weights,
@@ -18,6 +18,8 @@ nvinfer1::ILayer* convolutionalLayer(
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
 {
+    nvinfer1::ITensor* output;
+
     assert(block.at("type") == "convolutional");
     assert(block.find("filters") != block.end());
     assert(block.find("pad") != block.end());
@@ -40,14 +42,10 @@ nvinfer1::ILayer* convolutionalLayer(
 
     int groups = 1;
     if (block.find("groups") != block.end())
-    {
         groups = std::stoi(block.at("groups"));
-    }
 
     if (block.find("bias") != block.end())
-    {
         bias = std::stoi(block.at("bias"));
-    }
 
     int pad;
     if (padding)
@@ -63,7 +61,8 @@ nvinfer1::ILayer* convolutionalLayer(
     nvinfer1::Weights convWt{nvinfer1::DataType::kFLOAT, nullptr, size};
     nvinfer1::Weights convBias{nvinfer1::DataType::kFLOAT, nullptr, bias};
 
-    if (weightsType == "weights") {
+    if (weightsType == "weights")
+    {
         if (batchNormalize == false)
         {
             float* val;
@@ -120,7 +119,8 @@ nvinfer1::ILayer* convolutionalLayer(
                 trtWeights.push_back(convBias);
         }
     }
-    else {
+    else
+    {
         if (batchNormalize == false)
         {
             float* val = new float[size];
@@ -177,20 +177,18 @@ nvinfer1::ILayer* convolutionalLayer(
         }
     }
 
-    nvinfer1::IConvolutionLayer* conv = network->addConvolutionNd(
-        *input, filters, nvinfer1::DimsHW{kernelSize, kernelSize}, convWt, convBias);
+    nvinfer1::IConvolutionLayer* conv
+        = network->addConvolutionNd(*input, filters, nvinfer1::Dims{2, {kernelSize, kernelSize}}, convWt, convBias);
     assert(conv != nullptr);
     std::string convLayerName = "conv_" + std::to_string(layerIdx);
     conv->setName(convLayerName.c_str());
-    conv->setStrideNd(nvinfer1::DimsHW{stride, stride});
-    conv->setPaddingNd(nvinfer1::DimsHW{pad, pad});
+    conv->setStrideNd(nvinfer1::Dims{2, {stride, stride}});
+    conv->setPaddingNd(nvinfer1::Dims{2, {pad, pad}});
 
     if (block.find("groups") != block.end())
-    {
         conv->setNbGroups(groups);
-    }
 
-    nvinfer1::ILayer* output = conv;
+    output = conv->getOutput(0);
 
     if (batchNormalize == true)
     {
@@ -200,36 +198,28 @@ nvinfer1::ILayer* convolutionalLayer(
         nvinfer1::Weights power{nvinfer1::DataType::kFLOAT, nullptr, size};
         float* shiftWt = new float[size];
         for (int i = 0; i < size; ++i)
-        {
-            shiftWt[i]
-                = bnBiases.at(i) - ((bnRunningMean.at(i) * bnWeights.at(i)) / bnRunningVar.at(i));
-        }
+            shiftWt[i] = bnBiases.at(i) - ((bnRunningMean.at(i) * bnWeights.at(i)) / bnRunningVar.at(i));
         shift.values = shiftWt;
         float* scaleWt = new float[size];
         for (int i = 0; i < size; ++i)
-        {
             scaleWt[i] = bnWeights.at(i) / bnRunningVar[i];
-        }
         scale.values = scaleWt;
         float* powerWt = new float[size];
         for (int i = 0; i < size; ++i)
-        {
             powerWt[i] = 1.0;
-        }
         power.values = powerWt;
         trtWeights.push_back(shift);
         trtWeights.push_back(scale);
         trtWeights.push_back(power);
 
-        nvinfer1::IScaleLayer* bn = network->addScale(
-            *output->getOutput(0), nvinfer1::ScaleMode::kCHANNEL, shift, scale, power);
-        assert(bn != nullptr);
-        std::string bnLayerName = "batch_norm_" + std::to_string(layerIdx);
-        bn->setName(bnLayerName.c_str());
-        output = bn;
+        nvinfer1::IScaleLayer* batchnorm = network->addScale(*output, nvinfer1::ScaleMode::kCHANNEL, shift, scale, power);
+        assert(batchnorm != nullptr);
+        std::string batchnormLayerName = "batchnorm_" + std::to_string(layerIdx);
+        batchnorm->setName(batchnormLayerName.c_str());
+        output = batchnorm->getOutput(0);
     }
 
-    output = activationLayer(layerIdx, activation, output, output->getOutput(0), network);
+    output = activationLayer(layerIdx, activation, output, network);
     assert(output != nullptr);
 
     return output;

@@ -6,18 +6,14 @@
 #ifndef __ACTIVATION_LAYER_H__
 #define __ACTIVATION_LAYER_H__
 
-#include <string>
 #include <cassert>
 #include <iostream>
 
 #include "NvInfer.h"
 
-#include "activation_layer.h"
-
-nvinfer1::ILayer* activationLayer(
+nvinfer1::ITensor* activationLayer(
     int layerIdx,
     std::string activation,
-    nvinfer1::ILayer* output,
     nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network);
 

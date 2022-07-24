@@ -7,12 +7,11 @@
 #define __UPSAMPLE_LAYER_H__
 
 #include <map>
-#include <vector>
 #include <cassert>
 
 #include "NvInfer.h"
 
-nvinfer1::ILayer* upsampleLayer(
+nvinfer1::ITensor* upsampleLayer(
     int layerIdx,
     std::map<std::string, std::string>& block,
     nvinfer1::ITensor* input,

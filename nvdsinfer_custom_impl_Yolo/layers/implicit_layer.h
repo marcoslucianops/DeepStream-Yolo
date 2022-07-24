@@ -12,8 +12,9 @@
 
 #include "NvInfer.h"
 
-nvinfer1::ILayer* implicitLayer(
-    int channels,
+nvinfer1::ITensor* implicitLayer(
+    int layerIdx,
+    std::map<std::string, std::string>& block,
     std::vector<float>& weights,
     std::vector<nvinfer1::Weights>& trtWeights,
     int& weightPtr,

@@ -22,7 +22,7 @@ cd yolor
 pip3 install -r requirements.txt
 ```
 
-**NOTE**: It is recommended to use a Python virtualenv.
+**NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 

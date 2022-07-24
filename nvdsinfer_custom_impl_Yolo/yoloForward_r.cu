@@ -28,7 +28,7 @@ __global__ void gpuYoloLayer_r(
     if (objectness < scoreThreshold)
         return;
 
-    int count = (int)atomicAdd(&countData[0], 1);
+    int count = (int)atomicAdd(countData, 1);
 
     const float alpha = scaleXY;
     const float beta = -0.5 * (scaleXY - 1);

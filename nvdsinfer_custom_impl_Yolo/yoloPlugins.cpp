@@ -47,6 +47,11 @@ namespace {
     }
 }
 
+cudaError_t cudaYoloLayer_e(
+    const void* cls, const void* reg, void* d_indexes, void* d_scores, void* d_boxes, void* d_classes, void* countData,
+    const uint& batchSize, uint64_t& outputSize, const float& scoreThreshold, const uint& netWidth, const uint& netHeight,
+    const uint& numOutputClasses, cudaStream_t stream);
+
 cudaError_t cudaYoloLayer_r(
     const void* input, void* d_indexes, void* d_scores, void* d_boxes, void* d_classes, void* countData,
     const uint& batchSize, uint64_t& inputSize, uint64_t& outputSize, const float& scoreThreshold, const uint& netWidth,
@@ -88,34 +93,36 @@ YoloLayer::YoloLayer (const void* data, size_t length)
     read(d, m_TopK);
     read(d, m_ScoreThreshold);
 
-    uint yoloTensorsSize;
-    read(d, yoloTensorsSize);
-    for (uint i = 0; i < yoloTensorsSize; ++i)
-    {
-        TensorInfo curYoloTensor;
-        read(d, curYoloTensor.gridSizeX);
-        read(d, curYoloTensor.gridSizeY);
-        read(d, curYoloTensor.numBBoxes);
-        read(d, curYoloTensor.scaleXY);
-
-        uint anchorsSize;
-        read(d, anchorsSize);
-        for (uint j = 0; j < anchorsSize; j++)
+    if (m_Type != 3) {
+        uint yoloTensorsSize;
+        read(d, yoloTensorsSize);
+        for (uint i = 0; i < yoloTensorsSize; ++i)
         {
-            float result;
-            read(d, result);
-            curYoloTensor.anchors.push_back(result);
-        }
+            TensorInfo curYoloTensor;
+            read(d, curYoloTensor.gridSizeX);
+            read(d, curYoloTensor.gridSizeY);
+            read(d, curYoloTensor.numBBoxes);
+            read(d, curYoloTensor.scaleXY);
 
-        uint maskSize;
-        read(d, maskSize);
-        for (uint j = 0; j < maskSize; j++)
-        {
-            int result;
-            read(d, result);
-            curYoloTensor.mask.push_back(result);
+            uint anchorsSize;
+            read(d, anchorsSize);
+            for (uint j = 0; j < anchorsSize; j++)
+            {
+                float result;
+                read(d, result);
+                curYoloTensor.anchors.push_back(result);
+            }
+
+            uint maskSize;
+            read(d, maskSize);
+            for (uint j = 0; j < maskSize; j++)
+            {
+                int result;
+                read(d, result);
+                curYoloTensor.mask.push_back(result);
+            }
+            m_YoloTensors.push_back(curYoloTensor);
         }
-        m_YoloTensors.push_back(curYoloTensor);
     }
 
     kNUM_CLASSES = m_NumClasses;
@@ -147,9 +154,9 @@ YoloLayer::getOutputDimensions(
 {
     assert(index < 3);
     if (index == 0) {
-        return nvinfer1::Dims3(m_TopK, 1, 4);
+        return nvinfer1::Dims{3, {static_cast<int>(m_TopK), 1, 4}};
     }
-    return nvinfer1::DimsHW(m_TopK, m_NumClasses);
+    return nvinfer1::Dims{2, {static_cast<int>(m_TopK), static_cast<int>(m_NumClasses)}};
 }
 
 bool YoloLayer::supportsFormat (
@@ -173,95 +180,106 @@ int32_t YoloLayer::enqueue (
     int batchSize, void const* const* inputs, void* const* outputs, void* workspace,	
     cudaStream_t stream) noexcept
 {
-    void* countData = workspace;
     void* bboxData = outputs[0];
     void* scoreData = outputs[1];
 
-    CUDA_CHECK(cudaMemsetAsync((int*)countData, 0, sizeof(int) * batchSize, stream));
     CUDA_CHECK(cudaMemsetAsync((float*)bboxData, 0, sizeof(float) * m_TopK * 4 * batchSize, stream));
     CUDA_CHECK(cudaMemsetAsync((float*)scoreData, 0, sizeof(float) * m_TopK * m_NumClasses * batchSize, stream));
 
+    void* countData;
+    CUDA_CHECK(cudaMalloc(&countData, sizeof(int) * batchSize));
+    CUDA_CHECK(cudaMemsetAsync((int*)countData, 0, sizeof(int) * batchSize, stream));
+
     void* d_indexes;
-    CUDA_CHECK(cudaMallocHost(&d_indexes, sizeof(int) * m_OutputSize * batchSize));
-    CUDA_CHECK(cudaMemsetAsync((float*)d_indexes, 0, sizeof(int) * m_OutputSize * batchSize, stream));
+    CUDA_CHECK(cudaMalloc(&d_indexes, sizeof(int) * m_OutputSize * batchSize));
+    CUDA_CHECK(cudaMemsetAsync((int*)d_indexes, 0, sizeof(int) * m_OutputSize * batchSize, stream));
 
     void* d_scores;
-    CUDA_CHECK(cudaMallocHost(&d_scores, sizeof(float) * m_OutputSize * batchSize));
+    CUDA_CHECK(cudaMalloc(&d_scores, sizeof(float) * m_OutputSize * batchSize));
     CUDA_CHECK(cudaMemsetAsync((float*)d_scores, 0, sizeof(float) * m_OutputSize * batchSize, stream));
 
     void* d_boxes;
-    CUDA_CHECK(cudaMallocHost(&d_boxes, sizeof(float) * m_OutputSize * 4 * batchSize));
+    CUDA_CHECK(cudaMalloc(&d_boxes, sizeof(float) * m_OutputSize * 4 * batchSize));
     CUDA_CHECK(cudaMemsetAsync((float*)d_boxes, 0, sizeof(float) * m_OutputSize * 4 * batchSize, stream));
 
     void* d_classes;
-    CUDA_CHECK(cudaMallocHost(&d_classes, sizeof(int) * m_OutputSize * batchSize));
+    CUDA_CHECK(cudaMalloc(&d_classes, sizeof(int) * m_OutputSize * batchSize));
     CUDA_CHECK(cudaMemsetAsync((float*)d_classes, 0, sizeof(int) * m_OutputSize * batchSize, stream));
 
-    uint yoloTensorsSize = m_YoloTensors.size();
-    for (uint i = 0; i < yoloTensorsSize; ++i)
+    if (m_Type == 3)
     {
-        TensorInfo& curYoloTensor = m_YoloTensors.at(i);
+        CUDA_CHECK(cudaYoloLayer_e(
+            inputs[0], inputs[1], d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, m_OutputSize,
+            m_ScoreThreshold, m_NetWidth, m_NetHeight, m_NumClasses, stream));
+    }
+    else
+    {
+        uint yoloTensorsSize = m_YoloTensors.size();
+        for (uint i = 0; i < yoloTensorsSize; ++i)
+        {
+            TensorInfo& curYoloTensor = m_YoloTensors.at(i);
 
-        uint numBBoxes = curYoloTensor.numBBoxes;
-        float scaleXY = curYoloTensor.scaleXY;
-        uint gridSizeX = curYoloTensor.gridSizeX;
-        uint gridSizeY = curYoloTensor.gridSizeY;
-        std::vector<float> anchors = curYoloTensor.anchors;
-        std::vector<int> mask = curYoloTensor.mask;
+            uint numBBoxes = curYoloTensor.numBBoxes;
+            float scaleXY = curYoloTensor.scaleXY;
+            uint gridSizeX = curYoloTensor.gridSizeX;
+            uint gridSizeY = curYoloTensor.gridSizeY;
+            std::vector<float> anchors = curYoloTensor.anchors;
+            std::vector<int> mask = curYoloTensor.mask;
 
-        void* v_anchors;
-        void* v_mask;
-        if (anchors.size() > 0) {
-            float* f_anchors = anchors.data();
-            CUDA_CHECK(cudaMallocHost(&v_anchors, sizeof(float) * anchors.size()));
-            CUDA_CHECK(cudaMemcpy(v_anchors, f_anchors, sizeof(float) * anchors.size(), cudaMemcpyHostToDevice));
-        }
-        if (mask.size() > 0) {
-            int* f_mask = mask.data();
-            CUDA_CHECK(cudaMallocHost(&v_mask, sizeof(int) * mask.size()));
-            CUDA_CHECK(cudaMemcpy(v_mask, f_mask, sizeof(int) * mask.size(), cudaMemcpyHostToDevice));
-        }
+            void* v_anchors;
+            void* v_mask;
+            if (anchors.size() > 0) {
+                float* f_anchors = anchors.data();
+                CUDA_CHECK(cudaMalloc(&v_anchors, sizeof(float) * anchors.size()));
+                CUDA_CHECK(cudaMemcpy(v_anchors, f_anchors, sizeof(float) * anchors.size(), cudaMemcpyHostToDevice));
+            }
+            if (mask.size() > 0) {
+                int* f_mask = mask.data();
+                CUDA_CHECK(cudaMalloc(&v_mask, sizeof(int) * mask.size()));
+                CUDA_CHECK(cudaMemcpy(v_mask, f_mask, sizeof(int) * mask.size(), cudaMemcpyHostToDevice));
+            }
 
-        uint64_t inputSize = gridSizeX * gridSizeY * (numBBoxes * (4 + 1 + m_NumClasses));
+            uint64_t inputSize = gridSizeX * gridSizeY * (numBBoxes * (4 + 1 + m_NumClasses));
 
-        if (m_Type == 2) {  // YOLOR incorrect param: scale_x_y = 2.0
-            CUDA_CHECK(cudaYoloLayer_r(
-                inputs[i], d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
-                m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, 2.0, v_anchors,
-                v_mask, stream));
-        }
-        else if (m_Type == 1) {
-            if (m_NewCoords) {
-                CUDA_CHECK(cudaYoloLayer_nc(
+            if (m_Type == 2) {  // YOLOR incorrect param: scale_x_y = 2.0
+                CUDA_CHECK(cudaYoloLayer_r(
                     inputs[i], d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
-                    m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, scaleXY,
-                    v_anchors, v_mask, stream));
+                    m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, 2.0, v_anchors,
+                    v_mask, stream));
+            }
+            else if (m_Type == 1) {
+                if (m_NewCoords) {
+                    CUDA_CHECK(cudaYoloLayer_nc(
+                        inputs[i], d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
+                        m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, scaleXY,
+                        v_anchors, v_mask, stream));
+                }
+                else {
+                    CUDA_CHECK(cudaYoloLayer(
+                        inputs[i], d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
+                        m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, scaleXY,
+                        v_anchors, v_mask, stream));
+                }
             }
             else {
-                CUDA_CHECK(cudaYoloLayer(
-                    inputs[i], d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
-                    m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, scaleXY,
-                    v_anchors, v_mask, stream));
+                void* softmax;
+                CUDA_CHECK(cudaMalloc(&softmax, sizeof(float) * inputSize * batchSize));
+                CUDA_CHECK(cudaMemsetAsync((float*)softmax, 0, sizeof(float) * inputSize * batchSize));
+
+                CUDA_CHECK(cudaRegionLayer(
+                    inputs[i], softmax, d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
+                    m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, v_anchors,
+                    stream));
+
+                CUDA_CHECK(cudaFree(softmax));
             }
-        }
-        else {
-            void* softmax;
-            CUDA_CHECK(cudaMallocHost(&softmax, sizeof(float) * inputSize * batchSize));
-            CUDA_CHECK(cudaMemsetAsync((float*)softmax, 0, sizeof(float) * inputSize * batchSize));
 
-            CUDA_CHECK(cudaRegionLayer(
-                inputs[i], softmax, d_indexes, d_scores, d_boxes, d_classes, countData, batchSize, inputSize, m_OutputSize,
-                m_ScoreThreshold, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, v_anchors,
-                stream));
-
-            CUDA_CHECK(cudaFreeHost(softmax));
-        }
-
-        if (anchors.size() > 0) {
-            CUDA_CHECK(cudaFreeHost(v_anchors));
-        }
-        if (mask.size() > 0) {
-            CUDA_CHECK(cudaFreeHost(v_mask));
+            if (anchors.size() > 0) {
+                CUDA_CHECK(cudaFree(v_anchors));
+            }
+            if (mask.size() > 0) {
+                CUDA_CHECK(cudaFree(v_mask));
+            }
         }
     }
 
@@ -269,10 +287,11 @@ int32_t YoloLayer::enqueue (
         d_indexes, d_scores, d_boxes, d_classes, bboxData, scoreData, countData, batchSize, m_OutputSize, m_TopK,
         m_NumClasses, stream));
 
-    CUDA_CHECK(cudaFreeHost(d_indexes));
-    CUDA_CHECK(cudaFreeHost(d_scores));
-    CUDA_CHECK(cudaFreeHost(d_boxes));
-    CUDA_CHECK(cudaFreeHost(d_classes));
+    CUDA_CHECK(cudaFree(countData));
+    CUDA_CHECK(cudaFree(d_indexes));
+    CUDA_CHECK(cudaFree(d_scores));
+    CUDA_CHECK(cudaFree(d_boxes));
+    CUDA_CHECK(cudaFree(d_classes));
 
     return 0;
 }
@@ -290,18 +309,20 @@ size_t YoloLayer::getSerializationSize() const noexcept
     totalSize += sizeof(m_TopK);
     totalSize += sizeof(m_ScoreThreshold);
 
-    uint yoloTensorsSize = m_YoloTensors.size();
-    totalSize += sizeof(yoloTensorsSize);
+    if (m_Type != 3) {
+        uint yoloTensorsSize = m_YoloTensors.size();
+        totalSize += sizeof(yoloTensorsSize);
 
-    for (uint i = 0; i < yoloTensorsSize; ++i)
-    {
-        const TensorInfo& curYoloTensor = m_YoloTensors.at(i);
-        totalSize += sizeof(curYoloTensor.gridSizeX);
-        totalSize += sizeof(curYoloTensor.gridSizeY);
-        totalSize += sizeof(curYoloTensor.numBBoxes);
-        totalSize += sizeof(curYoloTensor.scaleXY);
-        totalSize += sizeof(uint) + sizeof(curYoloTensor.anchors[0]) * curYoloTensor.anchors.size();
-        totalSize += sizeof(uint) + sizeof(curYoloTensor.mask[0]) * curYoloTensor.mask.size();
+        for (uint i = 0; i < yoloTensorsSize; ++i)
+        {
+            const TensorInfo& curYoloTensor = m_YoloTensors.at(i);
+            totalSize += sizeof(curYoloTensor.gridSizeX);
+            totalSize += sizeof(curYoloTensor.gridSizeY);
+            totalSize += sizeof(curYoloTensor.numBBoxes);
+            totalSize += sizeof(curYoloTensor.scaleXY);
+            totalSize += sizeof(uint) + sizeof(curYoloTensor.anchors[0]) * curYoloTensor.anchors.size();
+            totalSize += sizeof(uint) + sizeof(curYoloTensor.mask[0]) * curYoloTensor.mask.size();
+        }
     }
 
     return totalSize;
@@ -320,28 +341,30 @@ void YoloLayer::serialize(void* buffer) const noexcept
     write(d, m_TopK);
     write(d, m_ScoreThreshold);
 
-    uint yoloTensorsSize = m_YoloTensors.size();
-    write(d, yoloTensorsSize);
-    for (uint i = 0; i < yoloTensorsSize; ++i)
-    {
-        const TensorInfo& curYoloTensor = m_YoloTensors.at(i);
-        write(d, curYoloTensor.gridSizeX);
-        write(d, curYoloTensor.gridSizeY);
-        write(d, curYoloTensor.numBBoxes);
-        write(d, curYoloTensor.scaleXY);
-
-        uint anchorsSize = curYoloTensor.anchors.size();
-        write(d, anchorsSize);
-        for (uint j = 0; j < anchorsSize; ++j)
+    if (m_Type != 3) {
+        uint yoloTensorsSize = m_YoloTensors.size();
+        write(d, yoloTensorsSize);
+        for (uint i = 0; i < yoloTensorsSize; ++i)
         {
-            write(d, curYoloTensor.anchors[j]);
-        }
+            const TensorInfo& curYoloTensor = m_YoloTensors.at(i);
+            write(d, curYoloTensor.gridSizeX);
+            write(d, curYoloTensor.gridSizeY);
+            write(d, curYoloTensor.numBBoxes);
+            write(d, curYoloTensor.scaleXY);
 
-        uint maskSize = curYoloTensor.mask.size();
-        write(d, maskSize);
-        for (uint j = 0; j < maskSize; ++j)
-        {
-            write(d, curYoloTensor.mask[j]);
+            uint anchorsSize = curYoloTensor.anchors.size();
+            write(d, anchorsSize);
+            for (uint j = 0; j < anchorsSize; ++j)
+            {
+                write(d, curYoloTensor.anchors[j]);
+            }
+
+            uint maskSize = curYoloTensor.mask.size();
+            write(d, maskSize);
+            for (uint j = 0; j < maskSize; ++j)
+            {
+                write(d, curYoloTensor.mask[j]);
+            }
         }
     }
 }

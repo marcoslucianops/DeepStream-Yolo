@@ -3,19 +3,18 @@
  * https://www.github.com/marcoslucianops
  */
 
-#ifndef __CHANNELS_LAYER_H__
-#define __CHANNELS_LAYER_H__
-
-#include <map>
-#include <cassert>
+#ifndef __SHUFFLE_LAYER_H__
+#define __SHUFFLE_LAYER_H__
 
 #include "NvInfer.h"
+#include "../utils.h"
 
-nvinfer1::ITensor* channelsLayer(
+nvinfer1::ITensor* shuffleLayer(
     int layerIdx,
+    std::string& layer,
     std::map<std::string, std::string>& block,
     nvinfer1::ITensor* input,
-    nvinfer1::ITensor* implicitTensor,
+    std::vector<nvinfer1::ITensor*> tensorOutputs,
     nvinfer1::INetworkDefinition* network);
 
 #endif
