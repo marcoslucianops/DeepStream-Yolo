@@ -24,86 +24,78 @@ class Layers(object):
 
         self.net()
 
-    def Focus(self, child):
+    def ReOrg(self, child):
         self.current = child.i
-        self.fc.write('\n# Focus\n')
+        self.fc.write('\n# ReOrg\n')
 
         self.reorg()
-        self.convolutional(child.conv)
 
     def Conv(self, child):
         self.current = child.i
         self.fc.write('\n# Conv\n')
 
+        if child.f != -1:
+            r = self.get_route(child.f)
+            self.route('%d' % r)
         self.convolutional(child)
 
-    def BottleneckCSP(self, child):
+    def DownC(self, child):
         self.current = child.i
-        self.fc.write('\n# BottleneckCSP\n')
+        self.fc.write('\n# DownC\n')
+
+        self.maxpool(child.mp)
+        self.convolutional(child.cv3)
+        self.route('-3')
+        self.convolutional(child.cv1)
+        self.convolutional(child.cv2)
+        self.route('-1, -4')
+
+    def MP(self, child):
+        self.current = child.i
+        self.fc.write('\n# MP\n')
+
+        self.maxpool(child.m)
+
+    def SP(self, child):
+        self.current = child.i
+        self.fc.write('\n# SP\n')
+
+        if child.f != -1:
+            r = self.get_route(child.f)
+            self.route('%d' % r)
+        self.maxpool(child.m)
+
+    def SPPCSPC(self, child):
+        self.current = child.i
+        self.fc.write('\n# SPPCSPC\n')
 
         self.convolutional(child.cv2)
         self.route('-2')
         self.convolutional(child.cv1)
-        idx = -3
-        for m in child.m:
-            if m.add:
-                self.convolutional(m.cv1)
-                self.convolutional(m.cv2)
-                self.shortcut(-3)
-                idx -= 3
-            else:
-                self.convolutional(m.cv1)
-                self.convolutional(m.cv2)
-                idx -= 2
         self.convolutional(child.cv3)
-        self.route('-1, %d' % (idx - 1))
-        self.batchnorm(child.bn, child.act)
         self.convolutional(child.cv4)
-
-    def C3(self, child):
-        self.current = child.i
-        self.fc.write('\n# C3\n')
-
-        self.convolutional(child.cv2)
-        self.route('-2')
-        self.convolutional(child.cv1)
-        idx = -3
-        for m in child.m:
-            if m.add:
-                self.convolutional(m.cv1)
-                self.convolutional(m.cv2)
-                self.shortcut(-3)
-                idx -= 3
-            else:
-                self.convolutional(m.cv1)
-                self.convolutional(m.cv2)
-                idx -= 2
-        self.route('-1, %d' % idx)
-        self.convolutional(child.cv3)
-
-    def SPP(self, child):
-        self.current = child.i
-        self.fc.write('\n# SPP\n')
-
-        self.convolutional(child.cv1)
         self.maxpool(child.m[0])
         self.route('-2')
         self.maxpool(child.m[1])
         self.route('-4')
         self.maxpool(child.m[2])
         self.route('-6, -5, -3, -1')
-        self.convolutional(child.cv2)
+        self.convolutional(child.cv5)
+        self.convolutional(child.cv6)
+        self.route('-1, -13')
+        self.convolutional(child.cv7)
 
-    def SPPF(self, child):
+    def RepConv(self, child):
         self.current = child.i
-        self.fc.write('\n# SPPF\n')
+        self.fc.write('\n# RepConv\n')
 
-        self.convolutional(child.cv1)
-        self.maxpool(child.m)
-        self.maxpool(child.m)
-        self.maxpool(child.m)
-        self.route('-4, -3, -2, -1')
-        self.convolutional(child.cv2)
+        if child.f != -1:
+            r = self.get_route(child.f)
+            self.route('%d' % r)
+        self.convolutional(child.rbr_1x1)
+        self.route('-2')
+        self.convolutional(child.rbr_dense)
+        self.shortcut(-3, act=self.get_activation(child.act._get_name()))
 
     def Upsample(self, child):
         self.current = child.i
@@ -119,6 +111,13 @@ class Layers(object):
         for i in range(1, len(child.f)):
             r.append(self.get_route(child.f[i]))
         self.route('-1, %s' % str(r)[1:-1])
+
+    def Shortcut(self, child):
+        self.current = child.i
+        self.fc.write('\n# Shortcut\n')
+
+        r = self.get_route(child.f[1])
+        self.shortcut(r)
 
     def Detect(self, child):
         self.current = child.i
@@ -136,32 +135,7 @@ class Layers(object):
         self.fc.write('[net]\n' +
                       'width=%d\n' % self.width +
                       'height=%d\n' % self.height +
-                      'channels=3\n' +
-                      'letter_box=1\n')
-
-    def CBH(self, child):
-        self.current = child.i
-        self.fc.write('\n# CBH\n')
-
-        self.convolutional(child.conv, act='hardswish')
-
-    def LC_Block(self, child):
-        self.current = child.i
-        self.fc.write('\n# LC_Block\n')
-
-        self.convolutional(child.dw_conv, act='hardswish')
-        if child.use_se:
-            self.avgpool()
-            self.convolutional(child.se.conv1, act='relu')
-            self.convolutional(child.se.conv2, act='silu')
-            self.shortcut(-4, ew='mul')
-        self.convolutional(child.pw_conv, act='hardswish')
-
-    def Dense(self, child):
-        self.current = child.i
-        self.fc.write('\n# Dense\n')
-
-        self.convolutional(child.dense_conv, act='hardswish')
+                      'channels=3\n')
 
     def reorg(self):
         self.blocks[self.current] += 1
@@ -182,6 +156,15 @@ class Layers(object):
             bias = cv.bias
             bn = False
             act = 'linear' if not detect else 'logistic'
+        elif cv._get_name() == 'Sequential':
+            filters = cv[0].out_channels
+            size = cv[0].kernel_size
+            stride = cv[0].stride
+            pad = cv[0].padding
+            groups = cv[0].groups
+            bias = cv[0].bias
+            bn = True if cv[1]._get_name() == 'BatchNorm2d' else False
+            act = 'linear'
         else:
             filters = cv.conv.out_channels
             size = cv.conv.kernel_size
@@ -207,32 +190,17 @@ class Layers(object):
                       w +
                       'activation=%s\n' % act)
 
-    def batchnorm(self, bn, act):
-        self.blocks[self.current] += 1
-
-        self.get_state_dict(bn.state_dict())
-
-        filters = bn.num_features
-        act = self.get_activation(act._get_name())
-
-        self.fc.write('\n[batchnorm]\n' +
-                      'filters=%d\n' % filters +
-                      'activation=%s\n' % act)
-
     def route(self, layers):
         self.blocks[self.current] += 1
 
         self.fc.write('\n[route]\n' +
                       'layers=%s\n' % layers)
 
-    def shortcut(self, r, ew='add', act='linear'):
+    def shortcut(self, r, act='linear'):
         self.blocks[self.current] += 1
-
-        m = 'mode=mul\n' if ew == 'mul' else ''
 
         self.fc.write('\n[shortcut]\n' +
                       'from=%d\n' % r +
-                      m +
                       'activation=%s\n' % act)
 
     def maxpool(self, m):
@@ -255,11 +223,6 @@ class Layers(object):
 
         self.fc.write('\n[upsample]\n' +
                       'stride=%d\n' % stride)
-
-    def avgpool(self):
-        self.blocks[self.current] += 1
-
-        self.fc.write('\n[avgpool]\n')
 
     def yolo(self, i):
         self.blocks[self.current] += 1
@@ -332,7 +295,7 @@ class Layers(object):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='PyTorch YOLOv5 conversion')
+    parser = argparse.ArgumentParser(description='PyTorch YOLOv7 conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument(
         '-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
@@ -345,11 +308,12 @@ def parse_args():
 pt_file, inference_size = parse_args()
 
 model_name = os.path.basename(pt_file).split('.pt')[0]
-wts_file = model_name + '.wts' if 'yolov5' in model_name else 'yolov5_' + model_name + '.wts'
-cfg_file = model_name + '.cfg' if 'yolov5' in model_name else 'yolov5_' + model_name + '.cfg'
+wts_file = model_name + '.wts' if 'yolov7' in model_name else 'yolov7_' + model_name + '.wts'
+cfg_file = model_name + '.cfg' if 'yolov7' in model_name else 'yolov7_' + model_name + '.cfg'
 
 device = select_device('cpu')
-model = torch.load(pt_file, map_location=device)['model'].float()
+model = torch.load(pt_file, map_location=device)
+model = model['ema' if model.get('ema') else 'model'].float()
 
 anchor_grid = model.model[-1].anchors * model.model[-1].stride[..., None, None]
 delattr(model.model[-1], 'anchor_grid')
@@ -361,30 +325,28 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
     layers = Layers(len(model.model), inference_size, fw, fc)
 
     for child in model.model.children():
-        if child._get_name() == 'Focus':
-            layers.Focus(child)
+        if child._get_name() == 'ReOrg':
+            layers.ReOrg(child)
         elif child._get_name() == 'Conv':
             layers.Conv(child)
-        elif child._get_name() == 'BottleneckCSP':
-            layers.BottleneckCSP(child)
-        elif child._get_name() == 'C3':
-            layers.C3(child)
-        elif child._get_name() == 'SPP':
-            layers.SPP(child)
-        elif child._get_name() == 'SPPF':
-            layers.SPPF(child)
+        elif child._get_name() == 'DownC':
+            layers.DownC(child)
+        elif child._get_name() == 'MP':
+            layers.MP(child)
+        elif child._get_name() == 'SP':
+            layers.SP(child)
+        elif child._get_name() == 'SPPCSPC':
+            layers.SPPCSPC(child)
+        elif child._get_name() == 'RepConv':
+            layers.RepConv(child)
         elif child._get_name() == 'Upsample':
             layers.Upsample(child)
         elif child._get_name() == 'Concat':
             layers.Concat(child)
+        elif child._get_name() == 'Shortcut':
+            layers.Shortcut(child)
         elif child._get_name() == 'Detect':
             layers.Detect(child)
-        elif child._get_name() == 'CBH':
-            layers.CBH(child)
-        elif child._get_name() == 'LC_Block':
-            layers.LC_Block(child)
-        elif child._get_name() == 'Dense':
-            layers.Dense(child)
         else:
             raise SystemExit('Model not supported')
 

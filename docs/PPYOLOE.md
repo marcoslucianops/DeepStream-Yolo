@@ -74,7 +74,7 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ##
 
-### Edit the config_infer_primary_yoloV5 file
+### Edit the config_infer_primary_ppyoloe file
 
 Edit the `config_infer_primary_ppyoloe.txt` file according to your model (example for PP-YOLOE-s)
 
@@ -97,7 +97,7 @@ offsets=123.675;116.28;103.53
 
 ##
 
-### Edit the deepstream_app_config.txt file
+### Edit the deepstream_app_config file
 
 ```
 ...

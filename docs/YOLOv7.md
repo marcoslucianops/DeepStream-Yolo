@@ -1,12 +1,10 @@
-# YOLOv5 usage
-
-**NOTE**: You can use the main branch of the YOLOv5 repo to convert all model versions.
+# YOLOv7 usage
 
 **NOTE**: The yaml file is not required.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_yoloV5 file](#edit-the-config_infer_primary_yolov5-file)
+* [Edit the config_infer_primary_yoloV7 file](#edit-the-config_infer_primary_yolov7-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -14,11 +12,11 @@
 
 ### Convert model
 
-#### 1. Download the YOLOv5 repo and install the requirements
+#### 1. Download the YOLOv7 repo and install the requirements
 
 ```
-git clone https://github.com/ultralytics/yolov5.git
-cd yolov5
+git clone https://github.com/WongKinYiu/yolov7.git
+cd yolov7
 pip3 install -r requirements.txt
 ```
 
@@ -26,24 +24,24 @@ pip3 install -r requirements.txt
 
 #### 2. Copy conversor
 
-Copy the `gen_wts_yoloV5.py` file from `DeepStream-Yolo/utils` directory to the `yolov5` folder.
+Copy the `gen_wts_yoloV7.py` file from `DeepStream-Yolo/utils` directory to the `yolov7` folder.
 
 #### 3. Download the model
 
-Download the `pt` file from [YOLOv5](https://github.com/ultralytics/yolov5/releases/) releases (example for YOLOv5s 6.1)
+Download the `pt` file from [YOLOv7](https://github.com/WongKinYiu/yolov7/releases/) releases (example for YOLOv7)
 
 ```
-wget https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5s.pt
+wget hhttps://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
 ```
 
-**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolov5_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolov7_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for YOLOv5s)
+Generate the `cfg` and `wts` files (example for YOLOv7)
 
 ```
-python3 gen_wts_yoloV5.py -w yolov5s.pt
+python3 gen_wts_yoloV7.py -w yolov7.pt
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -103,15 +101,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ##
 
-### Edit the config_infer_primary_yoloV5 file
+### Edit the config_infer_primary_yoloV7 file
 
-Edit the `config_infer_primary_yoloV5.txt` file according to your model (example for YOLOv5s)
+Edit the `config_infer_primary_yoloV7.txt` file according to your model (example for YOLOv7)
 
 ```
 [property]
 ...
-custom-network-config=yolov5s.cfg
-model-file=yolov5s.wts
+custom-network-config=yolov7.cfg
+model-file=yolov7.wts
 ...
 ```
 
@@ -123,7 +121,7 @@ model-file=yolov5s.wts
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_yoloV5.txt
+config-file=config_infer_primary_yoloV7.txt
 ```
 
 ##

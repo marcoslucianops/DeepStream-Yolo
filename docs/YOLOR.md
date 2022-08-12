@@ -2,7 +2,7 @@
 
 **NOTE**: You need to use the main branch of the YOLOR repo to convert the model.
 
-**NOTE**: The cfg is required.
+**NOTE**: The cfg file is required.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
@@ -92,7 +92,7 @@ model-file=yolor_csp.wts
 
 ##
 
-### Edit the deepstream_app_config.txt file
+### Edit the deepstream_app_config file
 
 ```
 ...

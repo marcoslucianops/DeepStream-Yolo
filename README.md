@@ -8,7 +8,6 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * DeepStream tutorials
 * YOLOX support
 * YOLOv6 support
-* YOLOv7 support
 * Dynamic batch-size
 
 ### Improvements on this repository
@@ -27,6 +26,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * **GPU YOLO Decoder** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
 * **GPU Batched NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 * **PP-YOLOE support**
+* **YOLOv7 support**
 
 ##
 
@@ -42,6 +42,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [YOLOv5 usage](docs/YOLOv5.md)
 * [YOLOR usage](docs/YOLOR.md)
 * [PP-YOLOE usage](docs/PPYOLOE.md)
+* [YOLOv7 usage](docs/YOLOv7.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
@@ -89,6 +90,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [YOLOv5 >= 2.0](https://github.com/ultralytics/yolov5)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/configs/ppyoloe)
+* [YOLOv7](https://github.com/WongKinYiu/yolov7)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
 

@@ -333,7 +333,6 @@ def export_model():
 
     merge_config(FLAGS.opt)
     check_config(cfg)
-    check_gpu(cfg.use_gpu)
     check_version()
 
     trainer = Trainer(cfg, mode='test')
