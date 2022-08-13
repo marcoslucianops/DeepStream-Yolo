@@ -166,7 +166,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::IN
         weightsType = "wts";
 
     float eps = 1.0e-5;
-    if (m_NetworkType.find("yolov5") != std::string::npos)
+    if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolov7") != std::string::npos)
         eps = 1.0e-3;
     else if (m_NetworkType.find("yolor") != std::string::npos)
         eps = 1.0e-4;
