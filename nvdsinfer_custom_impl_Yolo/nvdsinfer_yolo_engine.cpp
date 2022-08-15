@@ -32,13 +32,14 @@
 
 #define USE_CUDA_ENGINE_GET_API 1
 
-static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContextInitParams* initParams)
+static bool getYoloNetworkInfo(NetworkInfo &networkInfo, const NvDsInferContextInitParams* initParams)
 {
     std::string yoloCfg = initParams->customNetworkConfigFilePath;
     std::string yoloType;
 
-    std::transform (yoloCfg.begin(), yoloCfg.end(), yoloCfg.begin(), [] (uint8_t c) {
-        return std::tolower (c);});
+    std::transform(yoloCfg.begin(), yoloCfg.end(), yoloCfg.begin(), [] (uint8_t c) {
+        return std::tolower(c);
+    });
 
     yoloType = yoloCfg.substr(0, yoloCfg.find(".cfg"));
 
@@ -50,25 +51,23 @@ static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContext
     networkInfo.deviceType = (initParams->useDLA ? "kDLA" : "kGPU");
     networkInfo.numDetectedClasses = initParams->numDetectedClasses;
     networkInfo.clusterMode = initParams->clusterMode;
+    networkInfo.scoreThreshold = initParams->perClassDetectionParams->preClusterThreshold;
 
-    if(initParams->networkMode == 0) {
+    if (initParams->networkMode == 0)
         networkInfo.networkMode = "FP32";
-    }
-    else if(initParams->networkMode == 1) {
+    else if (initParams->networkMode == 1)
         networkInfo.networkMode = "INT8";
-    }
-    else if(initParams->networkMode == 2) {
+    else if (initParams->networkMode == 2)
         networkInfo.networkMode = "FP16";
-    }
 
-    if (networkInfo.configFilePath.empty() ||
-        networkInfo.wtsFilePath.empty()) {
+    if (networkInfo.configFilePath.empty() ||  networkInfo.wtsFilePath.empty())
+    {
         std::cerr << "YOLO config file or weights file is not specified\n" << std::endl;
         return false;
     }
 
-    if (!fileExists(networkInfo.configFilePath) ||
-        !fileExists(networkInfo.wtsFilePath)) {
+    if (!fileExists(networkInfo.configFilePath) || !fileExists(networkInfo.wtsFilePath))
+    {
         std::cerr << "YOLO config file or weights file is not exist\n" << std::endl;
         return false;
     }
@@ -80,9 +79,8 @@ static bool getYoloNetworkInfo (NetworkInfo &networkInfo, const NvDsInferContext
 IModelParser* NvDsInferCreateModelParser(
     const NvDsInferContextInitParams* initParams) {
     NetworkInfo networkInfo;
-    if (!getYoloNetworkInfo(networkInfo, initParams)) {
-      return nullptr;
-    }
+    if (!getYoloNetworkInfo(networkInfo, initParams))
+        return nullptr;
 
     return new Yolo(networkInfo);
 }
@@ -102,16 +100,14 @@ bool NvDsInferYoloCudaEngineGet(nvinfer1::IBuilder * const builder,
         nvinfer1::ICudaEngine *& cudaEngine)
 {
     NetworkInfo networkInfo;
-    if (!getYoloNetworkInfo(networkInfo, initParams)) {
-      return false;
-    }
+    if (!getYoloNetworkInfo(networkInfo, initParams))
+        return false;
 
     Yolo yolo(networkInfo);
     cudaEngine = yolo.createEngine (builder, builderConfig);
     if (cudaEngine == nullptr)
     {
-        std::cerr << "Failed to build CUDA engine on "
-                  << networkInfo.configFilePath << std::endl;
+        std::cerr << "Failed to build CUDA engine on " << networkInfo.configFilePath << std::endl;
         return false;
     }
 

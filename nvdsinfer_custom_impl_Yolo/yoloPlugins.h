@@ -61,14 +61,14 @@ public:
 
     YoloLayer (
         const uint& netWidth, const uint& netHeight, const uint& numClasses, const uint& newCoords,
-        const std::vector<TensorInfo>& yoloTensors, const uint64_t& outputSize, const uint& modelType, const uint& topK,
+        const std::vector<TensorInfo>& yoloTensors, const uint64_t& outputSize, const uint& modelType,
         const float& scoreThreshold);
 
     const char* getPluginType () const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
 
     const char* getPluginVersion () const noexcept override { return YOLOLAYER_PLUGIN_VERSION; }
 
-    int getNbOutputs () const noexcept override { return 2; }
+    int getNbOutputs () const noexcept override { return 4; }
 
     nvinfer1::Dims getOutputDimensions (
         int index, const nvinfer1::Dims* inputs,
@@ -116,7 +116,6 @@ private:
     std::vector<TensorInfo> m_YoloTensors;
     uint64_t m_OutputSize {0};
     uint m_Type {0};
-    uint m_TopK {0};
     float m_ScoreThreshold {0};
 };
 

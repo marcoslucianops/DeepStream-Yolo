@@ -24,9 +24,9 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * YOLOv5 support
 * YOLOR support
 * **GPU YOLO Decoder** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
-* **GPU Batched NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 * **PP-YOLOE support**
 * **YOLOv7 support**
+* **Optimized NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 
 ##
 
@@ -446,20 +446,20 @@ config-file=config_infer_primary_yoloV2.txt
 
 ### NMS Configuration
 
-To change the `iou-threshold`, `score-threshold` and `topk` values, modify the `config_nms.txt` file and regenerate the model engine file.
+To change the `nms-iou-threshold`, `pre-cluster-threshold` and `topk` values, modify the config_infer file and regenerate the model engine file
 
 ```
-[property]
-iou-threshold=0.45
-score-threshold=0.25
+[class-attrs-all]
+nms-iou-threshold=0.45
+pre-cluster-threshold=0.25
 topk=300
 ```
 
+**NOTE**: It is important to regenerate the engine to get the max detection speed based on `pre-cluster-threshold` you set.
+
 **NOTE**: Lower `topk` values will result in more performance.
 
-**NOTE**: Make sure to set `cluster-mode=4` in the config_infer file.
-
-**NOTE**: You are still able to change the `pre-cluster-threshold` values in the config_infer files.
+**NOTE**: Make sure to set `cluster-mode=2` in the config_infer file.
 
 ##
 

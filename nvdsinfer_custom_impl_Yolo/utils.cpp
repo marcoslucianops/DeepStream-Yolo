@@ -155,11 +155,3 @@ void printLayerInfo(
     std::cout << std::setw(20) << std::left << layerInput << std::setw(20) << std::left << layerOutput;
     std::cout << weightPtr << std::endl;
 }
-
-std::string getAbsPath(std::string path)
-{
-    std::size_t found = path.rfind("/");
-    if (found != std::string::npos)
-        path.erase(path.begin() + found, path.end());
-    return path;
-}

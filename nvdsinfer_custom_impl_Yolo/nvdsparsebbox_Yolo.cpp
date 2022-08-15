@@ -71,7 +71,7 @@ static void addBBoxProposal(
 }
 
 static std::vector<NvDsInferParseObjectInfo> decodeYoloTensor(
-    const int* counts, const float* boxes, const float* scores, const float* classes, const uint& netW, const uint& netH)
+    const int* counts, const float* boxes, const float* scores, const int* classes, const uint& netW, const uint& netH)
 {
     std::vector<NvDsInferParseObjectInfo> binfo;
 
@@ -118,7 +118,7 @@ static bool NvDsInferParseCustomYolo(
     std::vector<NvDsInferParseObjectInfo> outObjs =
         decodeYoloTensor(
             (const int*)(counts.buffer), (const float*)(boxes.buffer), (const float*)(scores.buffer),
-            (const float*)(classes.buffer), networkInfo.width, networkInfo.height);
+            (const int*)(classes.buffer), networkInfo.width, networkInfo.height);
 
     objects.insert(objects.end(), outObjs.begin(), outObjs.end());
 

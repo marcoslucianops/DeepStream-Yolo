@@ -14,11 +14,13 @@ interval=0
 gie-unique-id=1
 process-mode=1
 network-type=0
-cluster-mode=4
+cluster-mode=2
 maintain-aspect-ratio=0
 parse-bbox-func-name=NvDsInferParseYolo
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
 engine-create-func-name=NvDsInferYoloCudaEngineGet
 
 [class-attrs-all]
-pre-cluster-threshold=0
+nms-iou-threshold=0.45
+pre-cluster-threshold=0.25
+topk=300

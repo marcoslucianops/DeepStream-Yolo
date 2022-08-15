@@ -69,12 +69,8 @@ all: $(TARGET_LIB)
 %.o: %.cpp $(INCS) Makefile
 	$(CC) -c $(COMMON) -o $@ $(CFLAGS) $<
 
-ifeq ($(CUDA_VER), 10.2)
-CUB=-I/usr/local/cuda-$(CUDA_VER)/include/thrust/system/cuda/detail
-endif
-
 %.o: %.cu $(INCS) Makefile
-	$(NVCC) -c -o $@ $(CUB) --compiler-options '-fPIC' $<
+	$(NVCC) -c -o $@ --compiler-options '-fPIC' $<
 
 $(TARGET_LIB) : $(TARGET_OBJS)
 	$(CC) -o $@  $(TARGET_OBJS) $(LFLAGS)

@@ -45,6 +45,9 @@ nvinfer1::ITensor* routeLayer(
     }
     layers += std::to_string(idxLayers[idxLayers.size() - 1]);
 
+    if (concatInputs.size() == 1)
+        return concatInputs[0];
+
     int axis = 0;
     if (block.find("axis") != block.end())
         axis = std::stoi(block.at("axis"));

@@ -8,7 +8,7 @@
 inline __device__ float sigmoidGPU(const float& x) { return 1.0f / (1.0f + __expf(-x)); }
 
 __global__ void gpuYoloLayer(
-    const float* input, int* d_indexes, float* d_scores, float* d_boxes, int* d_classes, int* countData,
+    const float* input, int* num_detections, float* detection_boxes, float* detection_scores, int* detection_classes,
     const float scoreThreshold, const uint netWidth, const uint netHeight, const uint gridSizeX, const uint gridSizeY,
     const uint numOutputClasses, const uint numBBoxes, const float scaleXY, const float* anchors, const int* mask)
 {
@@ -28,7 +28,7 @@ __global__ void gpuYoloLayer(
     if (objectness < scoreThreshold)
         return;
 
-    int count = (int)atomicAdd(countData, 1);
+    int count = (int)atomicAdd(num_detections, 1);
 
     const float alpha = scaleXY;
     const float beta = -0.5 * (scaleXY - 1);
@@ -64,23 +64,22 @@ __global__ void gpuYoloLayer(
         }
     }
 
-    d_indexes[count] = count;
-    d_scores[count] = objectness * maxProb + 1.f;
-    d_boxes[count * 4 + 0] = x - 0.5 * w;
-    d_boxes[count * 4 + 1] = y - 0.5 * h;
-    d_boxes[count * 4 + 2] = x + 0.5 * w;
-    d_boxes[count * 4 + 3] = y + 0.5 * h;
-    d_classes[count] = maxIndex;
+    detection_boxes[count * 4 + 0] = x - 0.5 * w;
+    detection_boxes[count * 4 + 1] = y - 0.5 * h;
+    detection_boxes[count * 4 + 2] = x + 0.5 * w;
+    detection_boxes[count * 4 + 3] = y + 0.5 * h;
+    detection_scores[count] = objectness * maxProb;
+    detection_classes[count] = maxIndex;
 }
 
 cudaError_t cudaYoloLayer(
-    const void* input, void* d_indexes, void* d_scores, void* d_boxes, void* d_classes, void* countData,
+    const void* input, void* num_detections, void* detection_boxes, void* detection_scores, void* detection_classes,
     const uint& batchSize, uint64_t& inputSize, uint64_t& outputSize, const float& scoreThreshold, const uint& netWidth,
     const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses, const uint& numBBoxes,
     const float& scaleXY, const void* anchors, const void* mask, cudaStream_t stream);
 
 cudaError_t cudaYoloLayer(
-    const void* input, void* d_indexes, void* d_scores, void* d_boxes, void* d_classes, void* countData,
+    const void* input, void* num_detections, void* detection_boxes, void* detection_scores, void* detection_classes,
     const uint& batchSize, uint64_t& inputSize, uint64_t& outputSize, const float& scoreThreshold, const uint& netWidth,
     const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses, const uint& numBBoxes,
     const float& scaleXY, const void* anchors, const void* mask, cudaStream_t stream)
@@ -94,10 +93,10 @@ cudaError_t cudaYoloLayer(
     {
         gpuYoloLayer<<<number_of_blocks, threads_per_block, 0, stream>>>(
             reinterpret_cast<const float*>(input) + (batch * inputSize),
-            reinterpret_cast<int*>(d_indexes) + (batch * outputSize),
-            reinterpret_cast<float*>(d_scores) + (batch * outputSize),
-            reinterpret_cast<float*>(d_boxes) + (batch * 4 * outputSize),
-            reinterpret_cast<int*>(d_classes) + (batch * outputSize), reinterpret_cast<int*>(countData) + (batch),
+            reinterpret_cast<int*>(num_detections) + (batch),
+            reinterpret_cast<float*>(detection_boxes) + (batch * 4 * outputSize),
+            reinterpret_cast<float*>(detection_scores) + (batch * outputSize),
+            reinterpret_cast<int*>(detection_classes) + (batch * outputSize),
             scoreThreshold, netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, scaleXY,
             reinterpret_cast<const float*>(anchors), reinterpret_cast<const int*>(mask));
     }

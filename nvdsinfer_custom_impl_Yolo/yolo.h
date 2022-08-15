@@ -53,6 +53,7 @@ struct NetworkInfo
     std::string deviceType;
     uint numDetectedClasses;
     int clusterMode;
+    float scoreThreshold;
     std::string networkMode;
 };
 
@@ -93,6 +94,7 @@ protected:
     const uint m_NumDetectedClasses;
     const int m_ClusterMode;
     const std::string m_NetworkMode;
+    const float m_ScoreThreshold;
 
     uint m_InputH;
     uint m_InputW;
@@ -102,13 +104,9 @@ protected:
     uint m_LetterBox;
     uint m_NewCoords;
     uint m_YoloCount;
-    float m_IouThreshold;
-    float m_ScoreThreshold;
-    uint m_TopK;
 
     std::vector<TensorInfo> m_YoloTensors;
     std::vector<std::map<std::string, std::string>> m_ConfigBlocks;
-    std::vector<std::map<std::string, std::string>> m_ConfigNMSBlocks;
     std::vector<nvinfer1::Weights> m_TrtWeights;
 
 private:
@@ -117,8 +115,6 @@ private:
     std::vector<std::map<std::string, std::string>> parseConfigFile(const std::string cfgFilePath);
 
     void parseConfigBlocks();
-
-    void parseConfigNMSBlocks();
 
     void destroyNetworkUtils();
 };
