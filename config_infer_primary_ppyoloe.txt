@@ -22,6 +22,6 @@ custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
 engine-create-func-name=NvDsInferYoloCudaEngineGet
 
 [class-attrs-all]
-nms-iou-threshold=0.45
+nms-iou-threshold=0.7
 pre-cluster-threshold=0.25
 topk=300

@@ -4,7 +4,6 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
 ### Future updates
 
-* Models benchmarks
 * DeepStream tutorials
 * YOLOX support
 * YOLOv6 support
@@ -27,6 +26,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * **PP-YOLOE support**
 * **YOLOv7 support**
 * **Optimized NMS** [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
+* **Models benchmarks**
 
 ##
 
@@ -98,7 +98,58 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
 ### Benchmarks
 
-New tests comming soon.
+#### Config
+
+```
+board = NVIDIA Tesla V100 16GB (AWS: p3.2xlarge)
+batch-size = 1
+eval = val2017 (COCO)
+sample = 1920x1080 video
+```
+
+**NOTE**: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_box=1), YOLOv5 and YOLOR models.
+
+#### NMS config
+
+- Eval
+
+```
+nms-iou-threshold = 0.6 / 0.65 (YOLOv5, YOLOR, YOLOv7 PyTorch) / 0.7 (PP-YOLOE)
+pre-cluster-threshold = 0.001
+topk = 300
+```
+
+- Test
+
+```
+nms-iou-threshold = 0.45 / 0.7 (PP-YOLOE)
+pre-cluster-threshold = 0.25
+topk = 300
+```
+
+#### Results
+
+**NOTE**: * = PyTorch
+
+| DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
+|:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
+| PP-YOLOE-x         | FP16      | 640        | 0.506        | 0.681   | 0.551    | 116.54                     |
+| PP-YOLOE-l         | FP16      | 640        | 0.498        | 0.674   | 0.545    | 187.93                     |
+| PP-YOLOE-m         | FP16      | 640        | 0.476        | 0.646   | 0.522    | 257.42                     |
+| PP-YOLOE-s (400)   | FP16      | 640        | 0.422        | 0.589   | 0.463    | 465.23                     |
+| YOLOv7*            | FP16      | 640        | 0.476        | 0.660   | 0.518    | 237.32                     |
+| YOLOv7-Tiny Leaky* | FP16      | 640        | 0.345        | 0.516   | 0.372    | 611.24                     |
+| YOLOv7-Tiny Leaky* | FP16      | 416        | 0.328        | 0.492   | 0.348    | 633.81                     |
+| YOLOv5x6 6.1       | FP16      | 1280       | 0.508        | 0.683   | 0.554    | 54.88                      |
+| YOLOv5l6 6.1       | FP16      | 1280       | 0.494        | 0.668   | 0.540    | 87.86                      |
+| YOLOv5m6 6.1       | FP16      | 1280       | 0.469        | 0.644   | 0.514    | 142.68                     |
+| YOLOv5s6 6.1       | FP16      | 1280       | 0.399        | 0.581   | 0.438    | 271.19                     |
+| YOLOv5n6 6.1       | FP16      | 1280       | 0.317        | 0.487   | 0.344    | 392.20                     |
+| YOLOv5x 6.1        | FP16      | 640        | 0.470        | 0.652   | 0.513    | 152.99                     |
+| YOLOv5l 6.1        | FP16      | 640        | 0.454        | 0.636   | 0.496    | 247.60                     |
+| YOLOv5m 6.1        | FP16      | 640        | 0.421        | 0.604   | 0.458    | 375.06                     |
+| YOLOv5s 6.1        | FP16      | 640        | 0.344        | 0.528   | 0.371    | 602.44                     |
+| YOLOv5n 6.1        | FP16      | 640        | 0.247        | 0.413   | 0.256    | 629.04                     |
 
 ##
 
