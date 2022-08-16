@@ -135,7 +135,8 @@ class Layers(object):
         self.fc.write('[net]\n' +
                       'width=%d\n' % self.width +
                       'height=%d\n' % self.height +
-                      'channels=3\n')
+                      'channels=3\n' +
+                      'letter_box=1\n')
 
     def reorg(self):
         self.blocks[self.current] += 1

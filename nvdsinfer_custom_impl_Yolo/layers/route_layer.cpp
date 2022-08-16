@@ -46,20 +46,21 @@ nvinfer1::ITensor* routeLayer(
     layers += std::to_string(idxLayers[idxLayers.size() - 1]);
 
     if (concatInputs.size() == 1)
-        return concatInputs[0];
+        output = concatInputs[0];
+    else {
+        int axis = 0;
+        if (block.find("axis") != block.end())
+            axis = std::stoi(block.at("axis"));
+        if (axis < 0)
+            axis = concatInputs[0]->getDimensions().nbDims + axis;
 
-    int axis = 0;
-    if (block.find("axis") != block.end())
-        axis = std::stoi(block.at("axis"));
-    if (axis < 0)
-        axis = concatInputs[0]->getDimensions().nbDims + axis;
-
-    nvinfer1::IConcatenationLayer* concat = network->addConcatenation(concatInputs.data(), concatInputs.size());
-    assert(concat != nullptr);
-    std::string concatLayerName = "route_" + std::to_string(layerIdx);
-    concat->setName(concatLayerName.c_str());
-    concat->setAxis(axis);
-    output = concat->getOutput(0);
+        nvinfer1::IConcatenationLayer* concat = network->addConcatenation(concatInputs.data(), concatInputs.size());
+        assert(concat != nullptr);
+        std::string concatLayerName = "route_" + std::to_string(layerIdx);
+        concat->setName(concatLayerName.c_str());
+        concat->setAxis(axis);
+        output = concat->getOutput(0);
+    }
 
     if (block.find("groups") != block.end())
     {

@@ -25,14 +25,14 @@ nvinfer1::ITensor* reorgLayer(
     slice1->setName(slice1LayerName.c_str());
 
     nvinfer1::ISliceLayer *slice2 = network->addSlice(
-        *input, nvinfer1::Dims{3, {0, 0, 1}}, nvinfer1::Dims{3, {inputDims.d[0], inputDims.d[1] / 2, inputDims.d[2] / 2}},
+        *input, nvinfer1::Dims{3, {0, 1, 0}}, nvinfer1::Dims{3, {inputDims.d[0], inputDims.d[1] / 2, inputDims.d[2] / 2}},
         nvinfer1::Dims{3, {1, 2, 2}});
     assert(slice2 != nullptr);
     std::string slice2LayerName = "slice2_" + std::to_string(layerIdx);
     slice2->setName(slice2LayerName.c_str());
 
     nvinfer1::ISliceLayer *slice3 = network->addSlice(
-        *input, nvinfer1::Dims{3, {0, 1, 0}}, nvinfer1::Dims{3, {inputDims.d[0], inputDims.d[1] / 2, inputDims.d[2] / 2}},
+        *input, nvinfer1::Dims{3, {0, 0, 1}}, nvinfer1::Dims{3, {inputDims.d[0], inputDims.d[1] / 2, inputDims.d[2] / 2}},
         nvinfer1::Dims{3, {1, 2, 2}});
     assert(slice3 != nullptr);
     std::string slice3LayerName = "slice3_" + std::to_string(layerIdx);

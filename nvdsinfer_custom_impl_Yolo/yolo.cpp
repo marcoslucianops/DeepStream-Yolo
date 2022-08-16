@@ -304,7 +304,17 @@ NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::IN
         else if (m_ConfigBlocks.at(i).at("type") == "reorg")
         {
             std::string inputVol = dimsToString(previous->getDimensions());
-            previous = reorgLayer(i, m_ConfigBlocks.at(i), previous, &network);
+            if (m_NetworkType.find("yolov2") != std::string::npos) {
+                nvinfer1::IPluginV2* reorgPlugin = createReorgPlugin(2);
+                assert(reorgPlugin != nullptr);
+                nvinfer1::IPluginV2Layer* reorg = network.addPluginV2(&previous, 1, *reorgPlugin);
+                assert(reorg != nullptr);
+                std::string reorglayerName = "reorg_" + std::to_string(i);
+                reorg->setName(reorglayerName.c_str());
+                previous = reorg->getOutput(0);
+            }
+            else
+                previous = reorgLayer(i, m_ConfigBlocks.at(i), previous, &network);
             assert(previous != nullptr);
             std::string outputVol = dimsToString(previous->getDimensions());
             tensorOutputs.push_back(previous);

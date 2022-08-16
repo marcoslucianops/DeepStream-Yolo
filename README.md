@@ -107,14 +107,14 @@ eval = val2017 (COCO)
 sample = 1920x1080 video
 ```
 
-**NOTE**: Used maintain-aspect-ratio=1 in config_infer file for YOLOv4 (with letter_box=1), YOLOv5 and YOLOR models.
+**NOTE**: Used maintain-aspect-ratio=1 in config_infer file for Darknet (with letter_box=1) and PyTorch models.
 
 #### NMS config
 
 - Eval
 
 ```
-nms-iou-threshold = 0.6 / 0.65 (YOLOv5, YOLOR, YOLOv7 PyTorch) / 0.7 (PP-YOLOE)
+nms-iou-threshold = 0.6 (Darknet) / 0.65 (PyTorch) / 0.7 (Paddle)
 pre-cluster-threshold = 0.001
 topk = 300
 ```
@@ -122,7 +122,7 @@ topk = 300
 - Test
 
 ```
-nms-iou-threshold = 0.45 / 0.7 (PP-YOLOE)
+nms-iou-threshold = 0.45 / 0.7 (Paddle)
 pre-cluster-threshold = 0.25
 topk = 300
 ```
