@@ -37,6 +37,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [Benchmarks](#benchmarks)
 * [dGPU installation](#dgpu-installation)
 * [Basic usage](#basic-usage)
+* [Docker usage](#docker-usage)
 * [NMS configuration](#nms-configuration)
 * [INT8 calibration](#int8-calibration)
 * [YOLOv5 usage](docs/YOLOv5.md)
@@ -501,6 +502,44 @@ deepstream-app -c deepstream_app_config.txt
 config-file=config_infer_primary_yoloV2.txt
 ...
 ```
+
+##
+
+### Docker usage
+
+* x86 platform
+
+  ```
+  nvcr.io/nvidia/deepstream:6.1-devel
+  nvcr.io/nvidia/deepstream:6.1-triton
+  ```
+
+* Jetson platform
+
+  ```
+  nvcr.io/nvidia/deepstream-l4t:6.1-samples
+  nvcr.io/nvidia/deepstream-l4t:6.1-triton
+  ```
+
+  **NOTE**: To compile the `nvdsinfer_custom_impl_Yolo`, you need to install the g++ inside the container
+
+  ```
+  apt-get install build-essential
+  ```
+
+  **NOTE**: With DeepStream 6.1, the container image missed to include certain header files that will be available on host machine with Compute libraries installed from Jetpack. To mount the headers, use:
+
+  ```
+  -v /usr/include/aarch64-linux-gnu/NvInfer.h:/usr/include/aarch64-linux-gnu/NvInfer.h -v /usr/include/aarch64-linux-gnu/NvInferLegacyDims.h:/usr/include/aarch64-linux-gnu/NvInferLegacyDims.h -v /usr/include/aarch64-linux-gnu/NvInferRuntimeCommon.h:/usr/include/aarch64-linux-gnu/NvInferRuntimeCommon.h -v /usr/include/aarch64-linux-gnu/NvInferVersion.h:/usr/include/aarch64-linux-gnu/NvInferVersion.h -v /usr/include/aarch64-linux-gnu/NvInferRuntime.h:/usr/include/aarch64-linux-gnu/NvInferRuntime.h -v /usr/include/aarch64-linux-gnu/NvInferImpl.h:/usr/include/aarch64-linux-gnu/NvInferImpl.h -v /usr/include/aarch64-linux-gnu/NvCaffeParser.h:/usr/include/aarch64-linux-gnu/NvCaffeParser.h -v /usr/include/aarch64-linux-gnu/NvUffParser.h:/usr/include/aarch64-linux-gnu/NvUffParser.h -v /usr/include/aarch64-linux-gnu/NvInferPlugin.h:/usr/include/aarch64-linux-gnu/NvInferPlugin.h -v /usr/include/aarch64-linux-gnu/NvInferPluginUtils.h:/usr/include/aarch64-linux-gnu/NvInferPluginUtils.h -v /usr/local/cuda/:/usr/local/cuda/
+  ```
+
+  <details>
+  <summary>Example</summary>
+
+  ```
+  sudo docker run -it --rm --net=host --runtime nvidia -e DISPLAY=$DISPLAY -w /opt/nvidia/deepstream/deepstream-6.1 -v /tmp/.X11-unix/:/tmp/.X11-unix -v /usr/include/aarch64-linux-gnu/NvInfer.h:/usr/include/aarch64-linux-gnu/NvInfer.h -v /usr/include/aarch64-linux-gnu/NvInferLegacyDims.h:/usr/include/aarch64-linux-gnu/NvInferLegacyDims.h -v /usr/include/aarch64-linux-gnu/NvInferRuntimeCommon.h:/usr/include/aarch64-linux-gnu/NvInferRuntimeCommon.h -v /usr/include/aarch64-linux-gnu/NvInferVersion.h:/usr/include/aarch64-linux-gnu/NvInferVersion.h -v /usr/include/aarch64-linux-gnu/NvInferRuntime.h:/usr/include/aarch64-linux-gnu/NvInferRuntime.h -v /usr/include/aarch64-linux-gnu/NvInferImpl.h:/usr/include/aarch64-linux-gnu/NvInferImpl.h -v /usr/include/aarch64-linux-gnu/NvCaffeParser.h:/usr/include/aarch64-linux-gnu/NvCaffeParser.h -v /usr/include/aarch64-linux-gnu/NvUffParser.h:/usr/include/aarch64-linux-gnu/NvUffParser.h -v /usr/include/aarch64-linux-gnu/NvInferPlugin.h:/usr/include/aarch64-linux-gnu/NvInferPlugin.h -v /usr/include/aarch64-linux-gnu/NvInferPluginUtils.h:/usr/include/aarch64-linux-gnu/NvInferPluginUtils.h -v /usr/local/cuda/:/usr/local/cuda/ nvcr.io/nvidia/deepstream-l4t:6.1-samples
+  ```
+  </details>
 
 ##
 
