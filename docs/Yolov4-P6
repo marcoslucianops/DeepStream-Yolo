@@ -1,0 +1,41 @@
+# YoloV4-P6
+
+## Set up docker / environment
+```
+# Reccomended to use docker image.
+# Else really MIND THE ROOT PATHS USED IN HERE
+nvidia-docker run --name yolov4_csp_nvds --rm -it -v $PWD:/home --shm-size=64g nvcr.io/nvidia/pytorch:20.06-py3
+
+# Install mish-cuda (if using docker, do it outside the volume)
+cd /
+git clone https://github.com/JunnYu/mish-cuda
+cd mish-cuda
+python3 setup.py build install
+
+# Go to volume folder (shared with your pc!) and set up ScaledYOLOv4
+cd /home
+git clone https://github.com/WongKinYiu/ScaledYOLOv4
+cd ScaledYOLOv4
+git checkout yolov4-large
+
+# Copy converter script to ScaledYOLOv4 repo root & download weights
+# Direct link: https://docs.google.com/uc?export=download&id=1aB7May8oPYzBqbgwYSZHuATPXyxh9xnf
+cp /home/utils/gen_wts_yolov4P6.py .
+wget -q --show-progress --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1aB7May8oPYzBqbgwYSZHuATPXyxh9xnf' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1aB7May8oPYzBqbgwYSZHuATPXyxh9xnf" -O yolov4-p6.pt && rm -rf /tmp/cookies.txt
+```
+
+## Convert .pt to .cfg + .wts
+```
+# Convert weights and move to our repo root
+python3 gen_wts_yolov4-P6.py -w yolov4-p6.pt -s 1280 1280
+mv yolov4*.cfg ..
+mv yolov4*.wts ..
+```
+**You should now exit docker image & set up deepstream**
+
+## Adjust deepstream file and run application
+
+```
+sed -i 's/config-file=config_infer.*/config-file=config_infer_primary_yoloV4P6.txt/' deepstream_app_config.txt
+deepstream-app -c deepstream_app_config.txt
+```
