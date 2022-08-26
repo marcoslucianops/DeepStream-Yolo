@@ -241,6 +241,7 @@ class Layers(object):
                       'new_coords=1\n')
 
     def get_state_dict(self, state_dict):
+        global wt_so_far
         for k, v in state_dict.items():
             if 'num_batches_tracked' not in k:
                 vr = v.reshape(-1).numpy()
@@ -248,6 +249,8 @@ class Layers(object):
                 for vv in vr:
                     self.fw.write(' ')
                     self.fw.write(struct.pack('>f', float(vv)).hex())
+                    wt_so_far += 1
+
                 self.fw.write('\n')
                 self.wc += 1
 
@@ -311,6 +314,19 @@ def parse_args():
     return args.weights, args.size
 
 
+def get_n_params(model):
+    """ Count the parameters in the torch model. """
+    pp=0
+    for p in list(model.parameters()):
+        nn=1
+        for s in list(p.size()):
+            nn = nn*s
+        pp += nn
+    return pp
+
+
+
+
 pt_file, inference_size = parse_args()
 
 model_name = os.path.basename(pt_file).split('.pt')[0]
@@ -326,16 +342,28 @@ model.model[-1].register_buffer('anchor_grid', anchor_grid)
 
 model.to(device).eval()
 
+
 with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
     layers = Layers(len(model.model), inference_size, fw, fc)
 
-    total = len([_ for _ in model.model.children()])
+    nlayers = len([_ for _ in model.model.children()])
     names = set([ii._get_name() for ii in model.model.children()])
     print('Layer types in this model:', names)
 
+    # Tools to trace number of parameters
+    total_params = get_n_params(model.model)
+    pt_so_far = 0
+    wt_so_far = 0
+    oc_so_far = 0
+    print(f'\nLayer   {"Type":<20s}{"Pt params":<15s}{"Wts params":<15s}{"Wts overcrowd":<15s}{"Pt params":<15s}{"Wts params":<15s}{"Wts overcrowd":<15s}', end='')
+
     for idx, child in enumerate(model.model.children()):
-        print(f'{idx+1}/{total}', end='\t')
-        print('Processing layer:', child._get_name())
+
+        # More tools to trace number of parameters
+        pt_layer   = get_n_params(child)
+        pt_so_far += pt_layer
+        __wt_so_far = wt_so_far
+        print(f'\n{idx+1}/{nlayers}', end='\t')
 
         if child._get_name() == 'Conv':
             layers.Conv(child)
@@ -354,4 +382,11 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
         else:
             raise SystemExit('Model not supported')
 
+        # Even more parameter tracers
+        wt_layer  = wt_so_far - __wt_so_far
+        oc_layer  = wt_layer - pt_layer
+        oc_so_far = wt_so_far - pt_so_far
+        print(f'{child._get_name():<20s}{pt_layer:<15d}{wt_layer:<15d}{oc_layer:<15d}{pt_so_far:<15d}{wt_so_far:<15d}{oc_so_far:<20d}', end='')
+
+    print()
 os.system('echo "%d" | cat - %s > temp && mv temp %s' % (layers.wc, wts_file, wts_file))
