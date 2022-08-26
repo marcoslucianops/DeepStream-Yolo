@@ -58,23 +58,24 @@ class Layers(object):
         self.current = child.i
         self.fc.write('\n# BottleneckCSP2\n')
 
-        self.convolutional(child.cv1)
-        self.convolutional(child.cv2)
+        print('_cv1', end=''); self.convolutional(child.cv1)
+        print('_cv2', end=''); self.convolutional(child.cv2)
         self.route('-2')
         idx = -2
         for m in child.m:
             if m.add:
-                self.convolutional(m.cv1)
-                self.convolutional(m.cv2)
+                print('  m cv1s', end=''); self.convolutional(m.cv1)
+                print('  m cv2s', end=''); self.convolutional(m.cv2)
                 self.shortcut(-3)
                 idx -= 3
             else:
-                self.convolutional(m.cv1)
-                self.convolutional(m.cv2)
+                print('  m cv1', end=''); self.convolutional(m.cv1)
+                print('  m cv2', end=''); self.convolutional(m.cv2)
                 idx -= 2
-        self.route('-1, %d' % (idx - 1))
+        self.route('-1, %d' % (idx))
+        print(idx)
         self.batchnorm(child.bn, child.act)
-        self.convolutional(child.cv3)
+        print('   cv3', end=''); self.convolutional(child.cv3)
 
     def SPPCSP(self, child):
         self.current = child.i
@@ -174,6 +175,8 @@ class Layers(object):
                       g +
                       w +
                       'activation=%s\n' % act)
+        global wt_so_far
+        print(' ' * 87,  wt_so_far)
 
     def batchnorm(self, bn, act):
         self.blocks[self.current] += 1
@@ -363,7 +366,6 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
         pt_layer   = get_n_params(child)
         pt_so_far += pt_layer
         __wt_so_far = wt_so_far
-        print(f'\n{idx+1}/{nlayers}', end='\t')
 
         if child._get_name() == 'Conv':
             layers.Conv(child)
@@ -386,7 +388,8 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
         wt_layer  = wt_so_far - __wt_so_far
         oc_layer  = wt_layer - pt_layer
         oc_so_far = wt_so_far - pt_so_far
-        print(f'{child._get_name():<20s}{pt_layer:<15d}{wt_layer:<15d}{oc_layer:<15d}{pt_so_far:<15d}{wt_so_far:<15d}{oc_so_far:<20d}', end='')
+        print(f'{idx+1}/{nlayers}', end='\t')
+        print(f'{child._get_name():<20s}{pt_layer:<15d}{wt_layer:<15d}{oc_layer:<15d}{pt_so_far:<15d}{wt_so_far:<15d}{oc_so_far:<20d}')
 
     print()
 os.system('echo "%d" | cat - %s > temp && mv temp %s' % (layers.wc, wts_file, wts_file))
