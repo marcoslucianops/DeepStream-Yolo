@@ -28,12 +28,21 @@ class Layers(object):
         self.current = child.i
         self.fc.write('\n# Conv\n')
 
+        # Not all Conv layers link to -1 in yolov4p6 
+        iterable = lambda obj: hasattr(obj, '__iter__')
+        if child.f == -1:
+            pass
+        elif iterable(child.f):
+            r = self.route([self.get_route(ii) for ii in child.f])
+            print('Route:', child._get_name(), r)
+        else:
+            r = self.route(self.get_route(child.f))
+
         self.convolutional(child)
 
     def BottleneckCSP(self, child):
         self.current = child.i
         self.fc.write('\n# BottleneckCSP\n')
-
         self.convolutional(child.cv2)
         self.route('-2')
         self.convolutional(child.cv1)
@@ -58,24 +67,25 @@ class Layers(object):
         self.current = child.i
         self.fc.write('\n# BottleneckCSP2\n')
 
-        print('_cv1', end=''); self.convolutional(child.cv1)
-        print('_cv2', end=''); self.convolutional(child.cv2)
+        self.convolutional(child.cv1)
+        self.convolutional(child.cv2)
         self.route('-2')
         idx = -2
         for m in child.m:
             if m.add:
-                print('  m cv1s', end=''); self.convolutional(m.cv1)
-                print('  m cv2s', end=''); self.convolutional(m.cv2)
+                self.convolutional(m.cv1)
+                self.convolutional(m.cv2)
                 self.shortcut(-3)
                 idx -= 3
             else:
-                print('  m cv1', end=''); self.convolutional(m.cv1)
-                print('  m cv2', end=''); self.convolutional(m.cv2)
+                self.convolutional(m.cv1)
+                self.convolutional(m.cv2)
                 idx -= 2
         self.route('-1, %d' % (idx))
-        print(idx)
         self.batchnorm(child.bn, child.act)
-        print('   cv3', end=''); self.convolutional(child.cv3)
+        self.convolutional(child.cv3)
+
+
 
     def SPPCSP(self, child):
         self.current = child.i
@@ -95,6 +105,7 @@ class Layers(object):
         self.convolutional(child.cv5)
         self.convolutional(child.cv6)
         self.route('-1, -13')
+        self.batchnorm(child.bn, child.act)
         self.convolutional(child.cv7)
 
 
@@ -175,8 +186,9 @@ class Layers(object):
                       g +
                       w +
                       'activation=%s\n' % act)
-        global wt_so_far
-        print(' ' * 87,  wt_so_far)
+
+        _layer_info(f'conv_{act} bn={bn}')
+        print([list(ii.shape) for ii in cv.state_dict().values()])
 
     def batchnorm(self, bn, act):
         self.blocks[self.current] += 1
@@ -195,6 +207,8 @@ class Layers(object):
 
         self.fc.write('\n[route]\n' +
                       'layers=%s\n' % layers)
+
+        layer_info(f'route: {layers}')
 
     def shortcut(self, r, ew='add', act='linear'):
         self.blocks[self.current] += 1
@@ -219,6 +233,8 @@ class Layers(object):
                       'stride=%d\n' % stride +
                       'size=%d\n' % size)
 
+        layer_info(m)
+
     def upsample(self, child):
         self.blocks[self.current] += 1
 
@@ -226,6 +242,8 @@ class Layers(object):
 
         self.fc.write('\n[upsample]\n' +
                       'stride=%d\n' % stride)
+
+        layer_info('upsample')
 
     def avgpool(self):
         self.blocks[self.current] += 1
@@ -246,13 +264,18 @@ class Layers(object):
     def get_state_dict(self, state_dict):
         global wt_so_far
         for k, v in state_dict.items():
+            # print('\t\t', k, v.shape)
             if 'num_batches_tracked' not in k:
                 vr = v.reshape(-1).numpy()
+                n_added = 0
                 self.fw.write('{} {} '.format(k, len(vr)))
                 for vv in vr:
                     self.fw.write(' ')
                     self.fw.write(struct.pack('>f', float(vv)).hex())
                     wt_so_far += 1
+                    n_added += 1
+
+                assert n_added == v.numel(), "Different number of wts were added"
 
                 self.fw.write('\n')
                 self.wc += 1
@@ -317,6 +340,8 @@ def parse_args():
     return args.weights, args.size
 
 
+
+
 def get_n_params(model):
     """ Count the parameters in the torch model. """
     pp=0
@@ -354,18 +379,25 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
     print('Layer types in this model:', names)
 
     # Tools to trace number of parameters
-    total_params = get_n_params(model.model)
+    total_params = get_n_params(model.model) #
     pt_so_far = 0
     wt_so_far = 0
     oc_so_far = 0
-    print(f'\nLayer   {"Type":<20s}{"Pt params":<15s}{"Wts params":<15s}{"Wts overcrowd":<15s}{"Pt params":<15s}{"Wts params":<15s}{"Wts overcrowd":<15s}', end='')
 
     for idx, child in enumerate(model.model.children()):
+
+        # Update lambdas to report progress + quick test
+        current_layer: str = lambda : '(' + str(sum(layers.blocks) - 1) + ')'
+        layer_info = lambda layertype: print(f'{current_layer():<7s}{idx:<3d}{child._get_name():<20s}{layertype:<23s}{wt_so_far:<15d}{layers.wc}')
+        _layer_info = lambda layertype: print(f'{current_layer():<7s}{idx:<3d}{child._get_name():<20s}{layertype:<23s}{wt_so_far:<15d}{layers.wc}', end='')
+        # current_layer()
+        # layer_info()
 
         # More tools to trace number of parameters
         pt_layer   = get_n_params(child)
         pt_so_far += pt_layer
         __wt_so_far = wt_so_far
+
 
         if child._get_name() == 'Conv':
             layers.Conv(child)
@@ -388,8 +420,6 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
         wt_layer  = wt_so_far - __wt_so_far
         oc_layer  = wt_layer - pt_layer
         oc_so_far = wt_so_far - pt_so_far
-        print(f'{idx+1}/{nlayers}', end='\t')
-        print(f'{child._get_name():<20s}{pt_layer:<15d}{wt_layer:<15d}{oc_layer:<15d}{pt_so_far:<15d}{wt_so_far:<15d}{oc_so_far:<20d}')
 
-    print()
+
 os.system('echo "%d" | cat - %s > temp && mv temp %s' % (layers.wc, wts_file, wts_file))
