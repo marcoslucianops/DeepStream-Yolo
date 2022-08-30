@@ -28,15 +28,13 @@ class Layers(object):
         self.current = child.i
         self.fc.write('\n# Conv\n')
 
-        # Not all Conv layers link to -1 in yolov4p6 
-        iterable = lambda obj: hasattr(obj, '__iter__')
+        # Not all Conv layers link to -1 in yolov4p6
         if child.f == -1:
             pass
-        elif iterable(child.f):
-            r = self.route([self.get_route(ii) for ii in child.f])
-            print('Route:', child._get_name(), r)
+        elif hasattr(child.f, '__iter__'):
+            self.route([self.get_route(ii) for ii in child.f])
         else:
-            r = self.route(self.get_route(child.f))
+            self.route(self.get_route(child.f))
 
         self.convolutional(child)
 
@@ -64,6 +62,7 @@ class Layers(object):
 
 
     def BottleneckCSP2(self, child):
+        # See https://github.com/WongKinYiu/ScaledYOLOv4/blob/yolov4-large/models/common.py
         self.current = child.i
         self.fc.write('\n# BottleneckCSP2\n')
 
@@ -88,6 +87,7 @@ class Layers(object):
 
 
     def SPPCSP(self, child):
+        # See https://github.com/WongKinYiu/ScaledYOLOv4/blob/yolov4-large/models/common.py
         self.current = child.i
         self.fc.write('\n# SPPCSP\n')
 
@@ -187,8 +187,8 @@ class Layers(object):
                       w +
                       'activation=%s\n' % act)
 
-        _layer_info(f'conv_{act} bn={bn}')
-        print([list(ii.shape) for ii in cv.state_dict().values()])
+        wts_shape = [list(ii.shape) for ii in cv.state_dict().values()]
+        layer_info(f'conv_{act} bn={bn}', wts_shape)
 
     def batchnorm(self, bn, act):
         self.blocks[self.current] += 1
@@ -208,7 +208,7 @@ class Layers(object):
         self.fc.write('\n[route]\n' +
                       'layers=%s\n' % layers)
 
-        layer_info(f'route: {layers}')
+        layer_info(f'route: {layers}', '')
 
     def shortcut(self, r, ew='add', act='linear'):
         self.blocks[self.current] += 1
@@ -233,7 +233,7 @@ class Layers(object):
                       'stride=%d\n' % stride +
                       'size=%d\n' % size)
 
-        layer_info(m)
+        layer_info(m, '')
 
     def upsample(self, child):
         self.blocks[self.current] += 1
@@ -243,7 +243,7 @@ class Layers(object):
         self.fc.write('\n[upsample]\n' +
                       'stride=%d\n' % stride)
 
-        layer_info('upsample')
+        layer_info('upsample', '')
 
     def avgpool(self):
         self.blocks[self.current] += 1
@@ -267,15 +267,11 @@ class Layers(object):
             # print('\t\t', k, v.shape)
             if 'num_batches_tracked' not in k:
                 vr = v.reshape(-1).numpy()
-                n_added = 0
                 self.fw.write('{} {} '.format(k, len(vr)))
                 for vv in vr:
                     self.fw.write(' ')
                     self.fw.write(struct.pack('>f', float(vv)).hex())
                     wt_so_far += 1
-                    n_added += 1
-
-                assert n_added == v.numel(), "Different number of wts were added"
 
                 self.fw.write('\n')
                 self.wc += 1
@@ -341,20 +337,6 @@ def parse_args():
 
 
 
-
-def get_n_params(model):
-    """ Count the parameters in the torch model. """
-    pp=0
-    for p in list(model.parameters()):
-        nn=1
-        for s in list(p.size()):
-            nn = nn*s
-        pp += nn
-    return pp
-
-
-
-
 pt_file, inference_size = parse_args()
 
 model_name = os.path.basename(pt_file).split('.pt')[0]
@@ -374,30 +356,29 @@ model.to(device).eval()
 with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
     layers = Layers(len(model.model), inference_size, fw, fc)
 
+    # Scan the layer types that require implementation
     nlayers = len([_ for _ in model.model.children()])
     names = set([ii._get_name() for ii in model.model.children()])
-    print('Layer types in this model:', names)
+    print('Layer types in this model:', names, '\n')
 
-    # Tools to trace number of parameters
-    total_params = get_n_params(model.model) #
-    pt_so_far = 0
+    # Counter to trace number of parameters
     wt_so_far = 0
-    oc_so_far = 0
+
+    # Print out a header for layer description
+    print('{0:<10s}{1:<20s}{2:<23s}{3:<15s}{4:<5s}'.format(
+        'Layer', 'Layer group', 'Details', '# Wts so far', 'Weight line in .wts and shape'
+        ))
 
     for idx, child in enumerate(model.model.children()):
 
-        # Update lambdas to report progress + quick test
-        current_layer: str = lambda : '(' + str(sum(layers.blocks) - 1) + ')'
-        layer_info = lambda layertype: print(f'{current_layer():<7s}{idx:<3d}{child._get_name():<20s}{layertype:<23s}{wt_so_far:<15d}{layers.wc}')
-        _layer_info = lambda layertype: print(f'{current_layer():<7s}{idx:<3d}{child._get_name():<20s}{layertype:<23s}{wt_so_far:<15d}{layers.wc}', end='')
-        # current_layer()
-        # layer_info()
+        # Returns the layer number at cfg-block level: conv_linear, route...
+        current_layer = lambda : '(' + str(sum(layers.blocks) - 1) + ')'
 
-        # More tools to trace number of parameters
-        pt_layer   = get_n_params(child)
-        pt_so_far += pt_layer
-        __wt_so_far = wt_so_far
-
+        # Prints out a layer summary. Add at the end of each Layers.<layer>()
+        layer_info = lambda desc, wts_shape: \
+            print('{0:<7s}{1:<3d}{2:<20s}{3:<23s}{4:<15d}{5:<5d}{6}'.format(
+            current_layer(), idx, child._get_name(), desc, wt_so_far, layers.wc, wts_shape
+        ))
 
         if child._get_name() == 'Conv':
             layers.Conv(child)
@@ -415,11 +396,5 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
             layers.Detect(child)
         else:
             raise SystemExit('Model not supported')
-
-        # Even more parameter tracers
-        wt_layer  = wt_so_far - __wt_so_far
-        oc_layer  = wt_layer - pt_layer
-        oc_so_far = wt_so_far - pt_so_far
-
 
 os.system('echo "%d" | cat - %s > temp && mv temp %s' % (layers.wc, wts_file, wts_file))
