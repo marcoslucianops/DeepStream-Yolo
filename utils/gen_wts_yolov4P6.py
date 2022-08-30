@@ -315,15 +315,15 @@ class Layers(object):
         return r - 1
 
     def get_activation(self, act):
-        """ SHOULD BE MISH BUT LETS GO LINEAR FOR INFERENCE FOR NOW"""
         if act == 'Hardswish':
             return 'hardswish'
         elif act == 'LeakyReLU':
             return 'leaky'
         elif act == 'SiLU':
             return 'silu'
+        elif act == 'MishCuda':
+            return 'mish'
         return 'linear'
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch YOLOv4-P6 conversion')
