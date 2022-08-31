@@ -20,6 +20,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * Support for INT8 calibration
 * Support for non square models
 * New documentation for multiple models
+* YOLOv4-large support
 * YOLOv5 support
 * YOLOR support
 * **GPU YOLO Decoder** [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
@@ -40,6 +41,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [Docker usage](#docker-usage)
 * [NMS configuration](#nms-configuration)
 * [INT8 calibration](#int8-calibration)
+* [YOLOv4-large usage](docs/YOLOv4-large.md)
 * [YOLOv5 usage](docs/YOLOv5.md)
 * [YOLOR usage](docs/YOLOR.md)
 * [PP-YOLOE usage](docs/PPYOLOE.md)
@@ -88,6 +90,7 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 ### Suported models
 
 * [Darknet YOLO](https://github.com/AlexeyAB/darknet)
+* [Pytorch YOLOv4-large](https://github.com/WongKinYiu/ScaledYOLOv4)
 * [YOLOv5 >= 2.0](https://github.com/ultralytics/yolov5)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/configs/ppyoloe)
