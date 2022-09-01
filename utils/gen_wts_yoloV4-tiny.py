@@ -157,7 +157,7 @@ if __name__ == '__main__':
         # load_darknet_weights(model, weights)
 
     f = open('yolov4-tiny.wts', 'w')
-    f.write('{}\n'.format(len(model.state_dict().keys())))
+    f.write('{}\n'.format(len([k for k in model.state_dict().keys() if 'batch' not in k])))
     wt_so_far =0
     k_old = '0.0'
 
@@ -170,7 +170,6 @@ if __name__ == '__main__':
         # Print summary of PREVIOUS layer
         if diff(k, k_old) >= 1:
             print(index(k_old), wt_so_far)
-
         # Fill in intermediate layer indices
         if diff(k, k_old) >= 2:
             for i in range(iindex(k_old)+1, iindex(k)):
@@ -186,12 +185,11 @@ if __name__ == '__main__':
                 wt_so_far +=1
             f.write('\n')
 
-        # print(index(k), k, wt_so_far)
         k_old = k
 
     # Last layer manually printed out
     print(index(k_old), wt_so_far)
-    print(iindex(k_old) +1 , '-')
+    print(iindex(k_old) + 1 , '-')
 
 
 
