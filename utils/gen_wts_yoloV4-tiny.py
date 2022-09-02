@@ -7,106 +7,40 @@ from utils.utils import *
 import argparse
 
 
-class CfgFixer:
+def convert_cfg(fin, fo, classes, width, height):
 
-    def __init__(self, inputcfg, classes, width, height=None):
+    # Load the input file to a list
+    with open(fin, 'r') as fin_obj:
+        fin_lines = fin_obj.readlines()
 
-        # Define dump for the input file + class retrieval point
-        # file_out = inputcfg.split('.')[0] + '_adjusted.cfg'
-        file_out = inputcfg.split('/')[1]
-        self.file_out = file_out
+    # Compute the number of filters and where to place them
+    filters = int((int(classes) + 5) * 3)
+    yolo_lines = [i for i,line in enumerate(fin_lines) if '[yolo]' in line]
+    filter_lines = [i for i,line in enumerate(fin_lines) if 'filters' in line]
+    lines_filter_before_yolo = []
+    for i in yolo_lines:
+        it = filter(lambda number: number < i, filter_lines)
+        filtered_numbers = list(it)
+        lines_filter_before_yolo.append(filtered_numbers[-1])
 
-        # Receive input width and stuff
-        width = int(width)
-        height = int(height) if height else width
-        assert height % 32 == 0
-        assert width % 32 == 0
+    # Write to output file with AlexeyAB described changes
+    with open(fo, 'w') as fo_obj:
+        for idx,line in enumerate(fin_lines):
 
-        # Load the input file to a list
-        file_content = []
-        with open(inputcfg, 'r') as file_object:
-            for line in file_object:
-                file_content.append(line)
+            if 'width=' in line:
+                fo_obj.write(f'width={width}'+'\n')
 
-        # Compute the number of filters and where to place them
-        filters = int((int(classes)+5)*3)
-        lines_filter_before_yolo = self.exact_filter_line(file_content)
+            elif 'height=' in line:
+                fo_obj.write(f'height={height}'+'\n')
 
-        # Actually modify the file with AlexeyAB described changes
-        with open(file_out, 'w') as file_object:
-            for idx,line in enumerate(file_content):
+            elif 'classes=' in line:
+                fo_obj.write(f'classes={classes}'+'\n')
 
-                if any(['batch=' in line and 'batch_' not in line and '_batch' not in line,
-                       'subdivisions=' in line,
-                       'max_batche=s' in line,
-                       'steps=' in line and 'policy' not in line
-                        ]):
-                    # We don't do that here
-                    pass
-
-                elif 'width=' in line:
-                    file_object.write(f'width={width}'+'\n')
-
-                elif 'height=' in line:
-                    file_object.write(f'height={height}'+'\n')
-
-                elif 'classes=' in line:
-                    file_object.write(f'classes={classes}'+'\n')
-
-                elif idx in lines_filter_before_yolo:
-                    file_object.write(f'filters={filters}'+'\n')
-
-                else:
-                    file_object.write(line)
-
-
-
-    @staticmethod
-    def exact_filter_line(file_content):
-        """ Get the exact line of the last filter line before each yolo layer """
-
-        # Scan the file for the [yolo] and filter= lines
-        yolo_lines = [i for i,line in enumerate(file_content) if '[yolo]' in line]
-        filter_lines = [i for i,line in enumerate(file_content) if 'filters' in line]
-
-        # Get only the filter lines prior to yolo layers
-        exact_filter_list = []
-        for i in yolo_lines:
-            it = filter(lambda number: number < i, filter_lines)
-            filtered_numbers = list(it)
-            exact_filter_list.append(filtered_numbers[-1])
-
-        return exact_filter_list
-
-
-def route_fix(file_out):
-    route_fix_context = False
-
-    # Load file content into memory
-    with open(file_out, 'r') as file_object:
-        file_content = []
-        for line in file_object:
-            file_content.append(line)
-
-    # Truncate and rewrite file, translating [route_lhalf] -> [route]
-    with open(file_out, 'w') as file_object:
-        for idx,line in enumerate(file_content):
-            if '[route_lhalf]' in line:
-                route_fix_context = True
-                file_object.write('[route]' + '\n')
-
-            elif route_fix_context:
-                if '[' in line:
-                    route_fix_context = False
-                    file_object.write(line)
-
-                elif 'layers' in line:
-                    file_object.write(line)
-                    file_object.write('groups=2'+'\n')
-                    file_object.write('group_id=1'+'\n'*2)
+            elif idx in lines_filter_before_yolo:
+                fo_obj.write(f'filters={filters}'+'\n')
 
             else:
-                file_object.write(line)
+                fo_obj.write(line)
 
 
 def classes_from_wts(weights):
@@ -115,81 +49,107 @@ def classes_from_wts(weights):
     classes = filters[0] / 3 - 5
     return int(classes)
 
+
 def cfg_from_wts(weights):
     return 'cfg/' + weights.split('_')[0] + '.cfg'
+
 
 def imsize_from_wts(weights):
     tmp_model = torch.load(weights, map_location='cpu')
     row = tmp_model['training_results'].split('\n')[0]
-    imsize = row.split()[7]
-    return imsize
+    print(row)
+    imsize = int(row.split()[7])
+    return (imsize, imsize)
+
+
+def imsize_unpack(imsize):
+    if len(imsize) == 1:
+        width = height = imsize[0]
+    elif len(imsize) == 2:
+        width, height = imsize
+    else:
+        raise Exception('Too many size arguments: `-s width [height]`')
+    assert height % 32 == 0
+    assert width % 32 == 0
+    return width, height
+
+
+def layer_report(k_now, k_old, wt_so_far, v):
+    """ This overengineered contraption prints out layer details through
+    processing. Call before the weights are actually added to the .wts. For
+    completion, call after loop has finished passing k_old='final'
+    """
+    if k_old == 'final':
+        __, id, nname, __ = k_now.split('.')
+        id = '(' + str(id) + ')'
+        print('{0:<5s} {1:<15s}{2:<10d}{3:<25s}'.format(
+            id, nname, wt_so_far, str(list(v.shape))))
+        return
+
+    __, nid, nname, __ = k_now.split('.')
+    __, oid, __, __ = k_old.split('.')
+    nid, oid = int(nid), int(oid)
+
+    if nid - oid >= 1:
+        id = '(' + str(oid) + ')'
+        print('{0:<5s} {1:<15s}{2:<10d}{3:<25s}'.format(
+            id, nname, wt_so_far, str(list(v.shape))))
+
+    if nid - oid >= 2:
+        for i in range(oid + 1, nid):
+            id = '(' + str(i) + ')'
+            print(id, '-')
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='''Create YOLOv4-tiny wts+cfg''')
-    parser.add_argument('--weights',  '-w',  type=str, required=True, help='network size')
-    parser.add_argument('--nclasses', '-n',  type=int, help='Detect how many classes')
-    parser.add_argument('--imsize',   '-s',  type=int, help='network size')
-    parser.add_argument('--inputcfg', '-c',  type=str, help='Path to default .cfg')
+    output_cfg = 'nvds-yolov4-tiny.cfg'
+    output_wts = 'nvds-yolov4-tiny.wts'
+
+    parser = argparse.ArgumentParser(description='''Create YOLOv4-tiny wts+cfg from pt+cfg''')
+    parser.add_argument('--weights',   '-w',  type=str, required=True, help='Input .pt weights')
+    parser.add_argument('--imsize',    '-s',  type=int, nargs='+', help='Network size: width [height]')
+    parser.add_argument('--nclasses',  '-n',  type=int, help='Detect how many classes')
+    parser.add_argument('--inputcfg',  '-c',  type=str, help='Path to input .cfg, defaults to /cfg dir')
 
     # Args to dict and purge Nones to use .get(val, default) later
     args = vars(parser.parse_args())
     args = {k: v for k, v in args.items() if v is not None}
+    weights   = args.get('weights')
+    imsize    = args.get('imsize',  imsize_from_wts(weights))
+    input_cfg = args.get('inputcfg', cfg_from_wts(weights))
+    classes   = args.get('nclasses', classes_from_wts(weights))
 
-    weights  = args.get('weights')
-    imsize   = args.get('imsize',   imsize_from_wts(weights))
-    inputcfg = args.get('inputcfg', cfg_from_wts(weights))
-    classes  = args.get('nclasses', classes_from_wts(weights))
+    # Fix cfg with AlexeyAB configuration
+    width, height = imsize_unpack(imsize)
+    convert_cfg(input_cfg, output_cfg, classes, width, height)
+    model = Darknet(output_cfg, (width, height))
 
-    print(weights, imsize, inputcfg, classes)
-
-
-    # Fix cdf with AlexeyAB configuration
-    newcfg = CfgFixer(inputcfg, classes, imsize).file_out
-    model = Darknet(newcfg, (imsize, imsize))
-    route_fix(newcfg)
-
-    dev = 'cpu'
-    if weights.endswith('.pt'):  # pytorch format
-        model.load_state_dict(torch.load(weights, map_location=dev)['model'])
+    # Weight convert
+    if weights.endswith('.pt'):
+        model.load_state_dict(torch.load(weights, map_location='cpu')['model'])
     else:
-        raise Exception('Unknown weight type / file not found')
-        # load_darknet_weights(model, weights)
+        load_darknet_weights(model, weights)
 
-    f = open('yolov4-tiny.wts', 'w')
-    f.write('{}\n'.format(len([k for k in model.state_dict().keys() if 'batch' not in k])))
-    wt_so_far =0
-    k_old = '0.0'
+    with open(output_wts, 'w') as f:
+        f.write('{}\n'.format(len([k for k in model.state_dict().keys() if 'batch' not in k])))
+        wt_so_far =0
+        k_old = '0.0.0.0'
+        for k, v in model.state_dict().items():
+            layer_report(k, k_old, wt_so_far, v)
+            if 'num_batches_tracked' not in k:
+                vr = v.reshape(-1).numpy()
+                f.write('{} {}'.format(k, len(vr)))
+                for vv in vr:
+                    f.write(' ')
+                    f.write(struct.pack('>f',float(vv)).hex())
+                    wt_so_far +=1
+                f.write('\n')
+            k_old = k
+        layer_report(k, 'final', wt_so_far, v)
 
-    index = lambda k, i=1: k.split('.')[i]
-    iindex = lambda k, i=1: int(k.split('.')[i])
-    diff = lambda x, y: int(index(x)) - int(index(y))
-
-    for k, v in model.state_dict().items():
-
-        # Print summary of PREVIOUS layer
-        if diff(k, k_old) >= 1:
-            print(index(k_old), wt_so_far)
-        # Fill in intermediate layer indices
-        if diff(k, k_old) >= 2:
-            for i in range(iindex(k_old)+1, iindex(k)):
-                print(i, '-')
-
-        if 'num_batches_tracked' not in k:
-            # print('\t', v.shape)
-            vr = v.reshape(-1).numpy()
-            f.write('{} {}'.format(k, len(vr)))
-            for vv in vr:
-                f.write(' ')
-                f.write(struct.pack('>f',float(vv)).hex())
-                wt_so_far +=1
-            f.write('\n')
-
-        k_old = k
-
-    # Last layer manually printed out
-    print(index(k_old), wt_so_far)
-    print(iindex(k_old) + 1 , '-')
-
-
+    print('\nFinished for config:')
+    print('> weights:', weights)
+    print('> imsize:', imsize)
+    print('> classes:', classes)
+    print('> input_cfg:', input_cfg)
 
