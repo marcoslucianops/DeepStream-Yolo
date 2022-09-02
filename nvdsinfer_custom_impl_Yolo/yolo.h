@@ -32,6 +32,7 @@
 #include "layers/channels_layer.h"
 #include "layers/shortcut_layer.h"
 #include "layers/route_layer.h"
+#include "layers/route_lhalf_layer.h"
 #include "layers/upsample_layer.h"
 #include "layers/pooling_layer.h"
 #include "layers/reorg_layer.h"

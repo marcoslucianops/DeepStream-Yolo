@@ -179,7 +179,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::IN
 
         if (m_ConfigBlocks.at(i).at("type") == "net")
             printLayerInfo("", "Layer", "Input Shape", "Output Shape", "WeightPtr");
-        
+
         else if (m_ConfigBlocks.at(i).at("type") == "convolutional")
         {
             int channels = getNumChannels(previous);
@@ -276,6 +276,17 @@ NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::IN
             std::string outputVol = dimsToString(previous->getDimensions());
             tensorOutputs.push_back(previous);
             std::string layerName = "route: " + layers;
+            printLayerInfo(layerIndex, layerName, "-", outputVol, "-");
+        }
+
+        else if (m_ConfigBlocks.at(i).at("type") == "route_lhalf")
+        {
+            std::string layers;
+            previous = route_lhalfLayer(i, layers, m_ConfigBlocks.at(i), tensorOutputs, &network);
+            assert(previous != nullptr);
+            std::string outputVol = dimsToString(previous->getDimensions());
+            tensorOutputs.push_back(previous);
+            std::string layerName = "route_lhalf: " + layers;
             printLayerInfo(layerIndex, layerName, "-", outputVol, "-");
         }
 
@@ -439,7 +450,7 @@ NvDsInferStatus Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::IN
 
     if (m_YoloCount == yoloCountInputs)
     {
-        assert((modelType != -1) && "\nCould not determine model type"); 
+        assert((modelType != -1) && "\nCould not determine model type");
 
         uint64_t outputSize = 0;
         for (uint j = 0; j < yoloCountInputs; ++j)
@@ -623,7 +634,7 @@ void Yolo::parseConfigBlocks()
 
             outputTensor.numBBoxes
                 = outputTensor.mask.size() > 0 ? outputTensor.mask.size() : std::stoul(trim(block.at("num")));
-            
+
             m_YoloTensors.push_back(outputTensor);
         }
         else if ((block.at("type") == "cls") || (block.at("type") == "reg"))
