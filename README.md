@@ -1,6 +1,6 @@
 # DeepStream-Yolo
 
-NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
+NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
 ### Future updates
 
@@ -51,6 +51,16 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
 ### Requirements
 
+#### DeepStream 6.1.1 on x86 platform
+
+* [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+* [CUDA 11.7 Update 1](https://developer.nvidia.com/cuda-11-7-1-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=runfile_local)
+* [TensorRT 8.4 GA (8.4.1.5)](https://developer.nvidia.com/nvidia-tensorrt-8x-download)
+* [NVIDIA Driver 515.65.01](https://www.nvidia.com.br/Download/index.aspx)
+* [NVIDIA DeepStream SDK 6.1.1](https://developer.nvidia.com/deepstream-getting-started)
+* [GStreamer 1.16.2](https://gstreamer.freedesktop.org/)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
 #### DeepStream 6.1 on x86 platform
 
 * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
@@ -71,15 +81,21 @@ NVIDIA DeepStream SDK 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [GStreamer 1.14.5](https://gstreamer.freedesktop.org/)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
+#### DeepStream 6.1.1 on Jetson platform
+
+* [JetPack 5.0.2](https://developer.nvidia.com/embedded/jetpack)
+* [NVIDIA DeepStream SDK 6.1.1](https://developer.nvidia.com/deepstream-sdk)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
 #### DeepStream 6.1 on Jetson platform
 
-* [JetPack 5.0.1 DP](https://developer.nvidia.com/embedded/jetpack)
-* [NVIDIA DeepStream SDK 6.1](https://developer.nvidia.com/deepstream-sdk)
+* [JetPack 5.0.1 DP](https://developer.nvidia.com/embedded/jetpack-sdk-501dp)
+* [NVIDIA DeepStream SDK 6.1](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
 #### DeepStream 6.0.1 / 6.0 on Jetson platform
 
-* [JetPack 4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461)
+* [JetPack 4.6.2](https://developer.nvidia.com/embedded/jetpack-sdk-462)
 * [NVIDIA DeepStream SDK 6.0.1 / 6.0](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
@@ -166,6 +182,125 @@ topk = 300
 ### dGPU installation
 
 To install the DeepStream on dGPU (x86 platform), without docker, we need to do some steps to prepare the computer.
+
+<details><summary>DeepStream 6.1.1</summary>
+
+#### 1. Disable Secure Boot in BIOS
+
+#### 2. Install dependencies
+
+```
+sudo apt-get update
+sudo apt-get install gcc make git libtool autoconf autogen pkg-config cmake
+sudo apt-get install python3 python3-dev python3-pip
+sudo apt-get install dkms
+sudo apt-get install libssl1.1 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstreamer-plugins-base1.0-dev libgstrtspserver-1.0-0 libjansson4 libyaml-cpp-dev
+sudo apt-get install linux-headers-$(uname -r)
+```
+
+**NOTE**: Purge all NVIDIA driver, CUDA, etc (replace $CUDA_PATH to your CUDA path)
+
+```
+sudo nvidia-uninstall
+sudo $CUDA_PATH/bin/cuda-uninstaller
+sudo apt-get remove --purge '*nvidia*'
+sudo apt-get remove --purge '*cuda*'
+sudo apt-get remove --purge '*cudnn*'
+sudo apt-get remove --purge '*tensorrt*'
+sudo apt autoremove --purge && sudo apt autoclean && sudo apt clean
+```
+
+#### 3. Install CUDA Keyring
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+sudo apt-get update
+```
+
+#### 4. Download and install NVIDIA Driver
+
+* TITAN, GeForce RTX / GTX series and RTX / Quadro series
+
+  ```
+  wget https://us.download.nvidia.com/XFree86/Linux-x86_64/515.65.01/NVIDIA-Linux-x86_64-515.65.01.run
+  ```
+
+* Data center / Tesla series
+
+  ```
+  wget https://us.download.nvidia.com/tesla/515.65.01/NVIDIA-Linux-x86_64-515.65.01.run
+  ```
+
+* Run
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-515.65.01.run --silent --disable-nouveau --dkms --install-libglvnd
+  ```
+
+  **NOTE**: This step will disable the nouveau drivers.
+
+* Reboot
+
+  ```
+  sudo reboot
+  ```
+
+* Install
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-515.65.01.run --silent --disable-nouveau --dkms --install-libglvnd
+  ```
+
+**NOTE**: If you are using a laptop with NVIDIA Optimius, run
+
+```
+sudo apt-get install nvidia-prime
+sudo prime-select nvidia
+```
+
+#### 5. Download and install CUDA
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run
+sudo sh cuda_11.7.1_515.65.01_linux.run --silent --toolkit
+```
+
+* Export environment variables
+
+  ```
+  echo $'export PATH=/usr/local/cuda-11.7/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
+  ```
+
+#### 6. Download from [NVIDIA website](https://developer.nvidia.com/nvidia-tensorrt-8x-download) and install the TensorRT
+
+TensorRT 8.4 GA for Ubuntu 20.04 and CUDA 11.0, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6 and 11.7 DEB local repo Package
+
+```
+sudo dpkg -i nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604_1-1_amd64.deb 
+sudo apt-key add /var/nv-tensorrt-repo-ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604/9a60d8bf.pub
+sudo apt-get update
+sudo apt-get install libnvinfer8=8.4.1-1+cuda11.6 libnvinfer-plugin8=8.4.1-1+cuda11.6 libnvparsers8=8.4.1-1+cuda11.6 libnvonnxparsers8=8.4.1-1+cuda11.6 libnvinfer-bin=8.4.1-1+cuda11.6 libnvinfer-dev=8.4.1-1+cuda11.6 libnvinfer-plugin-dev=8.4.1-1+cuda11.6 libnvparsers-dev=8.4.1-1+cuda11.6 libnvonnxparsers-dev=8.4.1-1+cuda11.6 libnvinfer-samples=8.4.1-1+cuda11.6 libcudnn8=8.4.1.50-1+cuda11.6 libcudnn8-dev=8.4.1.50-1+cuda11.6 python3-libnvinfer=8.4.1-1+cuda11.6 python3-libnvinfer-dev=8.4.1-1+cuda11.6
+sudo apt-mark hold libnvinfer* libnvparsers* libnvonnxparsers* libcudnn8* tensorrt
+```
+
+#### 7. Download from [NVIDIA website](https://developer.nvidia.com/deepstream-getting-started) and install the DeepStream SDK
+
+DeepStream 6.1.1 for Servers and Workstations (.deb)
+
+```
+sudo apt-get install ./deepstream-6.1_6.1.1-1_amd64.deb
+rm ${HOME}/.cache/gstreamer-1.0/registry.x86_64.bin
+sudo ln -snf /usr/local/cuda-11.7 /usr/local/cuda
+```
+
+#### 8. Reboot the computer
+
+```
+sudo reboot
+```
+
+</details>
 
 <details><summary>DeepStream 6.1</summary>
 
@@ -268,7 +403,7 @@ sudo apt-get install libnvinfer8=8.2.5-1+cuda11.4 libnvinfer-plugin8=8.2.5-1+cud
 sudo apt-mark hold libnvinfer* libnvparsers* libnvonnxparsers* libcudnn8* tensorrt
 ```
 
-#### 7. Download from [NVIDIA website](https://developer.nvidia.com/deepstream-getting-started) and install the DeepStream SDK
+#### 7. Download from [NVIDIA website](https://developer.nvidia.com/deepstream-sdk-download-tesla-archived) and install the DeepStream SDK
 
 DeepStream 6.1 for Servers and Workstations (.deb)
 
@@ -309,7 +444,7 @@ sudo reboot
 sudo apt-get update
 sudo apt-get install gcc make git libtool autoconf autogen pkg-config cmake
 sudo apt-get install python3 python3-dev python3-pip
-sudo apt install libssl1.0.0 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstrtspserver-1.0-0 libjansson4
+sudo apt-get install libssl1.0.0 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstrtspserver-1.0-0 libjansson4
 sudo apt-get install linux-headers-$(uname -r)
 ```
 
@@ -453,6 +588,12 @@ cd DeepStream-Yolo
 
 #### 3. Compile the lib
 
+* DeepStream 6.1.1 on x86 platform
+
+  ```
+  CUDA_VER=11.7 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.1 on x86 platform
 
   ```
@@ -465,7 +606,7 @@ cd DeepStream-Yolo
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.1 on Jetson platform
+* DeepStream 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
@@ -510,21 +651,27 @@ config-file=config_infer_primary_yoloV2.txt
 * x86 platform
 
   ```
-  nvcr.io/nvidia/deepstream:6.1-devel
-  nvcr.io/nvidia/deepstream:6.1-triton
+  nvcr.io/nvidia/deepstream:6.1.1-devel
+  nvcr.io/nvidia/deepstream:6.1.1-triton
   ```
 
 * Jetson platform
 
   ```
-  nvcr.io/nvidia/deepstream-l4t:6.1-samples
-  nvcr.io/nvidia/deepstream-l4t:6.1-triton
+  nvcr.io/nvidia/deepstream-l4t:6.1.1-samples
+  nvcr.io/nvidia/deepstream-l4t:6.1.1-triton
   ```
 
   **NOTE**: To compile the `nvdsinfer_custom_impl_Yolo`, you need to install the g++ inside the container
 
   ```
   apt-get install build-essential
+  ```
+
+  **NOTE**: With DeepStream 6.1.1, the docker containers do not package libraries necessary for certain multimedia operations like audio data parsing, CPU decode, and CPU encode. This change could affect processing certain video streams/files like mp4 that include audio track. Please run the below script inside the docker images to install additional packages that might be necessary to use all of the DeepStreamSDK features:
+  
+  ```
+  /opt/nvidia/deepstream/deepstream/user_additional_install.sh
   ```
 
   **NOTE**: With DeepStream 6.1, the container image missed to include certain header files that will be available on host machine with Compute libraries installed from Jetpack. To mount the headers, use:
@@ -572,6 +719,12 @@ sudo apt-get install libopencv-dev
 
 #### 2. Compile/recompile the `nvdsinfer_custom_impl_Yolo` lib with OpenCV support
 
+* DeepStream 6.1.1 on x86 platform
+
+  ```
+  CUDA_VER=11.7 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.1 on x86 platform
 
   ```
@@ -584,7 +737,7 @@ sudo apt-get install libopencv-dev
   CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.1 on Jetson platform
+* DeepStream 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
