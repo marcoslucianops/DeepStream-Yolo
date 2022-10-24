@@ -212,12 +212,13 @@ int32_t YoloLayer::enqueue (
             if (anchors.size() > 0) {
                 float* f_anchors = anchors.data();
                 CUDA_CHECK(cudaMalloc(&v_anchors, sizeof(float) * anchors.size()));
-                CUDA_CHECK(cudaMemcpy(v_anchors, f_anchors, sizeof(float) * anchors.size(), cudaMemcpyHostToDevice));
+                CUDA_CHECK(cudaMemcpyAsync(v_anchors, f_anchors, sizeof(float) * anchors.size(), cudaMemcpyHostToDevice,
+                    stream));
             }
             if (mask.size() > 0) {
                 int* f_mask = mask.data();
                 CUDA_CHECK(cudaMalloc(&v_mask, sizeof(int) * mask.size()));
-                CUDA_CHECK(cudaMemcpy(v_mask, f_mask, sizeof(int) * mask.size(), cudaMemcpyHostToDevice));
+                CUDA_CHECK(cudaMemcpyAsync(v_mask, f_mask, sizeof(int) * mask.size(), cudaMemcpyHostToDevice, stream));
             }
 
             uint64_t inputSize = gridSizeX * gridSizeY * (numBBoxes * (4 + 1 + m_NumClasses));
@@ -245,7 +246,7 @@ int32_t YoloLayer::enqueue (
             else {
                 void* softmax;
                 CUDA_CHECK(cudaMalloc(&softmax, sizeof(float) * inputSize * batchSize));
-                CUDA_CHECK(cudaMemsetAsync((float*)softmax, 0, sizeof(float) * inputSize * batchSize));
+                CUDA_CHECK(cudaMemsetAsync((float*)softmax, 0, sizeof(float) * inputSize * batchSize, stream));
 
                 CUDA_CHECK(cudaRegionLayer(
                     inputs[i], softmax, num_detections, detection_boxes, detection_scores, detection_classes, batchSize,
