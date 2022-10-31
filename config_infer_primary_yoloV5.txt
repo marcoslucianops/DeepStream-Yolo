@@ -19,6 +19,7 @@ maintain-aspect-ratio=1
 parse-bbox-func-name=NvDsInferParseYolo
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
 engine-create-func-name=NvDsInferYoloCudaEngineGet
+symmetric-padding=1
 
 [class-attrs-all]
 nms-iou-threshold=0.45
