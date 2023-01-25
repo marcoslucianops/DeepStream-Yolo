@@ -36,7 +36,21 @@ wget hhttps://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
 
 **NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolov7_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
 
-#### 4. Convert model
+#### 4. Reparameterize your model
+
+[YOLOv7](https://github.com/WongKinYiu/yolov7/releases/) checkpoints can't be directly converted in some cases and `gen_wts_yoloV7.py` script gives an eror such as model not supported. To solve this, you can first reparametrize yolov7 checkpoints (weights) to generate the engine file. 
+
+Copy the `reparametrize.py` file from `DeepStream-Yolo/utils/reparameterize-yolov7` directory to the `yolov7` folder and then run.
+
+```
+python3 reparametrize.py --weights yolov7.pt --classes 80 
+```
+
+change number of classes and weights if you trained on custom dataset. Also, you can specify model config path and the path to a directory where you want to save your reparameterized checkpoints.
+
+Now you can make engine file in the next step using your reparameterized checkpoints.
+
+#### 5. Convert model
 
 Generate the `cfg` and `wts` files (example for YOLOv7)
 
@@ -65,7 +79,7 @@ or
 -s 1280 1280
 ```
 
-#### 5. Copy generated files
+#### 6. Copy generated files
 
 Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder.
 
