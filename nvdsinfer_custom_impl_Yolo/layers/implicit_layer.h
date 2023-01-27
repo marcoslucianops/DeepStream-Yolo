@@ -8,16 +8,10 @@
 
 #include <map>
 #include <vector>
-#include <cassert>
 
 #include "NvInfer.h"
 
-nvinfer1::ITensor* implicitLayer(
-    int layerIdx,
-    std::map<std::string, std::string>& block,
-    std::vector<float>& weights,
-    std::vector<nvinfer1::Weights>& trtWeights,
-    int& weightPtr,
-    nvinfer1::INetworkDefinition* network);
+nvinfer1::ITensor* implicitLayer(int layerIdx, std::map<std::string, std::string>& block, std::vector<float>& weights,
+    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr, nvinfer1::INetworkDefinition* network);
 
 #endif
