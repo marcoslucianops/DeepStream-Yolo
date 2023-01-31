@@ -136,7 +136,7 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
 
   float eps = 1.0e-5;
   if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolov7") != std::string::npos ||
-      m_NetworkType.find("yolov8") != std::string::npos)
+      m_NetworkType.find("yolov8") != std::string::npos || m_NetworkType.find("yolox") != std::string::npos)
     eps = 1.0e-3;
   else if (m_NetworkType.find("yolor") != std::string::npos)
     eps = 1.0e-4;
@@ -398,6 +398,23 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       std::string layerName = "detect_v8";
       printLayerInfo(layerIndex, layerName, inputVol, outputVol, std::to_string(weightPtr));
     }
+    else if (m_ConfigBlocks.at(i).at("type") == "detect_x") {
+      modelType = 5;
+
+      std::string blobName = "detect_x_" + std::to_string(i);
+      nvinfer1::Dims prevTensorDims = previous->getDimensions();
+      TensorInfo& curYoloTensor = m_YoloTensors.at(yoloCountInputs);
+      curYoloTensor.blobName = blobName;
+      curYoloTensor.numBBoxes = prevTensorDims.d[0];
+      m_NumClasses = prevTensorDims.d[1] - 5;
+
+      std::string outputVol = dimsToString(previous->getDimensions());
+      tensorOutputs.push_back(previous);
+      yoloTensorInputs[yoloCountInputs] = previous;
+      ++yoloCountInputs;
+      std::string layerName = "detect_x";
+      printLayerInfo(layerIndex, layerName, "-", outputVol, std::to_string(weightPtr));
+    }
     else {
       std::cerr << "\nUnsupported layer type --> \"" << m_ConfigBlocks.at(i).at("type") << "\"" << std::endl;
       assert(0);
@@ -415,7 +432,7 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
     uint64_t outputSize = 0;
     for (uint j = 0; j < yoloCountInputs; ++j) {
       TensorInfo& curYoloTensor = m_YoloTensors.at(j);
-      if (modelType == 3 || modelType == 4)
+      if (modelType == 3 || modelType == 4 || modelType == 5)
         outputSize = curYoloTensor.numBBoxes;
       else
         outputSize += curYoloTensor.gridSizeX * curYoloTensor.gridSizeY * curYoloTensor.numBBoxes;
@@ -585,6 +602,41 @@ Yolo::parseConfigBlocks()
       m_NumClasses = std::stoul(block.at("classes"));
       
       TensorInfo outputTensor;
+      m_YoloTensors.push_back(outputTensor);
+    }
+    else if (block.at("type") == "detect_x") {
+      ++m_YoloCount;
+      TensorInfo outputTensor;
+
+      std::vector<int> strides;
+
+      std::string stridesString = block.at("strides");
+      while (!stridesString.empty()) {
+        int npos = stridesString.find_first_of(',');
+        if (npos != -1) {
+          int stride = std::stof(trim(stridesString.substr(0, npos)));
+          strides.push_back(stride);
+          stridesString.erase(0, npos + 1);
+        }
+        else {
+          int stride = std::stof(trim(stridesString));
+          strides.push_back(stride);
+          break;
+        }
+      }
+
+      for (uint i = 0; i < strides.size(); ++i) {
+        int num_grid_y = m_InputH / strides[i];
+        int num_grid_x = m_InputW / strides[i];
+        for (int g1 = 0; g1 < num_grid_y; ++g1) {
+          for (int g0 = 0; g0 < num_grid_x; ++g0) {
+            outputTensor.anchors.push_back((float) g0);
+            outputTensor.anchors.push_back((float) g1);
+            outputTensor.mask.push_back(strides[i]);
+          }
+        }
+      }
+
       m_YoloTensors.push_back(outputTensor);
     }
   }

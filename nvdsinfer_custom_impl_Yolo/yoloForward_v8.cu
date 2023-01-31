@@ -18,7 +18,7 @@ __global__ void gpuYoloLayer_v8(const float* input, int* num_detections, float* 
   int maxIndex = -1;
 
   for (uint i = 0; i < numOutputClasses; ++i) {
-    float prob = input[x_id * (4 + numOutputClasses) + i + 4];
+    float prob = input[x_id * (4 + numOutputClasses) + 4 + i];
     if (prob > maxProb) {
       maxProb = prob;
       maxIndex = i;

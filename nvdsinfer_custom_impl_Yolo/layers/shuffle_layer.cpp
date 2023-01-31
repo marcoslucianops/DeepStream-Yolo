@@ -18,16 +18,15 @@ shuffleLayer(int layerIdx, std::string& layer, std::map<std::string, std::string
   std::string shuffleLayerName = "shuffle_" + std::to_string(layerIdx);
   shuffle->setName(shuffleLayerName.c_str());
 
+  int from = -1;
+  if (block.find("from") != block.end())
+      from = std::stoi(block.at("from"));
+  if (from < 0)
+      from = tensorOutputs.size() + from;
+
+  layer = std::to_string(from);
+
   if (block.find("reshape") != block.end()) {
-    int from = -1;
-    if (block.find("from") != block.end())
-        from = std::stoi(block.at("from"));
-
-    if (from < 0)
-        from = tensorOutputs.size() + from;
-
-    layer = std::to_string(from);
-
     nvinfer1::Dims inputTensorDims = tensorOutputs[from]->getDimensions();
 
     std::string strReshape = block.at("reshape");

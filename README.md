@@ -5,7 +5,6 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 ### Future updates
 
 * DeepStream tutorials
-* YOLOX support
 * YOLOv6 support
 * Dynamic batch-size
 * PP-YOLOE+ support
@@ -29,6 +28,7 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * Optimized NMS [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 * Models benchmarks
 * **YOLOv8 support**
+* **YOLOX support**
 
 ##
 
@@ -47,6 +47,7 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [PP-YOLOE usage](docs/PPYOLOE.md)
 * [YOLOv7 usage](docs/YOLOv7.md)
 * [YOLOv8 usage](docs/YOLOv8.md)
+* [YOLOX usage](docs/YOLOX.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
@@ -112,6 +113,7 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/configs/ppyoloe)
 * [YOLOv7](https://github.com/WongKinYiu/yolov7)
 * [YOLOv8](https://github.com/ultralytics/ultralytics)
+* [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
 
@@ -135,7 +137,7 @@ sample = 1920x1080 video
 - Eval
 
 ```
-nms-iou-threshold = 0.6 (Darknet and YOLOv8) / 0.65 (YOLOR, YOLOv5 and YOLOv7) / 0.7 (Paddle)
+nms-iou-threshold = 0.6 (Darknet and YOLOv8) / 0.65 (YOLOR, YOLOv5, YOLOv7 and YOLOX) / 0.7 (Paddle)
 pre-cluster-threshold = 0.001
 topk = 300
 ```

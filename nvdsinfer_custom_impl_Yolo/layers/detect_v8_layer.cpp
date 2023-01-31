@@ -44,11 +44,11 @@ detectV8Layer(int layerIdx, std::map<std::string, std::string>& block, std::vect
   shuffle1Box->setName(shuffle1BoxLayerName.c_str());
   nvinfer1::Dims reshape1Dims = {3, {4, reg_max, inputDims.d[1]}};
   shuffle1Box->setReshapeDimensions(reshape1Dims);
-  nvinfer1::Permutation permutation1;
-  permutation1.order[0] = 1;
-  permutation1.order[1] = 0;
-  permutation1.order[2] = 2;
-  shuffle1Box->setSecondTranspose(permutation1);
+  nvinfer1::Permutation permutation1Box;
+  permutation1Box.order[0] = 1;
+  permutation1Box.order[1] = 0;
+  permutation1Box.order[2] = 2;
+  shuffle1Box->setSecondTranspose(permutation1Box);
   box = shuffle1Box->getOutput(0);
 
   nvinfer1::ISoftMaxLayer* softmax = network->addSoftMax(*box);
@@ -186,10 +186,10 @@ detectV8Layer(int layerIdx, std::map<std::string, std::string>& block, std::vect
   assert(shuffle != nullptr);
   std::string shuffleLayerName = "shuffle_" + std::to_string(layerIdx);
   shuffle->setName(shuffleLayerName.c_str());
-  nvinfer1::Permutation permutation2;
-  permutation2.order[0] = 1;
-  permutation2.order[1] = 0;
-  shuffle->setFirstTranspose(permutation2);
+  nvinfer1::Permutation permutation;
+  permutation.order[0] = 1;
+  permutation.order[1] = 0;
+  shuffle->setFirstTranspose(permutation);
   output = shuffle->getOutput(0);
 
   return output;

@@ -38,6 +38,10 @@ namespace {
   }
 }
 
+cudaError_t cudaYoloLayer_x(const void* input, void* num_detections, void* detection_boxes, void* detection_scores,
+    void* detection_classes, const uint& batchSize, uint64_t& outputSize, const float& scoreThreshold, const uint& netWidth,
+    const uint& netHeight, const uint& numOutputClasses, const void* anchors, const void* mask, cudaStream_t stream);
+
 cudaError_t cudaYoloLayer_v8(const void* input, void* num_detections, void* detection_boxes, void* detection_scores,
     void* detection_classes, const uint& batchSize, uint64_t& outputSize, const float& scoreThreshold, const uint& netWidth,
     const uint& netHeight, const uint& numOutputClasses, cudaStream_t stream);
@@ -158,7 +162,35 @@ YoloLayer::enqueue(int batchSize, void const* const* inputs, void* const* output
   CUDA_CHECK(cudaMemsetAsync((float*)detection_scores, 0, sizeof(float) * m_OutputSize * batchSize, stream));
   CUDA_CHECK(cudaMemsetAsync((int*)detection_classes, 0, sizeof(int) * m_OutputSize * batchSize, stream));
 
-  if (m_Type == 4) {
+  if (m_Type == 5) {
+    TensorInfo& curYoloTensor = m_YoloTensors.at(0);
+    std::vector<float> anchors = curYoloTensor.anchors;
+    std::vector<int> mask = curYoloTensor.mask;
+
+    void* v_anchors;
+    void* v_mask;
+    if (anchors.size() > 0) {
+      float* f_anchors = anchors.data();
+      CUDA_CHECK(cudaMalloc(&v_anchors, sizeof(float) * anchors.size()));
+      CUDA_CHECK(cudaMemcpyAsync(v_anchors, f_anchors, sizeof(float) * anchors.size(), cudaMemcpyHostToDevice, stream));
+    }
+    if (mask.size() > 0) {
+      int* f_mask = mask.data();
+      CUDA_CHECK(cudaMalloc(&v_mask, sizeof(int) * mask.size()));
+      CUDA_CHECK(cudaMemcpyAsync(v_mask, f_mask, sizeof(int) * mask.size(), cudaMemcpyHostToDevice, stream));
+    }
+
+    CUDA_CHECK(cudaYoloLayer_x(inputs[0], num_detections, detection_boxes, detection_scores, detection_classes, batchSize,
+        m_OutputSize, m_ScoreThreshold, m_NetWidth, m_NetHeight, m_NumClasses, v_anchors, v_mask, stream));
+
+    if (anchors.size() > 0) {
+      CUDA_CHECK(cudaFree(v_anchors));
+    }
+    if (mask.size() > 0) {
+      CUDA_CHECK(cudaFree(v_mask));
+    }
+  }
+  else if (m_Type == 4) {
     CUDA_CHECK(cudaYoloLayer_v8(inputs[0], num_detections, detection_boxes, detection_scores, detection_classes, batchSize,
         m_OutputSize, m_ScoreThreshold, m_NetWidth, m_NetHeight, m_NumClasses, stream));
   }
