@@ -7,7 +7,6 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * DeepStream tutorials
 * YOLOv6 support
 * Dynamic batch-size
-* PP-YOLOE+ support
 
 ### Improvements on this repository
 
@@ -29,6 +28,7 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * Models benchmarks
 * **YOLOv8 support**
 * **YOLOX support**
+* **PP-YOLOE+ support**
 
 ##
 
@@ -44,7 +44,7 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [INT8 calibration](#int8-calibration)
 * [YOLOv5 usage](docs/YOLOv5.md)
 * [YOLOR usage](docs/YOLOR.md)
-* [PP-YOLOE usage](docs/PPYOLOE.md)
+* [PP-YOLOE / PP-YOLOE+ usage](docs/PPYOLOE.md)
 * [YOLOv7 usage](docs/YOLOv7.md)
 * [YOLOv8 usage](docs/YOLOv8.md)
 * [YOLOX usage](docs/YOLOX.md)
@@ -110,7 +110,7 @@ NVIDIA DeepStream SDK 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 * [Darknet YOLO](https://github.com/AlexeyAB/darknet)
 * [YOLOv5 >= 2.0](https://github.com/ultralytics/yolov5)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
-* [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/configs/ppyoloe)
+* [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.5/configs/ppyoloe)
 * [YOLOv7](https://github.com/WongKinYiu/yolov7)
 * [YOLOv8](https://github.com/ultralytics/ultralytics)
 * [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)

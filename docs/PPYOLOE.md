@@ -1,8 +1,8 @@
-# PP-YOLOE usage
+# PP-YOLOE / PP-YOLOE+ usage
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_ppyoloe file](#edit-the-config_infer_primary_ppyoloe-file)
+* [Edit the config_infer_primary_ppyoloe_plus file](#edit-the-config_infer_primary_ppyoloe_plus-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,7 +12,7 @@
 
 #### 1. Download the PaddleDetection repo and install the requirements
 
-https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.4/docs/tutorials/INSTALL.md
+https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.5/docs/tutorials/INSTALL.md
 
 **NOTE**: It is recommended to use Python virtualenv.
 
@@ -22,20 +22,20 @@ Copy the `gen_wts_ppyoloe.py` file from `DeepStream-Yolo/utils` directory to the
 
 #### 3. Download the model
 
-Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/configs/ppyoloe) releases (example for PP-YOLOE-s)
+Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.5/configs/ppyoloe) releases (example for PP-YOLOE+_s)
 
 ```
-wget https://paddledet.bj.bcebos.com/models/ppyoloe_crn_s_400e_coco.pdparams
+wget https://paddledet.bj.bcebos.com/models/ppyoloe_plus_crn_s_80e_coco.pdparams
 ```
 
 **NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`ppyoloe_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for PP-YOLOE-s)
+Generate the `cfg` and `wts` files (example for PP-YOLOE+_s)
 
 ```
-python3 gen_wts_ppyoloe.py -w ppyoloe_crn_s_400e_coco.pdparams -c configs/ppyoloe/ppyoloe_crn_s_400e_coco.yml
+python3 gen_wts_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml
 ```
 
 #### 5. Copy generated files
@@ -80,19 +80,27 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ##
 
-### Edit the config_infer_primary_ppyoloe file
+### Edit the config_infer_primary_ppyoloe_plus file
 
-Edit the `config_infer_primary_ppyoloe.txt` file according to your model (example for PP-YOLOE-s)
+Edit the `config_infer_primary_ppyoloe_plus.txt` file according to your model (example for PP-YOLOE+_s)
 
 ```
 [property]
 ...
-custom-network-config=ppyoloe_crn_s_400e_coco.cfg
-model-file=ppyoloe_crn_s_400e_coco.wts
+custom-network-config=ppyoloe_plus_crn_s_80e_coco.cfg
+model-file=ppyoloe_plus_crn_s_80e_coco.wts
 ...
 ```
 
-**NOTE**: The PP-YOLOE uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
+**NOTE**: If you use the **legacy** model, you should edit the `config_infer_primary_ppyoloe.txt` file.
+
+**NOTE**: The **PP-YOLOE+** uses zero mean normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
+
+```
+net-scale-factor=0.0039215697906911373
+```
+
+**NOTE**: The **PP-YOLOE (legacy)** uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
 
 Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
 
@@ -109,8 +117,10 @@ offsets=123.675;116.28;103.53
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_ppyoloe.txt
+config-file=config_infer_primary_ppyoloe_plus.txt
 ```
+
+**NOTE**: If you use the **legacy** model, you should edit it to `config_infer_primary_ppyoloe.txt`.
 
 ##
 

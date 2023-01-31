@@ -3,7 +3,7 @@ import struct
 import paddle
 import numpy as np
 from ppdet.core.workspace import load_config, merge_config
-from ppdet.utils.check import check_gpu, check_version, check_config
+from ppdet.utils.check import check_version, check_config
 from ppdet.utils.cli import ArgsParser
 from ppdet.engine import Trainer
 from ppdet.slim import build_slim_model
@@ -273,13 +273,14 @@ class Layers(object):
 
     def get_state_dict(self, state_dict):
         for k, v in state_dict.items():
-            vr = v.reshape([-1]).numpy()
-            self.fw.write('{} {} '.format(k, len(vr)))
-            for vv in vr:
-                self.fw.write(' ')
-                self.fw.write(struct.pack('>f', float(vv)).hex())
-            self.fw.write('\n')
-            self.wc += 1
+            if 'alpha' not in k:
+                vr = v.reshape([-1]).numpy()
+                self.fw.write('{} {} '.format(k, len(vr)))
+                for vv in vr:
+                    self.fw.write(' ')
+                    self.fw.write(struct.pack('>f', float(vv)).hex())
+                self.fw.write('\n')
+                self.wc += 1
 
     def get_anchors(self, anchor_points, stride_tensor):
         vr = anchor_points.numpy()
