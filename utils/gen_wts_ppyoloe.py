@@ -121,13 +121,10 @@ class Layers(object):
 
         self.convolutional(child, act=act)
 
-    def Shuffle(self, reshape=None, transpose1=None, transpose2=None, route=None, output=''):
+    def Shuffle(self, reshape=None, transpose1=None, transpose2=None, output=''):
         self.current += 1
 
-        r = None
-        if route is not None:
-            r = self.get_route(route)
-        self.shuffle(reshape=reshape, transpose1=transpose1, transpose2=transpose2, route=r)
+        self.shuffle(reshape=reshape, transpose1=transpose1, transpose2=transpose2)
         if output == 'cls':
             self.yolo_head_cls.append(self.current)
         elif output == 'reg':
@@ -181,7 +178,7 @@ class Layers(object):
 
         b = 'batch_normalize=1\n' if bn is True else ''
         g = 'groups=%d\n' % groups if groups > 1 else ''
-        w = 'bias=0\n' if bias is None and bn is False else ''
+        w = 'bias=1\n' if bias is not None and bn is not False else 'bias=0\n' if bias is None and bn is False else ''
 
         self.fc.write('\n[convolutional]\n' +
                       b +
@@ -246,19 +243,17 @@ class Layers(object):
 
         self.fc.write('\n[avgpool]\n')
 
-    def shuffle(self, reshape=None, transpose1=None, transpose2=None, route=None):
+    def shuffle(self, reshape=None, transpose1=None, transpose2=None):
         self.blocks[self.current] += 1
 
         r = 'reshape=%s\n' % ', '.join(str(x) for x in reshape) if reshape is not None else ''
         t1 = 'transpose1=%s\n' % ', '.join(str(x) for x in transpose1) if transpose1 is not None else ''
         t2 = 'transpose2=%s\n' % ', '.join(str(x) for x in transpose2) if transpose2 is not None else ''
-        f = 'from=%d\n' % route if route is not None else ''
 
         self.fc.write('\n[shuffle]\n' +
                       r +
                       t1 +
-                      t2 +
-                      f)
+                      t2)
 
     def softmax(self, axes):
         self.blocks[self.current] += 1
@@ -418,13 +413,13 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
                 layers.AvgPool2d()
             layers.ESEAttn(model.yolo_head.stem_cls[i])
             layers.Conv2D(model.yolo_head.pred_cls[i], act='sigmoid')
-            layers.Shuffle(reshape=[model.yolo_head.num_classes, 'hw'], route=feat, output='cls')
+            layers.Shuffle(reshape=[model.yolo_head.num_classes, 'hw'], output='cls')
             layers.ESEAttn(model.yolo_head.stem_reg[i], route=-7)
             layers.Conv2D(model.yolo_head.pred_reg[i])
-            layers.Shuffle(reshape=[4, model.yolo_head.reg_max + 1, 'hw'], transpose2=[1, 0, 2], route=feat)
+            layers.Shuffle(reshape=[4, model.yolo_head.reg_max + 1, 'hw'], transpose2=[1, 0, 2])
             layers.SoftMax(0)
             layers.Conv2D(model.yolo_head.proj_conv)
-            layers.Shuffle(reshape=[4, 'hw'], route=feat, output='reg')
+            layers.Shuffle(reshape=['h', 'w'], output='reg')
         layers.Detect('cls')
         layers.Detect('reg')
         layers.get_anchors(model.yolo_head.anchor_points.reshape([-1]), model.yolo_head.stride_tensor)

@@ -31,7 +31,7 @@ Copy the `gen_wts_yoloV7.py` file from `DeepStream-Yolo/utils` directory to the 
 Download the `pt` file from [YOLOv7](https://github.com/WongKinYiu/yolov7/releases/) releases (example for YOLOv7)
 
 ```
-wget hhttps://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
+wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
 ```
 
 **NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolov7_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
@@ -46,6 +46,12 @@ Generate the `cfg` and `wts` files (example for YOLOv7)
 
 ```
 python3 gen_wts_yoloV7.py -w yolov7.pt
+```
+
+**NOTE**: To convert a P6 model
+
+```
+--p6
 ```
 
 **NOTE**: To change the inference size (defaut: 640)

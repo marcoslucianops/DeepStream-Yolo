@@ -30,6 +30,7 @@
 #include "nvdsinfer_custom_impl.h"
 
 #include "layers/convolutional_layer.h"
+#include "layers/deconvolutional_layer.h"
 #include "layers/c2f_layer.h"
 #include "layers/batchnorm_layer.h"
 #include "layers/implicit_layer.h"

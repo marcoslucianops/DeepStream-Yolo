@@ -34,12 +34,15 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
     batchNormalize = (block.at("batch_normalize") == "1");
   }
 
+  if (block.find("bias") != block.end()) {
+    bias = std::stoi(block.at("bias"));
+    if (bias == 1)
+      bias = filters;
+  }
+
   int groups = 1;
   if (block.find("groups") != block.end())
     groups = std::stoi(block.at("groups"));
-
-  if (block.find("bias") != block.end())
-    bias = std::stoi(block.at("bias"));
 
   int pad;
   if (padding)
@@ -92,7 +95,16 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
         bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
         ++weightPtr;
       }
-      float* val = new float[size];
+      float* val;
+      if (bias != 0) {
+        val = new float[filters];
+        for (int i = 0; i < filters; ++i) {
+          val[i] = weights[weightPtr];
+          ++weightPtr;
+        }
+        convBias.values = val;
+      }
+      val = new float[size];
       for (int i = 0; i < size; ++i) {
         val[i] = weights[weightPtr];
         ++weightPtr;
@@ -129,6 +141,14 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
         ++weightPtr;
       }
       convWt.values = val;
+      if (bias != 0) {
+        val = new float[filters];
+        for (int i = 0; i < filters; ++i) {
+          val[i] = weights[weightPtr];
+          ++weightPtr;
+        }
+        convBias.values = val;
+      }
       for (int i = 0; i < filters; ++i) {
         bnWeights.push_back(weights[weightPtr]);
         ++weightPtr;

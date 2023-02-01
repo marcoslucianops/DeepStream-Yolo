@@ -112,7 +112,7 @@ class Layers(object):
 
         b = 'batch_normalize=1\n' if bn is True else ''
         g = 'groups=%d\n' % groups if groups > 1 else ''
-        w = 'bias=0\n' if bias is None and bn is False else ''
+        w = 'bias=1\n' if bias is not None and bn is not False else 'bias=0\n' if bias is None and bn is False else ''
 
         self.fc.write('\n[convolutional]\n' +
                       b +
@@ -145,7 +145,7 @@ class Layers(object):
 
         b = 'batch_normalize=1\n' if bn is True else ''
         g = 'groups=%d\n' % groups if groups > 1 else ''
-        w = 'bias=0\n' if bias is None and bn is False else ''
+        w = 'bias=1\n' if bias is not None and bn is not False else 'bias=0\n' if bias is None and bn is False else ''
 
         self.fc.write('\n[c2f]\n' +
                       'n=%d\n' % n +
@@ -199,19 +199,17 @@ class Layers(object):
         self.fc.write('\n[upsample]\n' +
                       'stride=%d\n' % stride)
 
-    def shuffle(self, reshape=None, transpose1=None, transpose2=None, route=None):
+    def shuffle(self, reshape=None, transpose1=None, transpose2=None):
         self.blocks[self.current] += 1
 
         r = 'reshape=%s\n' % ', '.join(str(x) for x in reshape) if reshape is not None else ''
         t1 = 'transpose1=%s\n' % ', '.join(str(x) for x in transpose1) if transpose1 is not None else ''
         t2 = 'transpose2=%s\n' % ', '.join(str(x) for x in transpose2) if transpose2 is not None else ''
-        f = 'from=%d\n' % route if route is not None else ''
 
         self.fc.write('\n[shuffle]\n' +
                       r +
                       t1 +
-                      t2 +
-                      f)
+                      t2)
 
     def yolo(self, child):
         self.blocks[self.current] += 1

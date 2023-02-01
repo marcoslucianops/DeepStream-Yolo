@@ -6,7 +6,7 @@
 #include "shuffle_layer.h"
 
 nvinfer1::ITensor*
-shuffleLayer(int layerIdx, std::string& layer, std::map<std::string, std::string>& block, nvinfer1::ITensor* input,
+shuffleLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::ITensor* input,
     std::vector<nvinfer1::ITensor*> tensorOutputs, nvinfer1::INetworkDefinition* network)
 {
   nvinfer1::ITensor* output;
@@ -18,16 +18,8 @@ shuffleLayer(int layerIdx, std::string& layer, std::map<std::string, std::string
   std::string shuffleLayerName = "shuffle_" + std::to_string(layerIdx);
   shuffle->setName(shuffleLayerName.c_str());
 
-  int from = -1;
-  if (block.find("from") != block.end())
-      from = std::stoi(block.at("from"));
-  if (from < 0)
-      from = tensorOutputs.size() + from;
-
-  layer = std::to_string(from);
-
   if (block.find("reshape") != block.end()) {
-    nvinfer1::Dims inputTensorDims = tensorOutputs[from]->getDimensions();
+    nvinfer1::Dims inputTensorDims = input->getDimensions();
 
     std::string strReshape = block.at("reshape");
     std::vector<int32_t> reshape;

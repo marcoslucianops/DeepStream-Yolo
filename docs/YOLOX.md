@@ -15,7 +15,7 @@
 #### 1. Download the YOLOX repo and install the requirements
 
 ```
-git clone https://github.com/Megvii-BaseDetection/YOLOX
+git clone https://github.com/Megvii-BaseDetection/YOLOX.git
 cd YOLOX
 pip3 install -r requirements.txt
 ```
@@ -28,7 +28,7 @@ Copy the `gen_wts_yolox.py` file from `DeepStream-Yolo/utils` directory to the `
 
 #### 3. Download the model
 
-Download the `pth` file from [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX/releases) releases (example for YOLOX-s standard)
+Download the `pth` file from [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX/releases/) releases (example for YOLOX-s standard)
 
 ```
 wget https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth

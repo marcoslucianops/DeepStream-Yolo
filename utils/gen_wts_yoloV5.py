@@ -195,7 +195,7 @@ class Layers(object):
 
         b = 'batch_normalize=1\n' if bn is True else ''
         g = 'groups=%d\n' % groups if groups > 1 else ''
-        w = 'bias=0\n' if bias is None and bn is False else ''
+        w = 'bias=1\n' if bias is not None and bn is not False else 'bias=0\n' if bias is None and bn is False else ''
 
         self.fc.write('\n[convolutional]\n' +
                       b +
@@ -335,10 +335,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch YOLOv5 conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument(
-        '-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
+        '-s', '--size', nargs='+', type=int, help='Inference size [H,W] (default [640])')
+    parser.add_argument("--p6", action="store_true", help="P6 model")
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
         raise SystemExit('Invalid weights file')
+    if not args.size:
+        args.size = [1280] if args.p6 else [640]
     return args.weights, args.size
 
 

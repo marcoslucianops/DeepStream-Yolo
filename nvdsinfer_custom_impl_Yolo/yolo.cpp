@@ -135,8 +135,9 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       weightsType = "weights";
 
   float eps = 1.0e-5;
-  if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolov7") != std::string::npos ||
-      m_NetworkType.find("yolov8") != std::string::npos || m_NetworkType.find("yolox") != std::string::npos)
+  if (m_NetworkType.find("yolov5") != std::string::npos || m_NetworkType.find("yolov6") != std::string::npos ||
+      m_NetworkType.find("yolov7") != std::string::npos || m_NetworkType.find("yolov8") != std::string::npos ||
+      m_NetworkType.find("yolox") != std::string::npos)
     eps = 1.0e-3;
   else if (m_NetworkType.find("yolor") != std::string::npos)
     eps = 1.0e-4;
@@ -167,6 +168,17 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       std::string outputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);
       std::string layerName = "conv_" + m_ConfigBlocks.at(i).at("activation");
+      printLayerInfo(layerIndex, layerName, inputVol, outputVol, std::to_string(weightPtr));
+    }
+    else if (m_ConfigBlocks.at(i).at("type") == "deconvolutional") {
+      int channels = getNumChannels(previous);
+      std::string inputVol = dimsToString(previous->getDimensions());
+      previous = deconvolutionalLayer(i, m_ConfigBlocks.at(i), weights, m_TrtWeights, weightPtr, weightsType, channels,
+          previous, &network);
+      assert(previous != nullptr);
+      std::string outputVol = dimsToString(previous->getDimensions());
+      tensorOutputs.push_back(previous);
+      std::string layerName = "deconv";
       printLayerInfo(layerIndex, layerName, inputVol, outputVol, std::to_string(weightPtr));
     }
     else if (m_ConfigBlocks.at(i).at("type") == "c2f") {
@@ -299,13 +311,12 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       printLayerInfo(layerIndex, layerName, inputVol, outputVol, "-");
     }
     else if (m_ConfigBlocks.at(i).at("type") == "shuffle") {
-      std::string layer;
       std::string inputVol = dimsToString(previous->getDimensions());
-      previous = shuffleLayer(i, layer, m_ConfigBlocks.at(i), previous, tensorOutputs, &network);
+      previous = shuffleLayer(i, m_ConfigBlocks.at(i), previous, tensorOutputs, &network);
       assert(previous != nullptr);
       std::string outputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);
-      std::string layerName = "shuffle: " + layer;
+      std::string layerName = "shuffle";
       printLayerInfo(layerIndex, layerName, inputVol, outputVol, "-");
     }
     else if (m_ConfigBlocks.at(i).at("type") == "softmax") {
