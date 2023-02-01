@@ -26,6 +26,8 @@
 #ifndef __YOLO_PLUGINS__
 #define __YOLO_PLUGINS__
 
+#include <cuda_runtime_api.h>
+
 #include "yolo.h"
 
 #define CUDA_CHECK(status) {                                                                                               \
