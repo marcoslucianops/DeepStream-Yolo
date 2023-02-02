@@ -7,6 +7,7 @@
 #define CALIBRATOR_H
 
 #include <vector>
+#include <cuda_runtime_api.h>
 
 #include "NvInfer.h"
 #include "opencv2/opencv.hpp"
