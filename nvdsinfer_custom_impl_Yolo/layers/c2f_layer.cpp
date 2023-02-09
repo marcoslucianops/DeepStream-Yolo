@@ -58,7 +58,7 @@ c2fLayer(int layerIdx, std::map<std::string, std::string>& block, std::vector<fl
     assert(cv2M != nullptr);
 
     if (shortcut) {
-      nvinfer1::IElementWiseLayer* ew = network->addElementWise(*rb, *cv2M, nvinfer1::ElementWiseOperation::kSUM);
+      nvinfer1::IElementWiseLayer* ew = network->addElementWise(*output, *cv2M, nvinfer1::ElementWiseOperation::kSUM);
       assert(ew != nullptr);
       std::string ewLayerName = "shortcut_c2f_" + std::to_string(i + 1) + "_" + std::to_string(layerIdx);
       ew->setName(ewLayerName.c_str());

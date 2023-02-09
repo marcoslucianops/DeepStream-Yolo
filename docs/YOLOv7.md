@@ -119,13 +119,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_yoloV7 file
 
-Edit the `config_infer_primary_yoloV7.txt` file according to your model (example for YOLOv7)
+Edit the `config_infer_primary_yoloV7.txt` file according to your model (example for YOLOv7 with 80 classes)
 
 ```
 [property]
 ...
 custom-network-config=yolov7.cfg
 model-file=yolov7.wts
+...
+num-detected-classes=80
 ...
 ```
 
@@ -147,3 +149,5 @@ config-file=config_infer_primary_yoloV7.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

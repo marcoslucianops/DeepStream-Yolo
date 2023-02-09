@@ -82,13 +82,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_ppyoloe_plus file
 
-Edit the `config_infer_primary_ppyoloe_plus.txt` file according to your model (example for PP-YOLOE+_s)
+Edit the `config_infer_primary_ppyoloe_plus.txt` file according to your model (example for PP-YOLOE+_s with 80 classes)
 
 ```
 [property]
 ...
 custom-network-config=ppyoloe_plus_crn_s_80e_coco.cfg
 model-file=ppyoloe_plus_crn_s_80e_coco.wts
+...
+num-detected-classes=80
 ...
 ```
 
@@ -129,3 +131,5 @@ config-file=config_infer_primary_ppyoloe_plus.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

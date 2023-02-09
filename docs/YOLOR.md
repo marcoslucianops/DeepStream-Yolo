@@ -86,13 +86,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_yolor file
 
-Edit the `config_infer_primary_yolor.txt` file according to your model (example for YOLOR-CSP)
+Edit the `config_infer_primary_yolor.txt` file according to your model (example for YOLOR-CSP with 80 classes)
 
 ```
 [property]
 ...
 custom-network-config=yolor_csp.cfg
 model-file=yolor_csp.wts
+...
+num-detected-classes=80
 ...
 ```
 
@@ -114,3 +116,5 @@ config-file=config_infer_primary_yolor.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

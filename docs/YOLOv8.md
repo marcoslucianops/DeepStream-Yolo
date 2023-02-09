@@ -38,7 +38,7 @@ wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for YOLOv8s)
+Generate the `cfg`, `wts` and `labels.txt` (if available) files (example for YOLOv8s)
 
 ```
 python3 gen_wts_yoloV8.py -w yolov8s.pt
@@ -67,7 +67,7 @@ or
 
 #### 5. Copy generated files
 
-Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder.
+Copy the generated `cfg`, `wts` and `labels.txt` (if generated), files to the `DeepStream-Yolo` folder.
 
 ##
 
@@ -109,13 +109,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_yoloV8 file
 
-Edit the `config_infer_primary_yoloV8.txt` file according to your model (example for YOLOv8s)
+Edit the `config_infer_primary_yoloV8.txt` file according to your model (example for YOLOv8s with 80 classes)
 
 ```
 [property]
 ...
 custom-network-config=yolov8s.cfg
 model-file=yolov8s.wts
+...
+num-detected-classes=80
 ...
 ```
 
@@ -137,3 +139,5 @@ config-file=config_infer_primary_yoloV8.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

@@ -88,13 +88,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_yolox file
 
-Edit the `config_infer_primary_yolox.txt` file according to your model (example for YOLOX-s standard)
+Edit the `config_infer_primary_yolox.txt` file according to your model (example for YOLOX-s standard with 80 classes)
 
 ```
 [property]
 ...
 custom-network-config=yolox_s.cfg
 model-file=yolox_s.wts
+...
+num-detected-classes=80
 ...
 ```
 
@@ -135,3 +137,5 @@ config-file=config_infer_primary_yolox.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

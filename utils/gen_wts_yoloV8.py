@@ -291,6 +291,11 @@ device = select_device('cpu')
 model = torch.load(pt_file, map_location=device)['model'].float()
 model.to(device).eval()
 
+if model.names and model.nc:
+    with open("labels.txt", 'w') as fw:
+        for i in range(model.nc):
+            fw.write(model.names[i] + '\n')
+
 with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
     layers = Layers(len(model.model), inference_size, fw, fc)
 
