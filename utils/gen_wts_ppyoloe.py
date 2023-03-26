@@ -406,6 +406,8 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
     if yolo_head == 'PPYOLOEHead':
         layers.fc.write('\n# PPYOLOEHead\n')
 
+        reg_max = model.yolo_head.reg_max + 1 if hasattr(model.yolo_head, 'reg_max') else model.yolo_head.reg_range[1]
+
         for i, feat in enumerate(layers.neck_pan_feats):
             if i > 0:
                 layers.AvgPool2d(route=feat)
@@ -416,7 +418,7 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
             layers.Shuffle(reshape=[model.yolo_head.num_classes, 'hw'], output='cls')
             layers.ESEAttn(model.yolo_head.stem_reg[i], route=-7)
             layers.Conv2D(model.yolo_head.pred_reg[i])
-            layers.Shuffle(reshape=[4, model.yolo_head.reg_max + 1, 'hw'], transpose2=[1, 0, 2])
+            layers.Shuffle(reshape=[4, reg_max + 1, 'hw'], transpose2=[1, 0, 2])
             layers.SoftMax(0)
             layers.Conv2D(model.yolo_head.proj_conv)
             layers.Shuffle(reshape=['h', 'w'], output='reg')
