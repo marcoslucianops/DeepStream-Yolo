@@ -418,7 +418,7 @@ with open(wts_file, 'w') as fw, open(cfg_file, 'w') as fc:
             layers.Shuffle(reshape=[model.yolo_head.num_classes, 'hw'], output='cls')
             layers.ESEAttn(model.yolo_head.stem_reg[i], route=-7)
             layers.Conv2D(model.yolo_head.pred_reg[i])
-            layers.Shuffle(reshape=[4, reg_max + 1, 'hw'], transpose2=[1, 0, 2])
+            layers.Shuffle(reshape=[4, reg_max, 'hw'], transpose2=[1, 0, 2])
             layers.SoftMax(0)
             layers.Conv2D(model.yolo_head.proj_conv)
             layers.Shuffle(reshape=['h', 'w'], output='reg')
