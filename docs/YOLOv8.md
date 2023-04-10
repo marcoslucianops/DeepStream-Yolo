@@ -75,6 +75,12 @@ Copy the generated `cfg`, `wts` and `labels.txt` (if generated), files to the `D
 
 Open the `DeepStream-Yolo` folder and compile the lib
 
+* DeepStream 6.2 on x86 platform
+
+  ```
+  CUDA_VER=11.8 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.1.1 on x86 platform
 
   ```
@@ -93,7 +99,7 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.1.1 / 6.1 on Jetson platform
+* DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
