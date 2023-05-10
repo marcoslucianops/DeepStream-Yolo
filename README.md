@@ -2,6 +2,8 @@
 
 NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
+### **I will be back with updates soon, I'm full of work from my jobs right now. Sorry for the delay.**
+
 ### Future updates
 
 * DeepStream tutorials
