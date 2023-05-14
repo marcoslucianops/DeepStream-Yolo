@@ -45,6 +45,8 @@ ifeq ($(OPENCV), 1)
 	LIBS+= $(shell pkg-config --libs opencv4 2> /dev/null || pkg-config --libs opencv)
 endif
 
+CUFLAGS:= -I/opt/nvidia/deepstream/deepstream/sources/includes -I/usr/local/cuda-$(CUDA_VER)/include
+
 LIBS+= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
 LFLAGS:= -shared -Wl,--start-group $(LIBS) -Wl,--end-group
 
@@ -70,7 +72,7 @@ all: $(TARGET_LIB)
 	$(CC) -c $(COMMON) -o $@ $(CFLAGS) $<
 
 %.o: %.cu $(INCS) Makefile
-	$(NVCC) -c -o $@ --compiler-options '-fPIC' $<
+	$(NVCC) -c -o $@ --compiler-options '-fPIC' $(CUFLAGS) $<
 
 $(TARGET_LIB) : $(TARGET_OBJS)
 	$(CC) -o $@  $(TARGET_OBJS) $(LFLAGS)

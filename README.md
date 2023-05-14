@@ -6,7 +6,6 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 
 ### Future updates
 
-* ONNX model support
 * DeepStream tutorials
 * Dynamic batch-size
 * Segmentation model support
@@ -30,10 +29,12 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * YOLOv7 support
 * Optimized NMS [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
 * Models benchmarks
-* **YOLOv8 support**
-* **YOLOX support**
-* **PP-YOLOE+ support**
-* **YOLOv6 >= 2.0 support**
+* YOLOv8 support
+* YOLOX support
+* PP-YOLOE+ support
+* YOLOv6 >= 2.0 support
+* **ONNX model support with GPU post-processing**
+* **YOLO-NAS support (ONNX)**
 
 ##
 
