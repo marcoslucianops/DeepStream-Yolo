@@ -16,7 +16,7 @@ network-type=0
 cluster-mode=2
 maintain-aspect-ratio=1
 symmetric-padding=0
-parse-bbox-func-name=NvDsInferParseYoloX_ONNX
+parse-bbox-func-name=NvDsInferParse_YOLOX_ONNX
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
 
 [class-attrs-all]

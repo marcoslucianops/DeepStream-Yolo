@@ -31,7 +31,7 @@
 #include "utils.h"
 #include "yoloPlugins.h"
 
-__global__ void decodeTensorYolo_ONNX(NvDsInferParseObjectInfo *binfo, const float* detections, const int numClasses,
+__global__ void decodeTensor_YOLO_ONNX(NvDsInferParseObjectInfo *binfo, const float* detections, const int numClasses,
     const int outputSize, float netW, float netH)
 {
     uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -74,7 +74,7 @@ __global__ void decodeTensorYolo_ONNX(NvDsInferParseObjectInfo *binfo, const flo
     binfo[x_id].classId = maxIndex;
 }
 
-__global__ void decodeTensorYoloV8_ONNX(NvDsInferParseObjectInfo *binfo, const float* detections, const int numClasses,
+__global__ void decodeTensor_YOLOV8_ONNX(NvDsInferParseObjectInfo *binfo, const float* detections, const int numClasses,
     const int outputSize, float netW, float netH)
 {
     uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -115,7 +115,7 @@ __global__ void decodeTensorYoloV8_ONNX(NvDsInferParseObjectInfo *binfo, const f
     binfo[x_id].classId = maxIndex;
 }
 
-__global__ void decodeTensorYoloX_ONNX(NvDsInferParseObjectInfo *binfo, const float* detections, const int numClasses,
+__global__ void decodeTensor_YOLOX_ONNX(NvDsInferParseObjectInfo *binfo, const float* detections, const int numClasses,
     const int outputSize, float netW, float netH, const int *grid0, const int *grid1, const int *strides)
 {
     uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -233,7 +233,7 @@ __global__ void decodeTensor_PPYOLOE_ONNX(NvDsInferParseObjectInfo *binfo, const
 }
 
 static bool
-NvDsInferParseCustomYolo_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+NvDsInferParseCustom_YOLO_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
     NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
@@ -257,7 +257,7 @@ NvDsInferParseCustomYolo_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayer
   int threads_per_block = 1024;
   int number_of_blocks = ((outputSize - 1) / threads_per_block) + 1;
 
-  decodeTensorYolo_ONNX<<<threads_per_block, number_of_blocks>>>(
+  decodeTensor_YOLO_ONNX<<<threads_per_block, number_of_blocks>>>(
       thrust::raw_pointer_cast(objects.data()), (const float*) (layer.buffer), numClasses, outputSize,
       static_cast<float>(networkInfo.width), static_cast<float>(networkInfo.height));
 
@@ -268,7 +268,7 @@ NvDsInferParseCustomYolo_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayer
 }
 
 static bool
-NvDsInferParseCustomYoloV8_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+NvDsInferParseCustom_YOLOV8_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
     NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
@@ -292,7 +292,7 @@ NvDsInferParseCustomYoloV8_ONNX(std::vector<NvDsInferLayerInfo> const& outputLay
   int threads_per_block = 1024;
   int number_of_blocks = ((outputSize - 1) / threads_per_block) + 1;
 
-  decodeTensorYoloV8_ONNX<<<threads_per_block, number_of_blocks>>>(
+  decodeTensor_YOLOV8_ONNX<<<threads_per_block, number_of_blocks>>>(
       thrust::raw_pointer_cast(objects.data()), (const float*) (layer.buffer), numClasses, outputSize,
       static_cast<float>(networkInfo.width), static_cast<float>(networkInfo.height));
 
@@ -303,7 +303,7 @@ NvDsInferParseCustomYoloV8_ONNX(std::vector<NvDsInferLayerInfo> const& outputLay
 }
 
 static bool
-NvDsInferParseCustomYoloX_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+NvDsInferParseCustom_YOLOX_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
     NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
@@ -349,7 +349,7 @@ NvDsInferParseCustomYoloX_ONNX(std::vector<NvDsInferLayerInfo> const& outputLaye
   int threads_per_block = 1024;
   int number_of_blocks = ((outputSize - 1) / threads_per_block) + 1;
 
-  decodeTensorYoloX_ONNX<<<threads_per_block, number_of_blocks>>>(
+  decodeTensor_YOLOX_ONNX<<<threads_per_block, number_of_blocks>>>(
       thrust::raw_pointer_cast(objects.data()), (const float*) (layer.buffer), numClasses, outputSize,
       static_cast<float>(networkInfo.width), static_cast<float>(networkInfo.height),
       thrust::raw_pointer_cast(d_grid0.data()), thrust::raw_pointer_cast(d_grid1.data()),
@@ -434,24 +434,24 @@ NvDsInferParseCustom_PPYOLOE_ONNX(std::vector<NvDsInferLayerInfo> const& outputL
 }
 
 extern "C" bool
-NvDsInferParseYolo_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParse_YOLO_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-  return NvDsInferParseCustomYolo_ONNX(outputLayersInfo, networkInfo, detectionParams, objectList);
+  return NvDsInferParseCustom_YOLO_ONNX(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
 extern "C" bool
-NvDsInferParseYoloV8_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParse_YOLOV8_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-  return NvDsInferParseCustomYoloV8_ONNX(outputLayersInfo, networkInfo, detectionParams, objectList);
+  return NvDsInferParseCustom_YOLOV8_ONNX(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
 extern "C" bool
-NvDsInferParseYoloX_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParse_YOLOX_ONNX(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-  return NvDsInferParseCustomYoloX_ONNX(outputLayersInfo, networkInfo, detectionParams, objectList);
+  return NvDsInferParseCustom_YOLOX_ONNX(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
 extern "C" bool
