@@ -1,5 +1,7 @@
 # PP-YOLOE / PP-YOLOE+ usage
 
+**NOTE**: You can use the release/2.6 branch of the PPYOLOE repo to convert all model versions.
+
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
 * [Edit the config_infer_primary_ppyoloe_plus file](#edit-the-config_infer_primary_ppyoloe_plus-file)
@@ -12,35 +14,36 @@
 
 #### 1. Download the PaddleDetection repo and install the requirements
 
-https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.5/docs/tutorials/INSTALL.md
+https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/docs/tutorials/INSTALL.md
 
 **NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 
-Copy the `gen_wts_ppyoloe.py` file from `DeepStream-Yolo/utils` directory to the `PaddleDetection` folder.
+Copy the `export_ppyoloe.py` file from `DeepStream-Yolo/utils` directory to the `PaddleDetection` folder.
 
 #### 3. Download the model
 
-Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.5/configs/ppyoloe) releases (example for PP-YOLOE+_s)
+Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyoloe) releases (example for PP-YOLOE+_s)
 
 ```
 wget https://paddledet.bj.bcebos.com/models/ppyoloe_plus_crn_s_80e_coco.pdparams
 ```
 
-**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`ppyoloe_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+**NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for PP-YOLOE+_s)
+Generate the ONNX model file (example for PP-YOLOE+_s)
 
 ```
-python3 gen_wts_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml
+pip3 install onnx onnxsim onnxruntime
+python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml --simplify
 ```
 
 #### 5. Copy generated files
 
-Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 
 ##
 
@@ -93,10 +96,12 @@ Edit the `config_infer_primary_ppyoloe_plus.txt` file according to your model (e
 ```
 [property]
 ...
-custom-network-config=ppyoloe_plus_crn_s_80e_coco.cfg
-model-file=ppyoloe_plus_crn_s_80e_coco.wts
+onnx-file=ppyoloe_plus_crn_s_80e_coco.onnx
+model-engine-file=ppyoloe_plus_crn_s_80e_coco.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
+...
+parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
 

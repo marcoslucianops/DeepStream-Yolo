@@ -10,7 +10,7 @@
 
 nvinfer1::ITensor*
 batchnormLayer(int layerIdx, std::map<std::string, std::string>& block, std::vector<float>& weights,
-    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr, std::string weightsType, float eps, nvinfer1::ITensor* input,
+    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr, nvinfer1::ITensor* input,
     nvinfer1::INetworkDefinition* network)
 {
   nvinfer1::ITensor* output;
@@ -26,41 +26,21 @@ batchnormLayer(int layerIdx, std::map<std::string, std::string>& block, std::vec
   std::vector<float> bnRunningMean;
   std::vector<float> bnRunningVar;
 
-  if (weightsType == "weights") {
-    for (int i = 0; i < filters; ++i) {
-      bnBiases.push_back(weights[weightPtr]);
-      ++weightPtr;
-    }
-    for (int i = 0; i < filters; ++i) {
-      bnWeights.push_back(weights[weightPtr]);
-      ++weightPtr;
-    }
-    for (int i = 0; i < filters; ++i) {
-      bnRunningMean.push_back(weights[weightPtr]);
-      ++weightPtr;
-    }
-    for (int i = 0; i < filters; ++i) {
-      bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
-      ++weightPtr;
-    }
+  for (int i = 0; i < filters; ++i) {
+    bnBiases.push_back(weights[weightPtr]);
+    ++weightPtr;
   }
-  else {
-    for (int i = 0; i < filters; ++i) {
-      bnWeights.push_back(weights[weightPtr]);
-      ++weightPtr;
-    }
-    for (int i = 0; i < filters; ++i) {
-      bnBiases.push_back(weights[weightPtr]);
-      ++weightPtr;
-    }
-    for (int i = 0; i < filters; ++i) {
-      bnRunningMean.push_back(weights[weightPtr]);
-      ++weightPtr;
-    }
-    for (int i = 0; i < filters; ++i) {
-      bnRunningVar.push_back(sqrt(weights[weightPtr] + eps));
-      ++weightPtr;
-    }
+  for (int i = 0; i < filters; ++i) {
+    bnWeights.push_back(weights[weightPtr]);
+    ++weightPtr;
+  }
+  for (int i = 0; i < filters; ++i) {
+    bnRunningMean.push_back(weights[weightPtr]);
+    ++weightPtr;
+  }
+  for (int i = 0; i < filters; ++i) {
+    bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+    ++weightPtr;
   }
 
   int size = filters;

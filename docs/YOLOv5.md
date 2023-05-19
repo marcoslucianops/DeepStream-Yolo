@@ -1,6 +1,6 @@
 # YOLOv5 usage
 
-**NOTE**: You can use the main branch of the YOLOv5 repo to convert all model versions.
+**NOTE**: You can use the master branch of the YOLOv5 repo to convert all model versions.
 
 **NOTE**: The yaml file is not required.
 
@@ -20,30 +20,31 @@
 git clone https://github.com/ultralytics/yolov5.git
 cd yolov5
 pip3 install -r requirements.txt
+pip3 install onnx onnxsim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 
-Copy the `gen_wts_yoloV5.py` file from `DeepStream-Yolo/utils` directory to the `yolov5` folder.
+Copy the `export_yoloV5.py` file from `DeepStream-Yolo/utils` directory to the `yolov5` folder.
 
 #### 3. Download the model
 
-Download the `pt` file from [YOLOv5](https://github.com/ultralytics/yolov5/releases/) releases (example for YOLOv5s 6.1)
+Download the `pt` file from [YOLOv5](https://github.com/ultralytics/yolov5/releases/) releases (example for YOLOv5s 7.0)
 
 ```
-wget https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5s.pt
+wget https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt
 ```
 
-**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolov5_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+**NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for YOLOv5s)
+Generate the ONNX model file (example for YOLOv5s)
 
 ```
-python3 gen_wts_yoloV5.py -w yolov5s.pt
+python3 export_yoloV5.py -w yolov5s.pt --simplify
 ```
 
 **NOTE**: To convert a P6 model
@@ -75,7 +76,7 @@ or
 
 #### 5. Copy generated files
 
-Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 
 ##
 
@@ -128,10 +129,12 @@ Edit the `config_infer_primary_yoloV5.txt` file according to your model (example
 ```
 [property]
 ...
-custom-network-config=yolov5s.cfg
-model-file=yolov5s.wts
+onnx-file=yolov5s.onnx
+model-engine-file=yolov5s.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
+...
+parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 

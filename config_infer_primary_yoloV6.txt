@@ -2,9 +2,8 @@
 gpu-id=0
 net-scale-factor=0.0039215697906911373
 model-color-format=0
-custom-network-config=yolov6s.cfg
-model-file=yolov6s.wts
-model-engine-file=model_b1_gpu0_fp32.engine
+onnx-file=yolov6s.onnx
+model-engine-file=yolov6s.onnx_b1_gpu0_fp32.engine
 #int8-calib-file=calib.table
 labelfile-path=labels.txt
 batch-size=1
@@ -19,7 +18,6 @@ maintain-aspect-ratio=1
 symmetric-padding=1
 parse-bbox-func-name=NvDsInferParseYolo
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
-engine-create-func-name=NvDsInferYoloCudaEngineGet
 
 [class-attrs-all]
 nms-iou-threshold=0.45

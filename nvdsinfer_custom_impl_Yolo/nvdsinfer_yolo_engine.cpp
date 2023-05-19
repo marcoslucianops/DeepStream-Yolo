@@ -44,7 +44,7 @@ getYoloNetworkInfo(NetworkInfo& networkInfo, const NvDsInferContextInitParams* i
 
   yoloType = yoloCfg.substr(0, yoloCfg.find(".cfg"));
 
-  networkInfo.inputBlobName = "data";
+  networkInfo.inputBlobName = "input";
   networkInfo.networkType = yoloType;
   networkInfo.configFilePath = initParams->customNetworkConfigFilePath;
   networkInfo.wtsFilePath = initParams->modelFilePath;
@@ -52,7 +52,6 @@ getYoloNetworkInfo(NetworkInfo& networkInfo, const NvDsInferContextInitParams* i
   networkInfo.deviceType = (initParams->useDLA ? "kDLA" : "kGPU");
   networkInfo.numDetectedClasses = initParams->numDetectedClasses;
   networkInfo.clusterMode = initParams->clusterMode;
-  networkInfo.scoreThreshold = initParams->perClassDetectionParams->preClusterThreshold;
 
   if (initParams->networkMode == 0)
     networkInfo.networkMode = "FP32";

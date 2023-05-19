@@ -1,8 +1,8 @@
 # YOLOR usage
 
-**NOTE**: You need to use the main branch of the YOLOR repo to convert the model.
+**NOTE**: Select the correct branch of the YOLOR repo before the conversion.
 
-**NOTE**: The cfg file is required.
+**NOTE**: The cfg file is required for the main branch.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
@@ -20,31 +20,71 @@
 git clone https://github.com/WongKinYiu/yolor.git
 cd yolor
 pip3 install -r requirements.txt
+pip3 install onnx onnxsim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 
-Copy the `gen_wts_yolor.py` file from `DeepStream-Yolo/utils` directory to the `yolor` folder.
+Copy the `export_yolor.py` file from `DeepStream-Yolo/utils` directory to the `yolor` folder.
 
 #### 3. Download the model
 
 Download the `pt` file from [YOLOR](https://github.com/WongKinYiu/yolor) repo.
 
-**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolor_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+**NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for YOLOR-CSP)
+Generate the ONNX model file
+
+- Main branch
+
+  Example for YOLOR-CSP
+
+  ```
+  python3 export_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg --simplify
+  ```
+
+- Paper branch
+
+  Example for YOLOR-P6
+
+  ```
+  python3 export_yolor.py -w yolor-p6.pt --simplify
+  ```
+
+**NOTE**: To convert a P6 model
 
 ```
-python3 gen_wts_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg
+--p6
+```
+
+**NOTE**: To change the inference size (defaut: 640)
+
+```
+-s SIZE
+--size SIZE
+-s HEIGHT WIDTH
+--size HEIGHT WIDTH
+```
+
+Example for 1280
+
+```
+-s 1280
+```
+
+or
+
+```
+-s 1280 1280
 ```
 
 #### 5. Copy generated files
 
-Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder
+Copy the generated ONNX model file to the `DeepStream-Yolo` folder
 
 ##
 
@@ -97,10 +137,12 @@ Edit the `config_infer_primary_yolor.txt` file according to your model (example 
 ```
 [property]
 ...
-custom-network-config=yolor_csp.cfg
-model-file=yolor_csp.wts
+onnx-file=yolor_csp.onnx
+model-engine-file=yolor_csp.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
+...
+parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 

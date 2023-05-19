@@ -1,10 +1,10 @@
-# YOLOv8 usage
+# YOLONAS usage
 
 **NOTE**: The yaml file is not required.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_yoloV8 file](#edit-the-config_infer_primary_yolov8-file)
+* [Edit the config_infer_primary_yolonas file](#edit-the-config_infer_primary_yolonas-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,11 +12,11 @@
 
 ### Convert model
 
-#### 1. Download the YOLOv8 repo and install the requirements
+#### 1. Download the YOLO-NAS repo and install the requirements
 
 ```
-git clone https://github.com/ultralytics/ultralytics.git
-cd ultralytics
+git clone https://github.com/Deci-AI/super-gradients.git
+cd super-gradients
 pip3 install -r requirements.txt
 python3 setup.py install
 pip3 install onnx onnxsim onnxruntime
@@ -26,24 +26,42 @@ pip3 install onnx onnxsim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder.
+Copy the `export_yolonas.py` file from `DeepStream-Yolo/utils` directory to the `super-gradients` folder.
 
 #### 3. Download the model
 
-Download the `pt` file from [YOLOv8](https://github.com/ultralytics/assets/releases/) releases (example for YOLOv8s)
+Download the `pth` file from [YOLO-NAS](https://sghub.deci.ai/) website (example for YOLO-NAS S)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
+wget https://sghub.deci.ai/models/yolo_nas_s_coco.pth
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLOv8s)
+Generate the ONNX model file (example for YOLO-NAS S)
 
 ```
-python3 export_yoloV8.py -w yolov8s.pt --simplify
+python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify
+```
+
+**NOTE**: Model names
+
+```
+-m yolo_nas_s
+```
+
+or
+
+```
+-m yolo_nas_m
+```
+
+or
+
+```
+-m yolo_nas_l
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -115,19 +133,19 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ##
 
-### Edit the config_infer_primary_yoloV8 file
+### Edit the config_infer_primary_yolonas file
 
-Edit the `config_infer_primary_yoloV8.txt` file according to your model (example for YOLOv8s with 80 classes)
+Edit the `config_infer_primary_yolonas.txt` file according to your model (example for YOLO-NAS S with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=yolov8s.onnx
-model-engine-file=yolov8s.onnx_b1_gpu0_fp32.engine
+onnx-file=yolo_nas_s_coco.onnx
+model-engine-file=yolo_nas_s_coco.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
 ...
-parse-bbox-func-name=NvDsInferParseYolo
+parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
 
@@ -139,7 +157,7 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_yoloV8.txt
+config-file=config_infer_primary_yolonas.txt
 ```
 
 ##

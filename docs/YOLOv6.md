@@ -18,13 +18,14 @@
 git clone https://github.com/meituan/YOLOv6.git
 cd YOLOv6
 pip3 install -r requirements.txt
+pip3 install onnx onnxsim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 
-Copy the `gen_wts_yoloV6.py` file from `DeepStream-Yolo/utils` directory to the `YOLOv6` folder.
+Copy the `export_yoloV6.py` file from `DeepStream-Yolo/utils` directory to the `YOLOv6` folder.
 
 #### 3. Download the model
 
@@ -34,14 +35,14 @@ Download the `pt` file from [YOLOv6](https://github.com/meituan/YOLOv6/releases/
 wget https://github.com/meituan/YOLOv6/releases/download/0.3.0/yolov6s.pt
 ```
 
-**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolov6_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+**NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for YOLOv6-S 3.0)
+Generate the ONNX model file (example for YOLOv6-S 3.0)
 
 ```
-python3 gen_wts_yoloV6.py -w yolov6s.pt
+python3 export_yoloV6.py -w yolov6s.pt --simplify
 ```
 
 **NOTE**: To convert a P6 model
@@ -73,7 +74,7 @@ or
 
 #### 5. Copy generated files
 
-Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 
 ##
 
@@ -126,10 +127,12 @@ Edit the `config_infer_primary_yoloV6.txt` file according to your model (example
 ```
 [property]
 ...
-custom-network-config=yolov6s.cfg
-model-file=yolov6s.wts
+onnx-file=yolov6s.onnx
+model-engine-file=yolov6s.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
+...
+parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 

@@ -14,9 +14,10 @@ poolingLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::
 {
   nvinfer1::ITensor* output;
 
-  assert(block.at("type") == "maxpool" || block.at("type") == "avgpool");
+  assert(block.at("type") == "max" || block.at("type") == "maxpool" || block.at("type") == "avg" ||
+      block.at("type") == "avgpool");
 
-  if (block.at("type") == "maxpool") {
+  if (block.at("type") == "max" || block.at("type") == "maxpool") {
     assert(block.find("size") != block.end());
     assert(block.find("stride") != block.end());
 
@@ -36,7 +37,7 @@ poolingLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::
     }
     output = maxpool->getOutput(0);
   }
-  else if (block.at("type") == "avgpool") {
+  else if (block.at("type") == "avg" || block.at("type") == "avgpool") {
     nvinfer1::Dims inputDims = input->getDimensions();
     nvinfer1::IPoolingLayer* avgpool = network->addPoolingNd(*input, nvinfer1::PoolingType::kAVERAGE,
         nvinfer1::Dims{2, {inputDims.d[1], inputDims.d[2]}});

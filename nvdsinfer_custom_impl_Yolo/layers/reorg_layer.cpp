@@ -14,7 +14,7 @@ reorgLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::IT
 {
   nvinfer1::ITensor* output;
 
-  assert(block.at("type") == "reorg");
+  assert(block.at("type") == "reorg3d");
 
   nvinfer1::Dims inputDims = input->getDimensions();
 

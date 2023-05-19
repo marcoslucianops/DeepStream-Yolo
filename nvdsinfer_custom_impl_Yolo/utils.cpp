@@ -98,25 +98,6 @@ loadWeights(const std::string weightsFilePath, const std::string& networkType)
         break;
     }
   }
-  else if (weightsFilePath.find(".wts") != std::string::npos) {
-    std::ifstream file(weightsFilePath);
-    assert(file.good());
-    int32_t count;
-    file >> count;
-    assert(count > 0 && "\nInvalid .wts file.");
-
-    uint32_t floatWeight;
-    std::string name;
-    uint32_t size;
-
-    while (count--) {
-      file >> name >> std::dec >> size;
-      for (uint32_t x = 0, y = size; x < y; ++x) {
-        file >> std::hex >> floatWeight;
-        weights.push_back(*reinterpret_cast<float*>(&floatWeight));
-      };
-    }
-  }
   else {
     std::cerr << "\nFile " << weightsFilePath << " is not supported" << std::endl;
     assert(0);

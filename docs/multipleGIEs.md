@@ -26,9 +26,7 @@ cd DeepStream-Yolo
 
 #### 3. Copy the class names file to each GIE folder and remane it to `labels.txt`
 
-#### 4. Copy the `cfg` and `weights`/`wts` files to each GIE folder
-
-**NOTE**: It is important to keep the YOLO model reference (`yolov4_`, `yolov5_`, `yolor_`, etc) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+#### 4. Copy the `onnx` or `cfg` and `weights` files to each GIE folder
 
 ##
 
@@ -92,22 +90,36 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
 
 ### Edit the config_infer_primary files
 
-**NOTE**: Edit the files according to the model you will use (YOLOv4, YOLOv5, YOLOR, etc).
+**NOTE**: Edit the files according to the model you will use (YOLOv8, YOLOv5, YOLOv4, etc).
 
 **NOTE**: Do it for each GIE folder.
 
 * Edit the path of the `cfg` file
 
-  Example for gie1
+  Example for gie1 (Darknet YOLO)
 
   ```
   custom-network-config=gie1/yolo.cfg
-   ```
+  model-file=yolo.weights
+  ```
 
-  Example for gie2
+  Example for gie2 (Darknet YOLO)
 
   ```
   custom-network-config=gie2/yolo.cfg
+  model-file=yolo.weights
+  ```
+
+  Example for gie1 (ONNX)
+
+  ```
+  onnx-file=yolo.onnx
+  ```
+
+  Example for gie2 (ONNX)
+
+  ```
+  onnx-file=yolo.onnx
   ```
 
 * Edit the gie-unique-id

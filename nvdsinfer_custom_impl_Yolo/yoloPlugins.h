@@ -48,14 +48,13 @@ class YoloLayer : public nvinfer1::IPluginV2 {
     YoloLayer(const void* data, size_t length);
 
     YoloLayer(const uint& netWidth, const uint& netHeight, const uint& numClasses, const uint& newCoords,
-        const std::vector<TensorInfo>& yoloTensors, const uint64_t& outputSize, const uint& modelType,
-        const float& scoreThreshold);
+        const std::vector<TensorInfo>& yoloTensors, const uint64_t& outputSize);
 
     const char* getPluginType() const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
 
     const char* getPluginVersion() const noexcept override { return YOLOLAYER_PLUGIN_VERSION; }
 
-    int getNbOutputs() const noexcept override { return 4; }
+    int getNbOutputs() const noexcept override { return 1; }
 
     nvinfer1::Dims getOutputDimensions(int index, const nvinfer1::Dims* inputs, int nbInputDims) noexcept override;
 
@@ -68,7 +67,9 @@ class YoloLayer : public nvinfer1::IPluginV2 {
 
     void terminate() noexcept override {}
 
-    size_t getWorkspaceSize(int maxBatchSize) const noexcept override { return 0; }
+    size_t getWorkspaceSize(int maxBatchSize) const noexcept override {
+      return maxBatchSize * sizeof(int);
+    }
 
     int32_t enqueue(int batchSize, void const* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream)
         noexcept override;
@@ -93,8 +94,6 @@ class YoloLayer : public nvinfer1::IPluginV2 {
     uint m_NewCoords {0};
     std::vector<TensorInfo> m_YoloTensors;
     uint64_t m_OutputSize {0};
-    uint m_Type {0};
-    float m_ScoreThreshold {0};
 };
 
 class YoloLayerPluginCreator : public nvinfer1::IPluginCreator {

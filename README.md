@@ -2,39 +2,25 @@
 
 NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
-### **I will be back with updates soon, I'm full of work from my jobs right now. Sorry for the delay.**
+-------------------------------------
+### **Big update on DeepStream-Yolo**
+-------------------------------------
 
 ### Future updates
 
+* Models benchmarks
 * DeepStream tutorials
 * Dynamic batch-size
-* Segmentation model support
-* Classification model support
+* Updated INT8 calibration
+* Support for segmentation models
+* Support for classification models
 
 ### Improvements on this repository
 
-* Darknet cfg params parser (no need to edit `nvdsparsebbox_Yolo.cpp` or other files)
-* Support for `new_coords` and `scale_x_y` params
-* Support for new models
-* Support for new layers
-* Support for new activations
-* Support for convolutional groups
 * Support for INT8 calibration
 * Support for non square models
-* New documentation for multiple models
-* YOLOv5 >= 2.0 support
-* YOLOR support
-* GPU YOLO Decoder [#138](https://github.com/marcoslucianops/DeepStream-Yolo/issues/138)
-* PP-YOLOE support
-* YOLOv7 support
-* Optimized NMS [#142](https://github.com/marcoslucianops/DeepStream-Yolo/issues/142)
-* Models benchmarks
-* YOLOv8 support
-* YOLOX support
-* PP-YOLOE+ support
-* YOLOv6 >= 2.0 support
-* **ONNX model support with GPU post-processing**
-* **YOLO-NAS support (ONNX)**
+* **Support for Darknet YOLO models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing**
+* **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
 
 ##
 
@@ -55,6 +41,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * [YOLOR usage](docs/YOLOR.md)
 * [YOLOX usage](docs/YOLOX.md)
 * [PP-YOLOE / PP-YOLOE+ usage](docs/PPYOLOE.md)
+* [YOLO-NAS usage](docs/YOLONAS.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
@@ -133,13 +120,14 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * [Darknet YOLO](https://github.com/AlexeyAB/darknet)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
-* [YOLOv5 >= 2.0](https://github.com/ultralytics/yolov5)
-* [YOLOv6 >= 2.0](https://github.com/meituan/YOLOv6)
+* [YOLOv5](https://github.com/ultralytics/yolov5)
+* [YOLOv6](https://github.com/meituan/YOLOv6)
 * [YOLOv7](https://github.com/WongKinYiu/yolov7)
 * [YOLOv8](https://github.com/ultralytics/ultralytics)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
-* [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.5/configs/ppyoloe)
+* [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyoloe)
+* [YOLO-NAS](https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md)
 
 ##
 
@@ -161,7 +149,7 @@ sample = 1920x1080 video
 - Eval
 
 ```
-nms-iou-threshold = 0.6 (Darknet and YOLOv8) / 0.65 (YOLOv5, YOLOv6, YOLOv7, YOLOR and YOLOX) / 0.7 (Paddle)
+nms-iou-threshold = 0.6 (Darknet) / 0.65 (YOLOv5, YOLOv6, YOLOv7, YOLOR and YOLOX) / 0.7 (Paddle, YOLO-NAS and YOLOv8)
 pre-cluster-threshold = 0.001
 topk = 300
 ```
@@ -169,7 +157,7 @@ topk = 300
 - Test
 
 ```
-nms-iou-threshold = 0.45 / 0.7 (Paddle)
+nms-iou-threshold = 0.45
 pre-cluster-threshold = 0.25
 topk = 300
 ```
@@ -182,30 +170,7 @@ topk = 300
 
 | DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
 |:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
-| PP-YOLOE-x         | FP16      | 640        | 0.506        | 0.681   | 0.551    | 116.54                     |
-| PP-YOLOE-l         | FP16      | 640        | 0.498        | 0.674   | 0.545    | 187.93                     |
-| PP-YOLOE-m         | FP16      | 640        | 0.476        | 0.646   | 0.522    | 257.42                     |
-| PP-YOLOE-s (400)   | FP16      | 640        | 0.422        | 0.589   | 0.463    | 465.23                     |
-| YOLOv7-E6E         | FP16      | 1280       | 0.476        | 0.648   | 0.521    | 47.82                      |
-| YOLOv7-D6          | FP16      | 1280       | 0.479        | 0.648   | 0.520    | 60.66                      |
-| YOLOv7-E6          | FP16      | 1280       | 0.471        | 0.640   | 0.516    | 73.05                      |
-| YOLOv7-W6          | FP16      | 1280       | 0.444        | 0.610   | 0.483    | 110.29                     |
-| YOLOv7-X*          | FP16      | 640        | 0.496        | 0.679   | 0.536    | 162.31                     |
-| YOLOv7*            | FP16      | 640        | 0.476        | 0.660   | 0.518    | 237.79                     |
-| YOLOv7-Tiny Leaky* | FP16      | 640        | 0.345        | 0.516   | 0.372    | 611.36                     |
-| YOLOv7-Tiny Leaky* | FP16      | 416        | 0.328        | 0.493   | 0.348    | 633.73                     |
-| YOLOv5x6 6.1       | FP16      | 1280       | 0.508        | 0.683   | 0.554    | 54.88                      |
-| YOLOv5l6 6.1       | FP16      | 1280       | 0.494        | 0.668   | 0.540    | 87.86                      |
-| YOLOv5m6 6.1       | FP16      | 1280       | 0.469        | 0.644   | 0.514    | 142.68                     |
-| YOLOv5s6 6.1       | FP16      | 1280       | 0.399        | 0.581   | 0.438    | 271.19                     |
-| YOLOv5n6 6.1       | FP16      | 1280       | 0.317        | 0.487   | 0.344    | 392.20                     |
-| YOLOv5x 6.1        | FP16      | 640        | 0.470        | 0.652   | 0.513    | 152.99                     |
-| YOLOv5l 6.1        | FP16      | 640        | 0.454        | 0.636   | 0.496    | 247.60                     |
-| YOLOv5m 6.1        | FP16      | 640        | 0.421        | 0.604   | 0.458    | 375.06                     |
-| YOLOv5s 6.1        | FP16      | 640        | 0.344        | 0.528   | 0.371    | 602.44                     |
-| YOLOv5n 6.1        | FP16      | 640        | 0.247        | 0.413   | 0.256    | 629.04                     |
-| YOLOv4**           | FP16      | 608        | 0.497        | 0.739   | 0.549    | 206.23                     |
-| YOLOv4-Tiny        | FP16      | 416        | 0.215        | 0.402   | 0.205    | 634.69                     |
+| Coming soon        | FP16      | 640        |         |    |     |                      |
 
 ##
 
@@ -326,7 +291,7 @@ sudo prime-select nvidia
   * Run
 
     ```
-    sudo sh NVIDIA-Linux-x86_64-510.47.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+    sudo sh NVIDIA-Linux-x86_64-525.105.17.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
     ```
 
 </blockquote></details>
@@ -1005,7 +970,7 @@ config-file=config_infer_primary_yoloV2.txt
 
 ### NMS Configuration
 
-To change the `nms-iou-threshold`, `pre-cluster-threshold` and `topk` values, modify the config_infer file and regenerate the model engine file
+To change the `nms-iou-threshold`, `pre-cluster-threshold` and `topk` values, modify the config_infer file
 
 ```
 [class-attrs-all]
@@ -1014,15 +979,13 @@ pre-cluster-threshold=0.25
 topk=300
 ```
 
-**NOTE**: It is important to regenerate the engine to get the max detection speed based on `pre-cluster-threshold` you set.
-
-**NOTE**: Lower `topk` values will result in more performance.
-
 **NOTE**: Make sure to set `cluster-mode=2` in the config_infer file.
 
 ##
 
 ### INT8 calibration
+
+**NOTE**: For now, Only for Darknet YOLO model.
 
 #### 1. Install OpenCV
 
@@ -1123,7 +1086,7 @@ sudo apt-get install libopencv-dev
   deepstream-app -c deepstream_app_config.txt
   ```
 
-**NOTE**: NVIDIA recommends at least 500 images to get a good accuracy. On this example, I used 1000 images to get better accuracy (more images = more accuracy). Higher `INT8_CALIB_BATCH_SIZE` values will result in more accuracy and faster calibration speed. Set it according to you GPU memory. This process can take a long time.
+**NOTE**: NVIDIA recommends at least 500 images to get a good accuracy. On this example, I recommend to use 1000 images to get better accuracy (more images = more accuracy). Higher `INT8_CALIB_BATCH_SIZE` values will result in more accuracy and faster calibration speed. Set it according to you GPU memory. This process may take a long time.
 
 ##
 

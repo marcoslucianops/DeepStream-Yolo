@@ -13,7 +13,7 @@ implicitLayer(int layerIdx, std::map<std::string, std::string>& block, std::vect
 {
   nvinfer1::ITensor* output;
 
-  assert(block.at("type") == "implicit_add" || block.at("type") == "implicit_mul");
+  assert(block.at("type") == "implicit" || block.at("type") == "implicit_add" || block.at("type") == "implicit_mul");
   assert(block.find("filters") != block.end());
 
   int filters = std::stoi(block.at("filters"));

@@ -31,21 +31,15 @@
 
 #include "layers/convolutional_layer.h"
 #include "layers/deconvolutional_layer.h"
-#include "layers/c2f_layer.h"
 #include "layers/batchnorm_layer.h"
 #include "layers/implicit_layer.h"
 #include "layers/channels_layer.h"
 #include "layers/shortcut_layer.h"
+#include "layers/sam_layer.h"
 #include "layers/route_layer.h"
 #include "layers/upsample_layer.h"
 #include "layers/pooling_layer.h"
 #include "layers/reorg_layer.h"
-#include "layers/reduce_layer.h"
-#include "layers/shuffle_layer.h"
-#include "layers/softmax_layer.h"
-#include "layers/cls_layer.h"
-#include "layers/reg_layer.h"
-#include "layers/detect_v8_layer.h"
 
 struct NetworkInfo
 {
@@ -57,7 +51,6 @@ struct NetworkInfo
   std::string deviceType;
   uint numDetectedClasses;
   int clusterMode;
-  float scoreThreshold;
   std::string networkMode;
 };
 
@@ -98,7 +91,6 @@ class Yolo : public IModelParser {
     const uint m_NumDetectedClasses;
     const int m_ClusterMode;
     const std::string m_NetworkMode;
-    const float m_ScoreThreshold;
 
     uint m_InputH;
     uint m_InputW;

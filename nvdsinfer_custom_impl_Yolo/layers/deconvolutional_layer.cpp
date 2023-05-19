@@ -9,8 +9,8 @@
 
 nvinfer1::ITensor*
 deconvolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std::vector<float>& weights,
-    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr, std::string weightsType, int& inputChannels,
-    nvinfer1::ITensor* input, nvinfer1::INetworkDefinition* network, std::string layerName)
+    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr, int& inputChannels, nvinfer1::ITensor* input,
+    nvinfer1::INetworkDefinition* network, std::string layerName)
 {
   nvinfer1::ITensor* output;
 
@@ -47,43 +47,23 @@ deconvolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, st
   nvinfer1::Weights convWt {nvinfer1::DataType::kFLOAT, nullptr, size};
   nvinfer1::Weights convBias {nvinfer1::DataType::kFLOAT, nullptr, bias};
 
-  if (weightsType == "weights") {
-    float* val;
-    if (bias != 0) {
-      val = new float[filters];
-      for (int i = 0; i < filters; ++i) {
-          val[i] = weights[weightPtr];
-          ++weightPtr;
-      }
-      convBias.values = val;
-      trtWeights.push_back(convBias);
-    }
-    val = new float[size];
-    for (int i = 0; i < size; ++i) {
+  float* val;
+  if (bias != 0) {
+    val = new float[filters];
+    for (int i = 0; i < filters; ++i) {
         val[i] = weights[weightPtr];
         ++weightPtr;
     }
-    convWt.values = val;
-    trtWeights.push_back(convWt);
+    convBias.values = val;
+    trtWeights.push_back(convBias);
   }
-  else {
-    float* val = new float[size];
-    for (int i = 0; i < size; ++i) {
+  val = new float[size];
+  for (int i = 0; i < size; ++i) {
       val[i] = weights[weightPtr];
       ++weightPtr;
-    }
-    convWt.values = val;
-    trtWeights.push_back(convWt);
-    if (bias != 0) {
-      val = new float[filters];
-      for (int i = 0; i < filters; ++i) {
-        val[i] = weights[weightPtr];
-        ++weightPtr;
-      }
-      convBias.values = val;
-      trtWeights.push_back(convBias);
-    }
   }
+  convWt.values = val;
+  trtWeights.push_back(convWt);
 
   nvinfer1::IDeconvolutionLayer* conv = network->addDeconvolutionNd(*input, filters,
       nvinfer1::Dims{2, {kernelSize, kernelSize}}, convWt, convBias);

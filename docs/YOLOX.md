@@ -1,5 +1,7 @@
 # YOLOX usage
 
+**NOTE**: You can use the main branch of the YOLOX repo to convert all model versions.
+
 **NOTE**: The yaml file is not required.
 
 * [Convert model](#convert-model)
@@ -18,13 +20,15 @@
 git clone https://github.com/Megvii-BaseDetection/YOLOX.git
 cd YOLOX
 pip3 install -r requirements.txt
+python3 setup.py develop
+pip3 install onnx onnxsim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 
-Copy the `gen_wts_yolox.py` file from `DeepStream-Yolo/utils` directory to the `YOLOX` folder.
+Copy the `export_yolox.py` file from `DeepStream-Yolo/utils` directory to the `YOLOX` folder.
 
 #### 3. Download the model
 
@@ -34,19 +38,19 @@ Download the `pth` file from [YOLOX](https://github.com/Megvii-BaseDetection/YOL
 wget https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth
 ```
 
-**NOTE**: You can use your custom model, but it is important to keep the YOLO model reference (`yolox_`) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+**NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the `cfg` and `wts` files (example for YOLOX-s standard)
+Generate the ONNX model file (example for YOLOX-s standard)
 
 ```
-python3 gen_wts_yolox.py -w yolox_s.pth -e exps/default/yolox_s.py
+python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify
 ```
 
 #### 5. Copy generated files
 
-Copy the generated `cfg` and `wts` files to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 
 ##
 
@@ -99,10 +103,12 @@ Edit the `config_infer_primary_yolox.txt` file according to your model (example 
 ```
 [property]
 ...
-custom-network-config=yolox_s.cfg
-model-file=yolox_s.wts
+onnx-file=yolox_s.onnx
+model-engine-file=yolox_s.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
+...
+parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
