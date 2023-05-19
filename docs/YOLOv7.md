@@ -140,6 +140,13 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
+**NOTE**: The **YOLOv7** resizes the input with center padding. To get better accuracy, use
+
+```
+maintain-aspect-ratio=1
+symmetric-padding=1
+```
+
 ##
 
 ### Edit the deepstream_app_config file
@@ -158,5 +165,7 @@ config-file=config_infer_primary_yoloV7.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: The TensorRT engine file may take a very long time to generate (sometimes more than 10 minutes).
 
 **NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

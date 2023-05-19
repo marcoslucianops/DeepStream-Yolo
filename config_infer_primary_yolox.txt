@@ -1,6 +1,6 @@
 [property]
 gpu-id=0
-net-scale-factor=0
+net-scale-factor=1
 model-color-format=0
 onnx-file=yolox_s.onnx
 model-engine-file=yolox_s.onnx_b1_gpu0_fp32.engine

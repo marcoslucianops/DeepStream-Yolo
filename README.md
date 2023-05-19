@@ -8,7 +8,6 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 
 ### Future updates
 
-* Models benchmarks
 * DeepStream tutorials
 * Dynamic batch-size
 * Updated INT8 calibration
@@ -19,6 +18,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 
 * Support for INT8 calibration
 * Support for non square models
+* Models benchmarks
 * **Support for Darknet YOLO models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing**
 * **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
 
@@ -168,9 +168,36 @@ topk = 300
 
 **NOTE**: ** = The YOLOv4 is trained with the trainvalno5k set, so the mAP is high on val2017 test
 
-| DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
-|:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
-| Coming soon        | FP16      | 640        |         |    |     |                      |
+**NOTE**: The p3.2xlarge instance (AWS) seems to max out at 625-635 FPS on DeepStream even using lighter models
+
+| DeepStream       | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
+|:----------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
+| YOLO-NAS L       | FP16      | 640        | 0.484        | 0.658   | 0.532    | 235.27                     |
+| YOLO-NAS M       | FP16      | 640        | 0.480        | 0.651   | 0.524    | 287.39                     |
+| YOLO-NAS S       | FP16      | 640        | 0.442        | 0.614   | 0.485    | 478.52                     |
+| PP-YOLOE+_x      | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| PP-YOLOE+_l      | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| PP-YOLOE+_m      | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| PP-YOLOE+_s      | FP16      | 640        | 0.424        | 0.594   | 0.464    | 476.13                     |
+| PP-YOLOE-s (400) | FP16      | 640        | 0.423        | 0.589   | 0.463    | 461.23                     |
+| YOLOX-x          | FP16      | 640        | 0.447        | 0.616   | 0.483    | 125.40                     |
+| YOLOX-l          | FP16      | 640        | 0.430        | 0.598   | 0.466    | 193.10                     |
+| YOLOX-m          | FP16      | 640        | 0.397        | 0.566   | 0.431    | 298.61                     |
+| YOLOX-s          | FP16      | 640        | 0.335        | 0.502   | 0.365    | 522.05                     |
+| YOLOX-s legacy   | FP16      | 640        | 0.375        | 0.569   | 0.407    | 518.52                     |
+| YOLOX-Darknet    | FP16      | 640        | 0.414        | 0.595   | 0.453    | 212.88                     |
+| YOLOX-Tiny       | FP16      | 640        | 0.274        | 0.427   | 0.292    | 633.95                     |
+| YOLOX-Nano       | FP16      | 640        | 0.212        | 0.342   | 0.222    | 633.04                     |
+| YOLOv8x          | FP16      | 640        | 0.499        | 0.669   | 0.545    | 130.49                     |
+| YOLOv8l          | FP16      | 640        | 0.491        | 0.660   | 0.535    | 180.75                     |
+| YOLOv8m          | FP16      | 640        | 0.468        | 0.637   | 0.510    | 278.08                     |
+| YOLOv8s          | FP16      | 640        | 0.415        | 0.578   | 0.453    | 493.45                     |
+| YOLOv8n          | FP16      | 640        | 0.343        | 0.492   | 0.373    | 627.43                     |
+| YOLOv7           | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| YOLOv6s 3.0      | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| YOLOv5s 7.0      | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| YOLOv4           | FP16      | 640        | 0.        | 0.   | 0.    |                      |
+| YOLOv3           | FP16      | 640        | 0.        | 0.   | 0.    |                      |
 
 ##
 
@@ -925,6 +952,8 @@ model-file=yolov4.weights
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: The TensorRT engine file may take a very long time to generate (sometimes more than 10 minutes).
 
 **NOTE**: If you want to use YOLOv2 or YOLOv2-Tiny models, change the `deepstream_app_config.txt` file before run it
 

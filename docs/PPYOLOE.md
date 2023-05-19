@@ -107,13 +107,19 @@ parse-bbox-func-name=NvDsInferParseYoloE
 
 **NOTE**: If you use the **legacy** model, you should edit the `config_infer_primary_ppyoloe.txt` file.
 
+**NOTE**: The **PP-YOLOE+ and PP-YOLOE legacy** do not resize the input with padding. To get better accuracy, use
+
+```
+maintain-aspect-ratio=0
+```
+
 **NOTE**: The **PP-YOLOE+** uses zero mean normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```
 net-scale-factor=0.0039215697906911373
 ```
 
-**NOTE**: The **PP-YOLOE (legacy)** uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
+**NOTE**: The **PP-YOLOE legacy** uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
 
 Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
 
@@ -142,5 +148,7 @@ config-file=config_infer_primary_ppyoloe_plus.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: The TensorRT engine file may take a very long time to generate (sometimes more than 10 minutes).
 
 **NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

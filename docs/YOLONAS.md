@@ -1,4 +1,4 @@
-# YOLONAS usage
+# YOLO-NAS usage
 
 **NOTE**: The yaml file is not required.
 
@@ -149,6 +149,13 @@ parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
 
+**NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
+
+```
+maintain-aspect-ratio=1
+symmetric-padding=0
+```
+
 ##
 
 ### Edit the deepstream_app_config file
@@ -167,5 +174,7 @@ config-file=config_infer_primary_yolonas.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: The TensorRT engine file may take a very long time to generate (sometimes more than 10 minutes).
 
 **NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.

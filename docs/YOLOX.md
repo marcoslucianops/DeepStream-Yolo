@@ -32,7 +32,7 @@ Copy the `export_yolox.py` file from `DeepStream-Yolo/utils` directory to the `Y
 
 #### 3. Download the model
 
-Download the `pth` file from [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX/releases/) releases (example for YOLOX-s standard)
+Download the `pth` file from [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX/releases/) releases (example for YOLOX-s)
 
 ```
 wget https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth
@@ -42,7 +42,7 @@ wget https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yo
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLOX-s standard)
+Generate the ONNX model file (example for YOLOX-s)
 
 ```
 python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify
@@ -98,7 +98,7 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_yolox file
 
-Edit the `config_infer_primary_yolox.txt` file according to your model (example for YOLOX-s standard with 80 classes)
+Edit the `config_infer_primary_yolox.txt` file according to your model (example for YOLOX-s with 80 classes)
 
 ```
 [property]
@@ -114,10 +114,17 @@ parse-bbox-func-name=NvDsInferParseYolo
 
 **NOTE**: If you use the **legacy** model, you should edit the `config_infer_primary_yolox_legacy.txt` file.
 
-**NOTE**: The **YOLOX standard** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
+**NOTE**: The **YOLOX and YOLOX legacy** resize the input with left/top padding. To get better accuracy, use
 
 ```
-net-scale-factor=0
+maintain-aspect-ratio=1
+symmetric-padding=0
+```
+
+**NOTE**: The **YOLOX** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
+
+```
+net-scale-factor=1
 ```
 
 **NOTE**: The **YOLOX legacy** uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
@@ -149,5 +156,7 @@ config-file=config_infer_primary_yolox.txt
 ```
 deepstream-app -c deepstream_app_config.txt
 ```
+
+**NOTE**: The TensorRT engine file may take a very long time to generate (sometimes more than 10 minutes).
 
 **NOTE**: For more information about custom models configuration (`batch-size`, `network-mode`, etc), please check the [`docs/customModels.md`](customModels.md) file.
