@@ -1,5 +1,7 @@
 # YOLOv6 usage
 
+**NOTE**: You need to change the branch of the YOLOv6 repo according to the version of the model you want to convert.
+
 **NOTE**: The yaml file is not required.
 
 * [Convert model](#convert-model)
@@ -29,17 +31,17 @@ Copy the `export_yoloV6.py` file from `DeepStream-Yolo/utils` directory to the `
 
 #### 3. Download the model
 
-Download the `pt` file from [YOLOv6](https://github.com/meituan/YOLOv6/releases/) releases (example for YOLOv6-S 3.0)
+Download the `pt` file from [YOLOv6](https://github.com/meituan/YOLOv6/releases/) releases (example for YOLOv6-S 4.0)
 
 ```
-wget https://github.com/meituan/YOLOv6/releases/download/0.3.0/yolov6s.pt
+wget https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s.pt
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLOv6-S 3.0)
+Generate the ONNX model file (example for YOLOv6-S 4.0)
 
 ```
 python3 export_yoloV6.py -w yolov6s.pt --simplify
@@ -122,7 +124,7 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_yoloV6 file
 
-Edit the `config_infer_primary_yoloV6.txt` file according to your model (example for YOLOv6-S 3.0 with 80 classes)
+Edit the `config_infer_primary_yoloV6.txt` file according to your model (example for YOLOv6-S 4.0 with 80 classes)
 
 ```
 [property]

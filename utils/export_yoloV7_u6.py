@@ -5,10 +5,9 @@ import warnings
 import onnx
 import torch
 import torch.nn as nn
-import models
 from models.experimental import attempt_load
+from models.yolo import Detect, V6Detect, IV6Detect
 from utils.torch_utils import select_device
-from utils.activations import Hardswish, SiLU
 
 
 class DeepStreamOutput(nn.Module):
@@ -16,10 +15,10 @@ class DeepStreamOutput(nn.Module):
         super().__init__()
 
     def forward(self, x):
+        x = x.transpose(1, 2)
         boxes = x[:, :, :4]
-        objectness = x[:, :, 4:5]
-        scores, classes = torch.max(x[:, :, 5:], 2, keepdim=True)
-        return torch.cat((boxes, scores * objectness, classes), dim=2)
+        scores, classes = torch.max(x[:, :, 4:], 2, keepdim=True)
+        return torch.cat((boxes, scores, classes), dim=2)
 
 
 def suppress_warnings():
@@ -28,32 +27,25 @@ def suppress_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 
-def yolov7_export(weights, device):
-    model = attempt_load(weights, map_location=device)
-    for k, m in model.named_modules():
-        m._non_persistent_buffers_set = set()
-        if isinstance(m, models.common.Conv):
-            if isinstance(m.act, nn.Hardswish):
-                m.act = Hardswish()
-            elif isinstance(m.act, nn.SiLU):
-                m.act = SiLU()
-    model.model[-1].export = False
-    model.model[-1].concat = True
+def yolov7_u6_export(weights, device):
+    model = attempt_load(weights, device=device, inplace=True, fuse=True)
     model.eval()
+    for k, m in model.named_modules():
+        if isinstance(m, (Detect, V6Detect, IV6Detect)):
+            m.inplace = False
+            m.dynamic = False
+            m.export = True
     return model
 
 
 def main(args):
     suppress_warnings()
     device = select_device('cpu')
-    model = yolov7_export(args.weights, device)
+    model = yolov7_u6_export(args.weights, device)
 
     model = nn.Sequential(model, DeepStreamOutput())
 
     img_size = args.size * 2 if len(args.size) == 1 else args.size
-
-    if img_size == [640, 640] and args.p6:
-        img_size = [1280] * 2
 
     onnx_input_im = torch.zeros(1, 3, *img_size).to(device)
     onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
@@ -69,10 +61,9 @@ def main(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='DeepStream YOLOv7 conversion')
+    parser = argparse.ArgumentParser(description='DeepStream YOLOv7-u6 conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
-    parser.add_argument('--p6', action='store_true', help='P6 model')
     parser.add_argument('--opset', type=int, default=12, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     args = parser.parse_args()

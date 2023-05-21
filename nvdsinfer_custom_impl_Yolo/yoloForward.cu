@@ -50,13 +50,12 @@ __global__ void gpuYoloLayer(const float* input, float* output, int* count, cons
 
   int _count = (int)atomicAdd(count, 1);
 
-  output[_count * 7 + 0] = xc;
-  output[_count * 7 + 1] = yc;
-  output[_count * 7 + 2] = w;
-  output[_count * 7 + 3] = h;
-  output[_count * 7 + 4] = maxProb;
-  output[_count * 7 + 5] = maxIndex;
-  output[_count * 7 + 6] = objectness;
+  output[_count * 6 + 0] = xc;
+  output[_count * 6 + 1] = yc;
+  output[_count * 6 + 2] = w;
+  output[_count * 6 + 3] = h;
+  output[_count * 6 + 4] = maxProb * objectness;
+  output[_count * 6 + 5] = maxIndex;
 }
 
 cudaError_t cudaYoloLayer(const void* input, void* output, void* count, const uint& batchSize, uint64_t& inputSize,
@@ -76,7 +75,7 @@ cudaError_t cudaYoloLayer(const void* input, void* output, void* count, const ui
   for (unsigned int batch = 0; batch < batchSize; ++batch) {
     gpuYoloLayer<<<number_of_blocks, threads_per_block, 0, stream>>>(
         reinterpret_cast<const float*> (input) + (batch * inputSize),
-        reinterpret_cast<float*> (output) + (batch * 7 * outputSize),
+        reinterpret_cast<float*> (output) + (batch * 6 * outputSize),
         reinterpret_cast<int*> (count) + (batch),
         netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, scaleXY,
         reinterpret_cast<const float*> (anchors), reinterpret_cast<const int*> (mask));

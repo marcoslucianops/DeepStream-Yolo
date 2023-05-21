@@ -103,7 +103,7 @@ nvinfer1::Dims
 YoloLayer::getOutputDimensions(int index, const nvinfer1::Dims* inputs, int nbInputDims) noexcept
 {
   assert(index == 0);
-  return nvinfer1::Dims{2, {static_cast<int>(m_OutputSize), 7}};
+  return nvinfer1::Dims{2, {static_cast<int>(m_OutputSize), 6}};
 }
 
 bool
@@ -125,7 +125,7 @@ YoloLayer::enqueue(int batchSize, void const* const* inputs, void* const* output
     noexcept
 {
   void* output = outputs[0];
-  CUDA_CHECK(cudaMemsetAsync((float*) output, 0, sizeof(float) * m_OutputSize * 7 * batchSize, stream));
+  CUDA_CHECK(cudaMemsetAsync((float*) output, 0, sizeof(float) * m_OutputSize * 6 * batchSize, stream));
 
   void* count = workspace;
   CUDA_CHECK(cudaMemsetAsync((int*) count, 0, sizeof(int) * batchSize, stream));

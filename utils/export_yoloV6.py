@@ -6,8 +6,13 @@ import onnx
 import torch
 import torch.nn as nn
 from yolov6.utils.checkpoint import load_checkpoint
-from yolov6.layers.common import RepVGGBlock, ConvModule, SiLU
+from yolov6.layers.common import RepVGGBlock, SiLU
 from yolov6.models.effidehead import Detect
+
+try:
+    from yolov6.layers.common import ConvModule
+except ImportError:
+    from yolov6.layers.common import Conv as ConvModule
 
 
 class DeepStreamOutput(nn.Module):
@@ -15,11 +20,10 @@ class DeepStreamOutput(nn.Module):
         super().__init__()
 
     def forward(self, x):
-        print(x)
         boxes = x[:, :, :4]
         objectness = x[:, :, 4:5]
         scores, classes = torch.max(x[:, :, 5:], 2, keepdim=True)
-        return torch.cat((boxes, scores, classes, objectness), dim=2)
+        return torch.cat((boxes, scores * objectness, classes), dim=2)
 
 
 def suppress_warnings():
