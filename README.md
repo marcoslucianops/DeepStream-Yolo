@@ -22,7 +22,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * Support for non square models
 * Models benchmarks
 * **Support for Darknet YOLO models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing**
-* **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
+* **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
 
 ##
 
@@ -42,6 +42,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * [YOLOv8 usage](docs/YOLOv8.md)
 * [YOLOR usage](docs/YOLOR.md)
 * [YOLOX usage](docs/YOLOX.md)
+* [DAMO-YOLO usage](docs/DAMOYOLO.md)
 * [PP-YOLOE / PP-YOLOE+ usage](docs/PPYOLOE.md)
 * [YOLO-NAS usage](docs/YOLONAS.md)
 * [Using your custom model](docs/customModels.md)
@@ -128,6 +129,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * [YOLOv8](https://github.com/ultralytics/ultralytics)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
+* [DAMO-YOLO](https://github.com/tinyvision/DAMO-YOLO)
 * [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyoloe)
 * [YOLO-NAS](https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md)
 
@@ -170,7 +172,7 @@ topk = 300
 
 **NOTE**: ** = The YOLOv4 is trained with the trainvalno5k set, so the mAP is high on val2017 test.
 
-**NOTE**: The p3.2xlarge instance (AWS) seems to max out at 625-635 FPS on DeepStream even using lighter models.
+**NOTE**: The V100 GPU decoder seems to max out at 625-635 FPS on DeepStream even using lighter models.
 
 | DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
 |:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|

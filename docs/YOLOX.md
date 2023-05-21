@@ -2,8 +2,6 @@
 
 **NOTE**: You can use the main branch of the YOLOX repo to convert all model versions.
 
-**NOTE**: The yaml file is not required.
-
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
 * [Edit the config_infer_primary_yolox file](#edit-the-config_infer_primary_yolox-file)

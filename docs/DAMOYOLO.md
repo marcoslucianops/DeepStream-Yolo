@@ -1,10 +1,8 @@
-# YOLO-NAS usage
-
-**NOTE**: The yaml file is not required.
+# DAMO-YOLO usage
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_yolonas file](#edit-the-config_infer_primary_yolonas-file)
+* [Edit the config_infer_primary_damoyolo file](#edit-the-config_infer_primary_damoyolo-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,13 +10,12 @@
 
 ### Convert model
 
-#### 1. Download the YOLO-NAS repo and install the requirements
+#### 1. Download the DAMO-YOLO repo and install the requirements
 
 ```
-git clone https://github.com/Deci-AI/super-gradients.git
-cd super-gradients
+git clone https://github.com/tinyvision/DAMO-YOLO.git
+cd DAMO-YOLO
 pip3 install -r requirements.txt
-python3 setup.py install
 pip3 install onnx onnxsim onnxruntime
 ```
 
@@ -26,42 +23,24 @@ pip3 install onnx onnxsim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_yolonas.py` file from `DeepStream-Yolo/utils` directory to the `super-gradients` folder.
+Copy the `export_damoyolo.py` file from `DeepStream-Yolo/utils` directory to the `DAMO-YOLO` folder.
 
 #### 3. Download the model
 
-Download the `pth` file from [YOLO-NAS](https://sghub.deci.ai/) releases (example for YOLO-NAS S)
+Download the `pth` file from [DAMO-YOLO](https://github.com/tinyvision/DAMO-YOLO) releases (example for DAMO-YOLO-S*)
 
 ```
-wget https://sghub.deci.ai/models/yolo_nas_s_coco.pth
+wget https://idstcv.oss-cn-zhangjiakou.aliyuncs.com/DAMO-YOLO/release_model/clean_model_0317/damoyolo_tinynasL25_S_477.pth
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLO-NAS S)
+Generate the ONNX model file (example for DAMO-YOLO-S*)
 
 ```
-python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify
-```
-
-**NOTE**: Model names
-
-```
--m yolo_nas_s
-```
-
-or
-
-```
--m yolo_nas_m
-```
-
-or
-
-```
--m yolo_nas_l
+python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --simplify
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -133,15 +112,15 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ##
 
-### Edit the config_infer_primary_yolonas file
+### Edit the config_infer_primary_damoyolo file
 
-Edit the `config_infer_primary_yolonas.txt` file according to your model (example for YOLO-NAS S with 80 classes)
+Edit the `config_infer_primary_damoyolo.txt` file according to your model (example for DAMO-YOLO-S* with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=yolo_nas_s_coco.onnx
-model-engine-file=yolo_nas_s_coco.onnx_b1_gpu0_fp32.engine
+onnx-file=damoyolo_tinynasL25_S.onnx
+model-engine-file=damoyolo_tinynasL25_S.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
 ...
@@ -149,11 +128,10 @@ parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
 
-**NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
+**NOTE**: The **DAMO-YOLO** do not resize the input with padding. To get better accuracy, use
 
 ```
-maintain-aspect-ratio=1
-symmetric-padding=0
+maintain-aspect-ratio=0
 ```
 
 ##
@@ -164,7 +142,7 @@ symmetric-padding=0
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_yolonas.txt
+config-file=config_infer_primary_damoyolo.txt
 ```
 
 ##
