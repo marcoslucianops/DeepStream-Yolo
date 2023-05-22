@@ -23,6 +23,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * Models benchmarks
 * **Support for Darknet YOLO models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing**
 * **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
+* **Add GPU bbox parser (it is slightly slower than CPU bbox parser on V100 GPU tests)**
 
 ##
 
@@ -153,7 +154,7 @@ sample = 1920x1080 video
 - Eval
 
 ```
-nms-iou-threshold = 0.6 (Darknet) / 0.65 (YOLOv5, YOLOv6, YOLOv7, YOLOR and YOLOX) / 0.7 (Paddle, YOLO-NAS, YOLOv8 and YOLOv7-u6)
+nms-iou-threshold = 0.6 (Darknet) / 0.65 (YOLOv5, YOLOv6, YOLOv7, YOLOR and YOLOX) / 0.7 (Paddle, YOLO-NAS, DAMO-YOLO, YOLOv8 and YOLOv7-u6)
 pre-cluster-threshold = 0.001
 topk = 300
 ```
@@ -172,7 +173,11 @@ topk = 300
 
 **NOTE**: ** = The YOLOv4 is trained with the trainvalno5k set, so the mAP is high on val2017 test.
 
-**NOTE**: The V100 GPU decoder seems to max out at 625-635 FPS on DeepStream even using lighter models.
+**NOTE**: star = DAMO-YOLO model trained with distillation.
+
+**NOTE**: The V100 GPU decoder max out at 625-635 FPS on DeepStream even using lighter models.
+
+**NOTE**: The GPU bbox parser is a bit slower than CPU bbox parser on V100 GPU tests.
 
 | DeepStream         | Precision | Resolution | IoU=0.5:0.95 | IoU=0.5 | IoU=0.75 | FPS<br />(without display) |
 |:------------------:|:---------:|:----------:|:------------:|:-------:|:--------:|:--------------------------:|
@@ -184,6 +189,14 @@ topk = 300
 | PP-YOLOE+_m        | FP16      | 640        | 0.483        | 0.658   | 0.528    | 264.39                     |
 | PP-YOLOE+_s        | FP16      | 640        | 0.424        | 0.594   | 0.464    | 476.13                     |
 | PP-YOLOE-s (400)   | FP16      | 640        | 0.423        | 0.589   | 0.463    | 461.23                     |
+| DAMO-YOLO-L star   | FP16      | 640        | 0.502        | 0.674   | 0.551    | 176.93                     |
+| DAMO-YOLO-M star   | FP16      | 640        | 0.485        | 0.656   | 0.530    | 242.24                     |
+| DAMO-YOLO-S star   | FP16      | 640        | 0.460        | 0.631   | 0.502    | 385.09                     |
+| DAMO-YOLO-S        | FP16      | 640        | 0.445        | 0.611   | 0.486    | 378.68                     |
+| DAMO-YOLO-T star   | FP16      | 640        | 0.419        | 0.586   | 0.455    | 492.24                     |
+| DAMO-YOLO-Nl       | FP16      | 416        | 0.392        | 0.559   | 0.423    | 483.73                     |
+| DAMO-YOLO-Nm       | FP16      | 416        | 0.371        | 0.532   | 0.402    | 555.94                     |
+| DAMO-YOLO-Ns       | FP16      | 416        | 0.312        | 0.460   | 0.335    | 627.67                     |
 | YOLOX-x            | FP16      | 640        | 0.447        | 0.616   | 0.483    | 125.40                     |
 | YOLOX-l            | FP16      | 640        | 0.430        | 0.598   | 0.466    | 193.10                     |
 | YOLOX-m            | FP16      | 640        | 0.397        | 0.566   | 0.431    | 298.61                     |
