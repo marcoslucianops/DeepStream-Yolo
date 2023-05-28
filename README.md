@@ -2,16 +2,14 @@
 
 NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
 
--------------------------------------
-### **Big update on DeepStream-Yolo**
--------------------------------------
+--------------------------------------------------------------------------------------------------
 ### Important: please generate the ONNX model and the TensorRT engine again with the updated files
--------------------------------------
+--------------------------------------------------------------------------------------------------
 
 ### Future updates
 
 * DeepStream tutorials
-* Dynamic batch-size
+
 * Updated INT8 calibration
 * Support for segmentation models
 * Support for classification models
@@ -24,6 +22,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * **Support for Darknet YOLO models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing**
 * **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
 * **Add GPU bbox parser (it is slightly slower than CPU bbox parser on V100 GPU tests)**
+* **Dynamic batch-size for ONNX exported models (YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5)**
 
 ##
 

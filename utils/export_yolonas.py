@@ -34,6 +34,11 @@ def yolonas_export(model_name, weights, num_classes, size):
 
 def main(args):
     suppress_warnings()
+
+    print('\nStarting: %s' % args.weights)
+
+    print('Opening YOLO-NAS model\n')
+
     device = torch.device('cpu')
     model = yolonas_export(args.model, args.weights, args.classes, args.size)
 
@@ -44,14 +49,28 @@ def main(args):
     onnx_input_im = torch.zeros(1, 3, *img_size).to(device)
     onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
 
+    dynamic_axes = {
+        'input': {
+            0: 'batch'
+        },
+        'output': {
+            0: 'batch'
+        }
+    }
+
+    print('\nExporting the model to ONNX')
     torch.onnx.export(model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset,
-                      do_constant_folding=True, input_names=['input'], output_names=['output'], dynamic_axes=None)
+                      do_constant_folding=True, input_names=['input'], output_names=['output'],
+                      dynamic_axes=dynamic_axes if args.dynamic else None)
 
     if args.simplify:
+        print('Simplifying the ONNX model')
         import onnxsim
         model_onnx = onnx.load(onnx_output_file)
         model_onnx, _ = onnxsim.simplify(model_onnx)
         onnx.save(model_onnx, onnx_output_file)
+
+    print('Done: %s\n' % onnx_output_file)
 
 
 def parse_args():
@@ -62,6 +81,7 @@ def parse_args():
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
     parser.add_argument('--opset', type=int, default=14, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
+    parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
     args = parser.parse_args()
     if args.model == '':
         raise SystemExit('Invalid model name')

@@ -43,10 +43,10 @@ wget https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yo
 Generate the ONNX model file (example for YOLOX-s)
 
 ```
-python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify
+python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify --dynamic
 ```
 
-#### 5. Copy generated files
+#### 5. Copy generated file
 
 Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 

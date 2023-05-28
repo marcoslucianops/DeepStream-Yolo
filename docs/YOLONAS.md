@@ -43,7 +43,7 @@ wget https://sghub.deci.ai/models/yolo_nas_s_coco.pth
 Generate the ONNX model file (example for YOLO-NAS S)
 
 ```
-python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify
+python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify --dynamic
 ```
 
 **NOTE**: Model names
@@ -85,7 +85,7 @@ or
 -s 1280 1280
 ```
 
-#### 5. Copy generated files
+#### 5. Copy generated file
 
 Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 

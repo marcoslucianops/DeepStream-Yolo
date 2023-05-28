@@ -43,7 +43,7 @@ python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppy
 
 #### 5. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
 
 ##
 

@@ -44,7 +44,7 @@ wget https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s.pt
 Generate the ONNX model file (example for YOLOv6-S 4.0)
 
 ```
-python3 export_yoloV6.py -w yolov6s.pt --simplify
+python3 export_yoloV6.py -w yolov6s.pt --simplify --dynamic
 ```
 
 **NOTE**: To convert a P6 model
@@ -74,7 +74,7 @@ or
 -s 1280 1280
 ```
 
-#### 5. Copy generated files
+#### 5. Copy generated file
 
 Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
 

@@ -40,7 +40,7 @@ wget https://idstcv.oss-cn-zhangjiakou.aliyuncs.com/DAMO-YOLO/release_model/clea
 Generate the ONNX model file (example for DAMO-YOLO-S*)
 
 ```
-python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --simplify
+python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --simplify --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -66,7 +66,7 @@ or
 
 #### 5. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
 
 ##
 

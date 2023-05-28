@@ -44,7 +44,7 @@ Generate the ONNX model file
   Example for YOLOR-CSP
 
   ```
-  python3 export_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg --simplify
+  python3 export_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg --simplify --dynamic
   ```
 
 - Paper branch
@@ -52,7 +52,7 @@ Generate the ONNX model file
   Example for YOLOR-P6
 
   ```
-  python3 export_yolor.py -w yolor-p6.pt --simplify
+  python3 export_yolor.py -w yolor-p6.pt --simplify --dynamic
   ```
 
 **NOTE**: To convert a P6 model
@@ -84,7 +84,7 @@ or
 
 #### 5. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder
+Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder
 
 ##
 

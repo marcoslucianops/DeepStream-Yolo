@@ -8,6 +8,7 @@ from ppdet.utils.check import check_version, check_config
 from ppdet.utils.cli import ArgsParser
 from ppdet.engine import Trainer
 from ppdet.slim import build_slim_model
+from ppdet.data.source.category import get_categories
 
 
 class DeepStreamOutput(nn.Layer):
@@ -39,12 +40,25 @@ def ppyoloe_export(FLAGS):
         os.makedirs('.tmp')
     static_model, _ = trainer._get_infer_cfg_and_input_spec('.tmp')
     os.system('rm -r .tmp')
-    return cfg, static_model
+    return trainer.cfg, static_model
 
 
 def main(FLAGS):
+    print('\nStarting: %s' % FLAGS.weights)
+
+    print('\nOpening PPYOLOE model\n')
+
     paddle.set_device('cpu')
     cfg, model = ppyoloe_export(FLAGS)
+
+    anno_file = cfg['TestDataset'].get_anno()
+    if os.path.isfile(anno_file):
+        _, catid2name = get_categories(cfg['metric'], anno_file, 'detection_arch')
+        print('\nCreating labels.txt file')
+        f = open('labels.txt', 'w')
+        for name in catid2name.values():
+            f.write(str(name) + '\n')
+        f.close()
 
     model = nn.Sequential(model, DeepStreamOutput())
 
@@ -55,13 +69,17 @@ def main(FLAGS):
     onnx_input_im['scale_factor'] = paddle.static.InputSpec(shape=[None, 2], dtype='float32', name='scale_factor')
     onnx_output_file = cfg.filename + '.onnx'
 
+    print('\nExporting the model to ONNX\n')
     paddle.onnx.export(model, cfg.filename, input_spec=[onnx_input_im], opset_version=FLAGS.opset)
 
     if FLAGS.simplify:
+        print('\nSimplifying the ONNX model')
         import onnxsim
         model_onnx = onnx.load(onnx_output_file)
         model_onnx, _ = onnxsim.simplify(model_onnx)
         onnx.save(model_onnx, onnx_output_file)
+
+    print('\nDone: %s\n' % onnx_output_file)
 
 
 def parse_args():

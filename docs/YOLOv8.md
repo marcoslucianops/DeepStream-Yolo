@@ -43,7 +43,7 @@ wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
 Generate the ONNX model file (example for YOLOv8s)
 
 ```
-python3 export_yoloV8.py -w yolov8s.pt --simplify
+python3 export_yoloV8.py -w yolov8s.pt --simplify --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -69,7 +69,7 @@ or
 
 #### 5. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
 
 ##
 

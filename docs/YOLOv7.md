@@ -46,7 +46,7 @@ wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
 Generate the ONNX model file (example for YOLOv7)
 
 ```
-python3 export_yoloV7.py -w yolov7.pt --simplify
+python3 export_yoloV7.py -w yolov7.pt --simplify --dynamic
 ```
 
 **NOTE**: To convert a P6 model
@@ -78,7 +78,7 @@ or
 
 #### 6. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
 
 ##
 
