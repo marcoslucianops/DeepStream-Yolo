@@ -15,7 +15,7 @@ class DeepStreamOutput(nn.Module):
     def forward(self, x):
         boxes = x[0]
         scores, classes = torch.max(x[1], 2, keepdim=True)
-        return torch.cat((boxes, scores, classes), dim=2)
+        return torch.cat((boxes, scores, classes.float()), dim=2)
 
 
 def suppress_warnings():

@@ -19,7 +19,7 @@ class DeepStreamOutput(nn.Module):
         x = x.transpose(1, 2)
         boxes = x[:, :, :4]
         scores, classes = torch.max(x[:, :, 4:], 2, keepdim=True)
-        return torch.cat((boxes, scores, classes), dim=2)
+        return torch.cat((boxes, scores, classes.float()), dim=2)
 
 
 def suppress_warnings():
