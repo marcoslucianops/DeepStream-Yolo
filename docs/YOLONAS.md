@@ -46,6 +46,12 @@ Generate the ONNX model file (example for YOLO-NAS S)
 python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify --dynamic
 ```
 
+**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 14.
+
+```
+--opset 12
+```
+
 **NOTE**: Model names
 
 ```
@@ -119,6 +125,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
@@ -129,6 +141,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 5.1 on Jetson platform
+
+  ```
+  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 ##

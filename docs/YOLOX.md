@@ -46,6 +46,12 @@ Generate the ONNX model file (example for YOLOX-s)
 python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify --dynamic
 ```
 
+**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 11.
+
+```
+--opset 12
+```
+
 #### 5. Copy generated file
 
 Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
@@ -80,6 +86,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
@@ -90,6 +102,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 5.1 on Jetson platform
+
+  ```
+  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 ##

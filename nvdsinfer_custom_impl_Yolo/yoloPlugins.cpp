@@ -120,9 +120,14 @@ YoloLayer::configureWithFormat(const nvinfer1::Dims* inputDims, int nbInputs, co
   assert(inputDims != nullptr);
 }
 
+#ifdef LEGACY
+int
+YoloLayer::enqueue(int batchSize, const void* const* inputs, void** outputs, void* workspace, cudaStream_t stream)
+#else
 int32_t
 YoloLayer::enqueue(int batchSize, void const* const* inputs, void* const* outputs, void* workspace,	cudaStream_t stream)
     noexcept
+#endif
 {
   void* output = outputs[0];
   CUDA_CHECK(cudaMemsetAsync((float*) output, 0, sizeof(float) * m_OutputSize * 6 * batchSize, stream));

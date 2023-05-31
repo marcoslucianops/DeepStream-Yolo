@@ -71,8 +71,12 @@ class YoloLayer : public nvinfer1::IPluginV2 {
       return maxBatchSize * sizeof(int);
     }
 
+#ifdef LEGACY
+    int enqueue(int batchSize, const void* const* inputs, void** outputs, void* workspace, cudaStream_t stream) override;
+#else
     int32_t enqueue(int batchSize, void const* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream)
         noexcept override;
+#endif
 
     size_t getSerializationSize() const noexcept override;
 

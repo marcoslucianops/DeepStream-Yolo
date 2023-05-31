@@ -1,6 +1,6 @@
 # DeepStream-Yolo
 
-NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO models
+NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for YOLO models
 
 --------------------------------------------------------------------------------------------------
 ### Important: please generate the ONNX model and the TensorRT engine again with the updated files
@@ -21,8 +21,9 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * Models benchmarks
 * **Support for Darknet YOLO models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing**
 * **Support for YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing**
-* **Add GPU bbox parser (it is slightly slower than CPU bbox parser on V100 GPU tests)**
+* **GPU bbox parser (it is slightly slower than CPU bbox parser on V100 GPU tests)**
 * **Dynamic batch-size for ONNX exported models (YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5)**
+* **Support for DeepStream 5.1**
 
 ##
 
@@ -92,6 +93,16 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 * [GStreamer 1.14.5](https://gstreamer.freedesktop.org/)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
+#### DeepStream 5.1 on x86 platform
+
+* [Ubuntu 18.04](https://releases.ubuntu.com/18.04.6/)
+* [CUDA 11.1](https://developer.nvidia.com/cuda-11.1.0-download-archive?target_os=Linux&target_arch=x86_64&target_distro=Ubuntu&target_version=1804&target_type=runfilelocal)
+* [TensorRT 7.2.2](https://developer.nvidia.com/nvidia-tensorrt-7x-download)
+* [NVIDIA Driver 460.32.03](https://www.nvidia.com.br/Download/index.aspx)
+* [NVIDIA DeepStream SDK 5.1](https://developer.nvidia.com/deepstream-sdk-download-tesla-archived)
+* [GStreamer 1.14.5](https://gstreamer.freedesktop.org/)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
 #### DeepStream 6.2 on Jetson platform
 
 * [JetPack 5.1.1 / 5.1](https://developer.nvidia.com/embedded/jetpack)
@@ -114,6 +125,12 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 configuration for YOLO mod
 
 * [JetPack 4.6.2](https://developer.nvidia.com/embedded/jetpack-sdk-462)
 * [NVIDIA DeepStream SDK 6.0.1 / 6.0](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
+#### DeepStream 5.1 on Jetson platform
+
+* [JetPack 4.5.1](https://developer.nvidia.com/embedded/jetpack-sdk-451-archive)
+* [NVIDIA DeepStream SDK 5.1](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
 ##
@@ -950,6 +967,12 @@ cd DeepStream-Yolo
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
@@ -960,6 +983,12 @@ cd DeepStream-Yolo
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 5.1 on Jetson platform
+
+  ```
+  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 #### 4. Edit the `config_infer_primary.txt` file according to your model (example for YOLOv4)
@@ -1073,6 +1102,12 @@ sudo apt-get install libopencv-dev
   CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 OPENCV=1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
@@ -1083,6 +1118,12 @@ sudo apt-get install libopencv-dev
 
   ```
   CUDA_VER=10.2 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 5.1 on Jetson platform
+
+  ```
+  CUDA_VER=10.2 OPENCV=1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 #### 3. For COCO dataset, download the [val2017](https://drive.google.com/file/d/1gbvfn7mcsGDRZ_luJwtITL-ru2kK99aK/view?usp=sharing), extract, and move to DeepStream-Yolo folder

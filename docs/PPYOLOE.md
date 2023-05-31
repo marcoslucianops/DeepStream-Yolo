@@ -41,6 +41,12 @@ pip3 install onnx onnxsim onnxruntime
 python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml --simplify
 ```
 
+**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 11.
+
+```
+--opset 12
+```
+
 #### 5. Copy generated files
 
 Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
@@ -75,6 +81,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
@@ -85,6 +97,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 5.1 on Jetson platform
+
+  ```
+  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 ##

@@ -43,6 +43,12 @@ Generate the ONNX model file (example for DAMO-YOLO-S*)
 python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --simplify --dynamic
 ```
 
+**NOTE**: If you are using DeepStream 5.1, use opset 11 or lower.
+
+```
+--opset 11
+```
+
 **NOTE**: To change the inference size (defaut: 640)
 
 ```
@@ -98,6 +104,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
@@ -108,6 +120,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 5.1 on Jetson platform
+
+  ```
+  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 ##

@@ -54,7 +54,13 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
 
   nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
   if (parseModel(*network) != NVDSINFER_SUCCESS) {
+
+#ifdef LEGACY
+    network->destroy();
+#else
     delete network;
+#endif
+
     return nullptr;
   }
 
@@ -105,7 +111,12 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
   else
     std::cerr << "Building engine failed\n" << std::endl;
 
-  delete network;
+#ifdef LEGACY
+    network->destroy();
+#else
+    delete network;
+#endif
+
   return engine;
 }
 
