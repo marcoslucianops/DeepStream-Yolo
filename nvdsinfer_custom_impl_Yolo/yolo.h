@@ -42,9 +42,16 @@
 #include "layers/reorg_layer.h"
 
 #if NV_TENSORRT_MAJOR >= 8
-  #define INT int32_t
+#define INT int32_t
 #else
-  #define INT int
+#define INT int
+
+static class Logger : public nvinfer1::ILogger {
+  void log(nvinfer1::ILogger::Severity severity, const char* msg) noexcept override {
+    if (severity <= nvinfer1::ILogger::Severity::kWARNING)
+      std::cout << msg << std::endl;
+  }
+} logger;
 #endif
 
 struct NetworkInfo
@@ -64,6 +71,7 @@ struct NetworkInfo
   std::string networkMode;
   float scaleFactor;
   const float* offsets;
+  uint workspaceSize;
 };
 
 struct TensorInfo
@@ -92,7 +100,11 @@ class Yolo : public IModelParser {
 
     NvDsInferStatus parseModel(nvinfer1::INetworkDefinition& network) override;
 
+#if NV_TENSORRT_MAJOR >= 8
     nvinfer1::ICudaEngine* createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config);
+#else
+    nvinfer1::ICudaEngine* createEngine(nvinfer1::IBuilder* builder);
+#endif
 
   protected:
     const std::string m_InputBlobName;
@@ -110,6 +122,7 @@ class Yolo : public IModelParser {
     const std::string m_NetworkMode;
     const float m_ScaleFactor;
     const float* m_Offsets;
+    const uint m_WorkspaceSize;
 
     uint m_InputC;
     uint m_InputH;

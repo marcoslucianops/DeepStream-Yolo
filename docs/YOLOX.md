@@ -43,16 +43,16 @@ wget https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yo
 Generate the ONNX model file (example for YOLOX-s)
 
 ```
-python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify --dynamic
+python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model
+**NOTE**: To simplify the ONNX model (DeepStream >= 6)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size
+**NOTE**: To use dynamic batch-size (DeepStream >= 6)
 
 ```
 --dynamic
@@ -64,7 +64,7 @@ python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify --d
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 11.
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 11.
 
 ```
 --opset 12

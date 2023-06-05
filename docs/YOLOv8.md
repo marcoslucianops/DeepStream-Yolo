@@ -43,16 +43,16 @@ wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
 Generate the ONNX model file (example for YOLOv8s)
 
 ```
-python3 export_yoloV8.py -w yolov8s.pt --simplify --dynamic
+python3 export_yoloV8.py -w yolov8s.pt --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model
+**NOTE**: To simplify the ONNX model (DeepStream >= 6)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size
+**NOTE**: To use dynamic batch-size (DeepStream >= 6)
 
 ```
 --dynamic
@@ -64,7 +64,7 @@ python3 export_yoloV8.py -w yolov8s.pt --simplify --dynamic
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 16.
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 16.
 
 ```
 --opset 12

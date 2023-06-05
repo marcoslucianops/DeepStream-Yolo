@@ -40,16 +40,16 @@ wget https://idstcv.oss-cn-zhangjiakou.aliyuncs.com/DAMO-YOLO/release_model/clea
 Generate the ONNX model file (example for DAMO-YOLO-S*)
 
 ```
-python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --simplify --dynamic
+python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model
+**NOTE**: To simplify the ONNX model (DeepStream >= 6)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size
+**NOTE**: To use dynamic batch-size (DeepStream >= 6)
 
 ```
 --dynamic
@@ -61,7 +61,7 @@ python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, use opset 11 or lower.
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 11 or lower. The default opset is 11.
 
 ```
 --opset 11

@@ -44,7 +44,7 @@ Generate the ONNX model file
   Example for YOLOR-CSP
 
   ```
-  python3 export_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg --simplify --dynamic
+  python3 export_yolor.py -w yolor_csp.pt -c cfg/yolor_csp.cfg --dynamic
   ```
 
 - Paper branch
@@ -52,16 +52,16 @@ Generate the ONNX model file
   Example for YOLOR-P6
 
   ```
-  python3 export_yolor.py -w yolor-p6.pt --simplify --dynamic
+  python3 export_yolor.py -w yolor-p6.pt --dynamic
   ```
 
-**NOTE**: To simplify the ONNX model
+**NOTE**: To simplify the ONNX model (DeepStream >= 6)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size
+**NOTE**: To use dynamic batch-size (DeepStream >= 6)
 
 ```
 --dynamic
@@ -73,7 +73,7 @@ Generate the ONNX model file
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 12.
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 12.
 
 ```
 --opset 12

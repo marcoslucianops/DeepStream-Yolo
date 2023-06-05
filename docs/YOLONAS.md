@@ -43,16 +43,16 @@ wget https://sghub.deci.ai/models/yolo_nas_s_coco.pth
 Generate the ONNX model file (example for YOLO-NAS S)
 
 ```
-python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify --dynamic
+python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model
+**NOTE**: To simplify the ONNX model (DeepStream >= 6)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size
+**NOTE**: To use dynamic batch-size (DeepStream >= 6)
 
 ```
 --dynamic
@@ -64,7 +64,7 @@ python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify --dyna
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 14.
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 14.
 
 ```
 --opset 12

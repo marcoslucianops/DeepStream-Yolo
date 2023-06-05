@@ -39,8 +39,8 @@ Yolo::Yolo(const NetworkInfo& networkInfo) : m_InputBlobName(networkInfo.inputBl
     m_ImplicitBatch(networkInfo.implicitBatch), m_Int8CalibPath(networkInfo.int8CalibPath),
     m_DeviceType(networkInfo.deviceType), m_NumDetectedClasses(networkInfo.numDetectedClasses),
     m_ClusterMode(networkInfo.clusterMode), m_NetworkMode(networkInfo.networkMode), m_ScaleFactor(networkInfo.scaleFactor),
-    m_Offsets(networkInfo.offsets), m_InputC(0), m_InputH(0), m_InputW(0), m_InputSize(0), m_NumClasses(0), m_LetterBox(0),
-    m_NewCoords(0), m_YoloCount(0)
+    m_Offsets(networkInfo.offsets), m_WorkspaceSize(networkInfo.workspaceSize), m_InputC(0), m_InputH(0), m_InputW(0),
+    m_InputSize(0), m_NumClasses(0), m_LetterBox(0), m_NewCoords(0), m_YoloCount(0)
 {
 }
 
@@ -50,9 +50,21 @@ Yolo::~Yolo()
 }
 
 nvinfer1::ICudaEngine* 
+#if NV_TENSORRT_MAJOR >= 8
 Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config)
+#else
+Yolo::createEngine(nvinfer1::IBuilder* builder)
+#endif
+
 {
   assert(builder);
+
+#if NV_TENSORRT_MAJOR < 8
+  nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
+  if (m_WorkspaceSize > 0) {
+    config->setMaxWorkspaceSize((size_t) m_WorkspaceSize * 1024 * 1024);
+  }
+#endif
 
   nvinfer1::NetworkDefinitionCreationFlags flags =
       1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
@@ -63,7 +75,13 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
   nvonnxparser::IParser* parser;
 
   if (m_NetworkType == "onnx") {
+
+#if NV_TENSORRT_MAJOR >= 8
     parser = nvonnxparser::createParser(*network, *builder->getLogger());
+#else
+    parser = nvonnxparser::createParser(*network, logger);
+#endif
+
     if (!parser->parseFromFile(m_OnnxWtsFilePath.c_str(), static_cast<INT>(nvinfer1::ILogger::Severity::kWARNING))) {
       std::cerr << "\nCould not parse the ONNX model\n" << std::endl;
 
@@ -72,6 +90,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
       delete network;
 #else
       parser->destroy();
+      config->destroy();
       network->destroy();
 #endif
 
@@ -89,6 +108,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
 #if NV_TENSORRT_MAJOR >= 8
       delete network;
 #else
+      config->destroy();
       network->destroy();
 #endif
 
@@ -170,6 +190,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
       if (m_NetworkType == "onnx") {
         parser->destroy();
       }
+      config->destroy();
       network->destroy();
 #endif
 
@@ -220,6 +241,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
   if (m_NetworkType == "onnx") {
     parser->destroy();
   }
+  config->destroy();
   network->destroy();
 #endif
 

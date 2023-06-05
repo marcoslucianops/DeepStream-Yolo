@@ -17,6 +17,7 @@ cluster-mode=2
 maintain-aspect-ratio=1
 symmetric-padding=1
 #force-implicit-batch-dim=1
+#workspace-size=1000
 parse-bbox-func-name=NvDsInferParseYolo
 #parse-bbox-func-name=NvDsInferParseYoloCuda
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
