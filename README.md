@@ -9,7 +9,6 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for Y
 ### Future updates
 
 * DeepStream tutorials
-
 * Updated INT8 calibration
 * Support for segmentation models
 * Support for classification models

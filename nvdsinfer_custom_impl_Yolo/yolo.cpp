@@ -55,7 +55,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
   assert(builder);
 
   nvinfer1::NetworkDefinitionCreationFlags flags =
-        (1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH));
+      1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
 
   nvinfer1::INetworkDefinition* network = builder->createNetworkV2(flags);
   assert(network);
@@ -64,7 +64,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
 
   if (m_NetworkType == "onnx") {
     parser = nvonnxparser::createParser(*network, *builder->getLogger());
-    if (!parser->parseFromFile(m_OnnxWtsFilePath.c_str(), static_cast<int32_t>(nvinfer1::ILogger::Severity::kWARNING))) {
+    if (!parser->parseFromFile(m_OnnxWtsFilePath.c_str(), static_cast<INT>(nvinfer1::ILogger::Severity::kWARNING))) {
       std::cerr << "\nCould not parse the ONNX model\n" << std::endl;
 
 #if NV_TENSORRT_MAJOR >= 8
@@ -99,7 +99,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config
   if (!m_ImplicitBatch && network->getInput(0)->getDimensions().d[0] == -1) {
     nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
     assert(profile);
-    for (int32_t i = 0; i < network->getNbInputs(); ++i) {
+    for (INT i = 0; i < network->getNbInputs(); ++i) {
       nvinfer1::ITensor* input = network->getInput(i);
       nvinfer1::Dims inputDims = input->getDimensions();
       nvinfer1::Dims dims = inputDims;

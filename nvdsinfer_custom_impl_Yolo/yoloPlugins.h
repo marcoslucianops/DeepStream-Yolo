@@ -38,12 +38,6 @@
   }                                                                                                                        \
 }
 
-#if NV_TENSORRT_MAJOR >= 8
-  #define INT int32_t
-#else
-  #define INT int
-#endif
-
 namespace {
   const char* YOLOLAYER_PLUGIN_VERSION {"1"};
   const char* YOLOLAYER_PLUGIN_NAME {"YoloLayer_TRT"};

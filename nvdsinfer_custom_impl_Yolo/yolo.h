@@ -41,6 +41,12 @@
 #include "layers/pooling_layer.h"
 #include "layers/reorg_layer.h"
 
+#if NV_TENSORRT_MAJOR >= 8
+  #define INT int32_t
+#else
+  #define INT int
+#endif
+
 struct NetworkInfo
 {
   std::string inputBlobName;
