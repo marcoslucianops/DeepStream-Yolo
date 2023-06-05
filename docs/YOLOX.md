@@ -46,6 +46,24 @@ Generate the ONNX model file (example for YOLOX-s)
 python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --simplify --dynamic
 ```
 
+**NOTE**: To simplify the ONNX model
+
+```
+--simplify
+```
+
+**NOTE**: To use dynamic batch-size
+
+```
+--dynamic
+```
+
+**NOTE**: To use implicit batch-size (example for batch-size = 4)
+
+```
+--batch 4
+```
+
 **NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 11.
 
 ```
@@ -89,7 +107,7 @@ Open the `DeepStream-Yolo` folder and compile the lib
 * DeepStream 5.1 on x86 platform
 
   ```
-  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
@@ -98,16 +116,10 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.0.1 / 6.0 on Jetson platform
+* DeepStream 6.0.1 / 6.0 / 5.1 on Jetson platform
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 5.1 on Jetson platform
-
-  ```
-  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 ##
@@ -120,7 +132,6 @@ Edit the `config_infer_primary_yolox.txt` file according to your model (example 
 [property]
 ...
 onnx-file=yolox_s.onnx
-model-engine-file=yolox_s.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
 ...
@@ -133,14 +144,18 @@ parse-bbox-func-name=NvDsInferParseYolo
 **NOTE**: The **YOLOX and YOLOX legacy** resize the input with left/top padding. To get better accuracy, use
 
 ```
+...
 maintain-aspect-ratio=1
 symmetric-padding=0
+...
 ```
 
 **NOTE**: The **YOLOX** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```
+...
 net-scale-factor=1
+...
 ```
 
 **NOTE**: The **YOLOX legacy** uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
@@ -148,8 +163,18 @@ net-scale-factor=1
 Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
 
 ```
+...
 net-scale-factor=0.0173520735727919486
 offsets=123.675;116.28;103.53
+...
+```
+
+**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
+
+```
+...
+force-implicit-batch-dim=1
+...
 ```
 
 ##

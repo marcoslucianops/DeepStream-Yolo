@@ -23,6 +23,8 @@
  * https://www.github.com/marcoslucianops
  */
 
+#include "NvOnnxParser.h"
+
 #include "yolo.h"
 #include "yoloPlugins.h"
 
@@ -31,11 +33,14 @@
 #endif
 
 Yolo::Yolo(const NetworkInfo& networkInfo) : m_InputBlobName(networkInfo.inputBlobName),
-    m_NetworkType(networkInfo.networkType), m_ConfigFilePath(networkInfo.configFilePath),
-    m_WtsFilePath(networkInfo.wtsFilePath), m_Int8CalibPath(networkInfo.int8CalibPath), m_DeviceType(networkInfo.deviceType),
-    m_NumDetectedClasses(networkInfo.numDetectedClasses), m_ClusterMode(networkInfo.clusterMode),
-    m_NetworkMode(networkInfo.networkMode), m_InputH(0), m_InputW(0), m_InputC(0), m_InputSize(0), m_NumClasses(0),
-    m_LetterBox(0), m_NewCoords(0), m_YoloCount(0)
+    m_NetworkType(networkInfo.networkType), m_ModelName(networkInfo.modelName),
+    m_OnnxWtsFilePath(networkInfo.onnxWtsFilePath), m_DarknetWtsFilePath(networkInfo.darknetWtsFilePath),
+    m_DarknetCfgFilePath(networkInfo.darknetCfgFilePath), m_BatchSize(networkInfo.batchSize),
+    m_ImplicitBatch(networkInfo.implicitBatch), m_Int8CalibPath(networkInfo.int8CalibPath),
+    m_DeviceType(networkInfo.deviceType), m_NumDetectedClasses(networkInfo.numDetectedClasses),
+    m_ClusterMode(networkInfo.clusterMode), m_NetworkMode(networkInfo.networkMode), m_ScaleFactor(networkInfo.scaleFactor),
+    m_Offsets(networkInfo.offsets), m_InputC(0), m_InputH(0), m_InputW(0), m_InputSize(0), m_NumClasses(0), m_LetterBox(0),
+    m_NewCoords(0), m_YoloCount(0)
 {
 }
 
@@ -47,74 +52,175 @@ Yolo::~Yolo()
 nvinfer1::ICudaEngine* 
 Yolo::createEngine(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config)
 {
-  assert (builder);
+  assert(builder);
 
-  m_ConfigBlocks = parseConfigFile(m_ConfigFilePath);
-  parseConfigBlocks();
+  nvinfer1::NetworkDefinitionCreationFlags flags =
+        (1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH));
 
-  nvinfer1::INetworkDefinition *network = builder->createNetworkV2(0);
-  if (parseModel(*network) != NVDSINFER_SUCCESS) {
+  nvinfer1::INetworkDefinition* network = builder->createNetworkV2(flags);
+  assert(network);
 
-#ifdef LEGACY
-    network->destroy();
+  nvonnxparser::IParser* parser;
+
+  if (m_NetworkType == "onnx") {
+    parser = nvonnxparser::createParser(*network, *builder->getLogger());
+    if (!parser->parseFromFile(m_OnnxWtsFilePath.c_str(), static_cast<int32_t>(nvinfer1::ILogger::Severity::kWARNING))) {
+      std::cerr << "\nCould not parse the ONNX model\n" << std::endl;
+
+#if NV_TENSORRT_MAJOR >= 8
+      delete parser;
+      delete network;
 #else
-    delete network;
+      parser->destroy();
+      network->destroy();
 #endif
 
-    return nullptr;
+      return nullptr;
+    }
+    m_InputC = network->getInput(0)->getDimensions().d[1];
+    m_InputH = network->getInput(0)->getDimensions().d[2];
+    m_InputW = network->getInput(0)->getDimensions().d[3];
+  }
+  else {
+    m_ConfigBlocks = parseConfigFile(m_DarknetCfgFilePath);
+    parseConfigBlocks();
+    if (parseModel(*network) != NVDSINFER_SUCCESS) {
+
+#if NV_TENSORRT_MAJOR >= 8
+      delete network;
+#else
+      network->destroy();
+#endif
+
+      return nullptr;
+    }
   }
 
-  std::cout << "Building the TensorRT Engine\n" << std::endl;
-
-  if (m_NumClasses != m_NumDetectedClasses) {
-    std::cout << "NOTE: Number of classes mismatch, make sure to set num-detected-classes=" << m_NumClasses
-        << " in config_infer file\n" << std::endl;
+  if (!m_ImplicitBatch && network->getInput(0)->getDimensions().d[0] == -1) {
+    nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
+    assert(profile);
+    for (int32_t i = 0; i < network->getNbInputs(); ++i) {
+      nvinfer1::ITensor* input = network->getInput(i);
+      nvinfer1::Dims inputDims = input->getDimensions();
+      nvinfer1::Dims dims = inputDims;
+      dims.d[0] = 1;
+      profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
+      dims.d[0] = m_BatchSize;
+      profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);
+      dims.d[0] = m_BatchSize;
+      profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMAX, dims);
+    }
+    config->addOptimizationProfile(profile);
   }
-  if (m_LetterBox == 1) {
-      std::cout << "NOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file"
-          << " to get better accuracy\n" << std::endl;
+
+  std::cout << "\nBuilding the TensorRT Engine\n" << std::endl;
+
+  if (m_NetworkType == "darknet") {
+    if (m_NumClasses != m_NumDetectedClasses) {
+      std::cout << "NOTE: Number of classes mismatch, make sure to set num-detected-classes=" << m_NumClasses
+          << " in config_infer file\n" << std::endl;
+    }
+    if (m_LetterBox == 1) {
+        std::cout << "NOTE: letter_box is set in cfg file, make sure to set maintain-aspect-ratio=1 in config_infer file"
+            << " to get better accuracy\n" << std::endl;
+    }
   }
   if (m_ClusterMode != 2) {
       std::cout << "NOTE: Wrong cluster-mode is set, make sure to set cluster-mode=2 in config_infer file\n" << std::endl;
   }
 
-  if (m_NetworkMode == "INT8" && !fileExists(m_Int8CalibPath)) {
+  if (m_NetworkMode == "FP16") {
+    assert(builder->platformHasFastFp16());
+    config->setFlag(nvinfer1::BuilderFlag::kFP16);
+  }
+  else if (m_NetworkMode == "INT8") {
     assert(builder->platformHasFastInt8());
-#ifdef OPENCV
-    std::string calib_image_list;
-    int calib_batch_size;
-    if (getenv("INT8_CALIB_IMG_PATH"))
-      calib_image_list = getenv("INT8_CALIB_IMG_PATH");
-    else {
-      std::cerr << "INT8_CALIB_IMG_PATH not set" << std::endl;
-      assert(0);
-    }
-    if (getenv("INT8_CALIB_BATCH_SIZE"))
-      calib_batch_size = std::stoi(getenv("INT8_CALIB_BATCH_SIZE"));
-    else {
-      std::cerr << "INT8_CALIB_BATCH_SIZE not set" << std::endl;
-      assert(0);
-    }
-    nvinfer1::IInt8EntropyCalibrator2 *calibrator = new Int8EntropyCalibrator2(calib_batch_size, m_InputC, m_InputH,
-        m_InputW, m_LetterBox, calib_image_list, m_Int8CalibPath);
     config->setFlag(nvinfer1::BuilderFlag::kINT8);
-    config->setInt8Calibrator(calibrator);
+    if (m_Int8CalibPath != "" && !fileExists(m_Int8CalibPath)) {
+
+#ifdef OPENCV
+      std::string calib_image_list;
+      int calib_batch_size;
+      if (getenv("INT8_CALIB_IMG_PATH")) {
+        calib_image_list = getenv("INT8_CALIB_IMG_PATH");
+      }
+      else {
+        std::cerr << "INT8_CALIB_IMG_PATH not set" << std::endl;
+        assert(0);
+      }
+      if (getenv("INT8_CALIB_BATCH_SIZE")) {
+        calib_batch_size = std::stoi(getenv("INT8_CALIB_BATCH_SIZE"));
+      }
+      else {
+        std::cerr << "INT8_CALIB_BATCH_SIZE not set" << std::endl;
+        assert(0);
+      }
+      nvinfer1::IInt8EntropyCalibrator2* calibrator = new Int8EntropyCalibrator2(calib_batch_size, m_InputC, m_InputH,
+          m_InputW, m_ScaleFactor, m_Offsets, calib_image_list, m_Int8CalibPath);
+      config->setInt8Calibrator(calibrator);
 #else
-    std::cerr << "OpenCV is required to run INT8 calibrator\n" << std::endl;
-    assert(0);
+      std::cerr << "OpenCV is required to run INT8 calibrator\n" << std::endl;
+
+#if NV_TENSORRT_MAJOR >= 8
+      if (m_NetworkType == "onnx") {
+        delete parser;
+      }
+      delete network;
+#else
+      if (m_NetworkType == "onnx") {
+        parser->destroy();
+      }
+      network->destroy();
 #endif
+
+      return nullptr;
+#endif
+
+    }
   }
 
-  nvinfer1::ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
-  if (engine)
-    std::cout << "Building complete\n" << std::endl;
-  else
-    std::cerr << "Building engine failed\n" << std::endl;
+#ifdef GRAPH
+  config->setProfilingVerbosity(nvinfer1::ProfilingVerbosity::kDETAILED);
+#endif
 
-#ifdef LEGACY
-    network->destroy();
+  nvinfer1::ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
+  if (engine) {
+    std::cout << "Building complete\n" << std::endl;
+  }
+  else {
+    std::cerr << "Building engine failed\n" << std::endl;
+  }
+
+#ifdef GRAPH
+  nvinfer1::IExecutionContext *context = engine->createExecutionContext();
+  nvinfer1::IEngineInspector *inpector = engine->createEngineInspector();
+  inpector->setExecutionContext(context);
+  std::ofstream graph;
+  graph.open("graph.json");
+  graph << inpector->getEngineInformation(nvinfer1::LayerInformationFormat::kJSON);
+  graph.close();
+  std::cout << "Network graph saved to graph.json\n" << std::endl;
+
+#if NV_TENSORRT_MAJOR >= 8
+  delete inpector;
+  delete context;
 #else
-    delete network;
+  inpector->destroy();
+  context->destroy();
+#endif
+
+#endif
+
+#if NV_TENSORRT_MAJOR >= 8
+  if (m_NetworkType == "onnx") {
+    delete parser;
+  }
+  delete network;
+#else
+  if (m_NetworkType == "onnx") {
+    parser->destroy();
+  }
+  network->destroy();
 #endif
 
   return engine;
@@ -124,14 +230,16 @@ NvDsInferStatus
 Yolo::parseModel(nvinfer1::INetworkDefinition& network) {
   destroyNetworkUtils();
 
-  std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
+  std::vector<float> weights = loadWeights(m_DarknetWtsFilePath, m_ModelName);
   std::cout << "Building YOLO network\n" << std::endl;
   NvDsInferStatus status = buildYoloNetwork(weights, network);
 
-  if (status == NVDSINFER_SUCCESS)
+  if (status == NVDSINFER_SUCCESS) {
     std::cout << "Building YOLO network complete" << std::endl;
-  else
+  }
+  else {
     std::cerr << "Building YOLO network failed" << std::endl;
+  }
 
   return status;
 }
@@ -141,8 +249,11 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
 {
   int weightPtr = 0;
 
+  uint batchSize = m_ImplicitBatch ? m_BatchSize : -1;
+
   nvinfer1::ITensor* data = network.addInput(m_InputBlobName.c_str(), nvinfer1::DataType::kFLOAT,
-      nvinfer1::Dims{3, {static_cast<int>(m_InputC), static_cast<int>(m_InputH), static_cast<int>(m_InputW)}});
+      nvinfer1::Dims{4, {static_cast<int>(batchSize), static_cast<int>(m_InputC), static_cast<int>(m_InputH),
+      static_cast<int>(m_InputW)}});
   assert(data != nullptr && data->getDimensions().nbDims > 0);
 
   nvinfer1::ITensor* previous = data;
@@ -287,28 +398,13 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       std::string layerName = m_ConfigBlocks.at(i).at("type");
       printLayerInfo(layerIndex, layerName, inputVol, outputVol, "-");
     }
-    else if (m_ConfigBlocks.at(i).at("type") == "reorg3d") {
+    else if (m_ConfigBlocks.at(i).at("type") == "reorg" || m_ConfigBlocks.at(i).at("type") == "reorg3d") {
       std::string inputVol = dimsToString(previous->getDimensions());
       previous = reorgLayer(i, m_ConfigBlocks.at(i), previous, &network);
       assert(previous != nullptr);
       std::string outputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);
-      std::string layerName = "reorg3d";
-      printLayerInfo(layerIndex, layerName, inputVol, outputVol, "-");
-    }
-    else if (m_ConfigBlocks.at(i).at("type") == "reorg") {
-      std::string inputVol = dimsToString(previous->getDimensions());
-      nvinfer1::IPluginV2* reorgPlugin = createReorgPlugin(2);
-      assert(reorgPlugin != nullptr);
-      nvinfer1::IPluginV2Layer* reorg = network.addPluginV2(&previous, 1, *reorgPlugin);
-      assert(reorg != nullptr);
-      std::string reorglayerName = "reorg_" + std::to_string(i);
-      reorg->setName(reorglayerName.c_str());
-      previous = reorg->getOutput(0);
-      assert(previous != nullptr);
-      std::string outputVol = dimsToString(previous->getDimensions());
-      tensorOutputs.push_back(previous);
-      std::string layerName = "reorg";
+      std::string layerName = m_ConfigBlocks.at(i).at("type");
       printLayerInfo(layerIndex, layerName, inputVol, outputVol, "-");
     }
     else if (m_ConfigBlocks.at(i).at("type") == "yolo" || m_ConfigBlocks.at(i).at("type") == "region") {
@@ -317,9 +413,8 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       nvinfer1::Dims prevTensorDims = previous->getDimensions();
       TensorInfo& curYoloTensor = m_YoloTensors.at(yoloCountInputs);
       curYoloTensor.blobName = blobName;
-      curYoloTensor.gridSizeX = prevTensorDims.d[2];
-      curYoloTensor.gridSizeY = prevTensorDims.d[1];
-
+      curYoloTensor.gridSizeY = prevTensorDims.d[2];
+      curYoloTensor.gridSizeX = prevTensorDims.d[3];
       std::string inputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);
       yoloTensorInputs[yoloCountInputs] = previous;
@@ -345,10 +440,10 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
     uint64_t outputSize = 0;
     for (uint j = 0; j < yoloCountInputs; ++j) {
       TensorInfo& curYoloTensor = m_YoloTensors.at(j);
-      outputSize += curYoloTensor.gridSizeX * curYoloTensor.gridSizeY * curYoloTensor.numBBoxes;
+      outputSize += curYoloTensor.numBBoxes * curYoloTensor.gridSizeY * curYoloTensor.gridSizeX;
     }
 
-    nvinfer1::IPluginV2* yoloPlugin = new YoloLayer(m_InputW, m_InputH, m_NumClasses, m_NewCoords, m_YoloTensors,
+    nvinfer1::IPluginV2DynamicExt* yoloPlugin = new YoloLayer(m_InputW, m_InputH, m_NumClasses, m_NewCoords, m_YoloTensors,
         outputSize);
     assert(yoloPlugin != nullptr);
     nvinfer1::IPluginV2Layer* yolo = network.addPluginV2(yoloTensorInputs, m_YoloCount, *yoloPlugin);
@@ -356,10 +451,19 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
     std::string yoloLayerName = "yolo";
     yolo->setName(yoloLayerName.c_str());
 
-    nvinfer1::ITensor* outputYolo = yolo->getOutput(0);
-    std::string outputYoloLayerName = "output";
-    outputYolo->setName(outputYoloLayerName.c_str());
-    network.markOutput(*outputYolo);
+    std::string outputlayerName;
+    nvinfer1::ITensor* detection_boxes = yolo->getOutput(0);
+    outputlayerName = "boxes";
+    detection_boxes->setName(outputlayerName.c_str());
+    nvinfer1::ITensor* detection_scores = yolo->getOutput(1);
+    outputlayerName = "scores";
+    detection_scores->setName(outputlayerName.c_str());
+    nvinfer1::ITensor* detection_classes = yolo->getOutput(2);
+    outputlayerName = "classes";
+    detection_classes->setName(outputlayerName.c_str());
+    network.markOutput(*detection_boxes);
+    network.markOutput(*detection_scores);
+    network.markOutput(*detection_classes);
   }
   else {
     std::cerr << "\nError in yolo cfg file" << std::endl;

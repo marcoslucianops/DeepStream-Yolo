@@ -22,8 +22,8 @@
 
 class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
   public:
-    Int8EntropyCalibrator2(const int& batchsize, const int& channels, const int& height, const int& width,
-        const int& letterbox, const std::string& imgPath, const std::string& calibTablePath);
+    Int8EntropyCalibrator2(const int& batchSize, const int& channels, const int& height, const int& width,
+        const float& scaleFactor, const float* offsets, const std::string& imgPath, const std::string& calibTablePath);
 
     virtual ~Int8EntropyCalibrator2();
 
@@ -41,6 +41,8 @@ class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
     int inputH;
     int inputW;
     int letterBox;
+    float scaleFactor;
+    const float* offsets;
     std::string calibTablePath;
     size_t imageIndex;
     size_t inputCount;
@@ -51,6 +53,7 @@ class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
     std::vector<char> calibrationCache;
 };
 
-std::vector<float> prepareImage(cv::Mat& img, int input_c, int input_h, int input_w, int letter_box);
+std::vector<float> prepareImage(cv::Mat& img, int input_c, int input_h, int input_w, float scaleFactor,
+    const float* offsets);
 
 #endif //CALIBRATOR_H

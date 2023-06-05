@@ -40,7 +40,7 @@ float clamp(const float val, const float minVal, const float maxVal);
 
 bool fileExists(const std::string fileName, bool verbose = true);
 
-std::vector<float> loadWeights(const std::string weightsFilePath, const std::string& networkType);
+std::vector<float> loadWeights(const std::string weightsFilePath, const std::string& modelName);
 
 std::string dimsToString(const nvinfer1::Dims d);
 

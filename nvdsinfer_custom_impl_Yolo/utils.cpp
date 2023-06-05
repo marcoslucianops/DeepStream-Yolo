@@ -60,15 +60,16 @@ bool
 fileExists(const std::string fileName, bool verbose)
 {
   if (!std::experimental::filesystem::exists(std::experimental::filesystem::path(fileName))) {
-    if (verbose)
+    if (verbose) {
       std::cout << "\nFile does not exist: " << fileName << std::endl;
+    }
     return false;
   }
   return true;
 }
 
 std::vector<float>
-loadWeights(const std::string weightsFilePath, const std::string& networkType)
+loadWeights(const std::string weightsFilePath, const std::string& modelName)
 {
   assert(fileExists(weightsFilePath));
   std::cout << "\nLoading pre-trained weights" << std::endl;
@@ -80,7 +81,7 @@ loadWeights(const std::string weightsFilePath, const std::string& networkType)
     assert(file.good());
     std::string line;
 
-    if (networkType.find("yolov2") != std::string::npos && networkType.find("yolov2-tiny") == std::string::npos) {
+    if (modelName.find("yolov2") != std::string::npos && modelName.find("yolov2-tiny") == std::string::npos) {
         // Remove 4 int32 bytes of data from the stream belonging to the header
         file.ignore(4 * 4);
     }
@@ -94,8 +95,9 @@ loadWeights(const std::string weightsFilePath, const std::string& networkType)
       file.read(floatWeight, 4);
       assert(file.gcount() == 4);
       weights.push_back(*reinterpret_cast<float*>(floatWeight));
-      if (file.peek() == std::istream::traits_type::eof())
+      if (file.peek() == std::istream::traits_type::eof()) {
         break;
+      }
     }
   }
   else {
@@ -103,7 +105,7 @@ loadWeights(const std::string weightsFilePath, const std::string& networkType)
     assert(0);
   }
 
-  std::cout << "Loading weights of " << networkType << " complete" << std::endl;
+  std::cout << "Loading weights of " << modelName << " complete" << std::endl;
   std::cout << "Total weights read: " << weights.size() << std::endl;
 
   return weights;
@@ -116,8 +118,9 @@ dimsToString(const nvinfer1::Dims d)
 
   std::stringstream s;
   s << "[";
-  for (int i = 0; i < d.nbDims - 1; ++i)
+  for (int i = 1; i < d.nbDims - 1; ++i) {
     s << d.d[i] << ", ";
+  }
   s << d.d[d.nbDims - 1] << "]";
 
   return s.str();
@@ -127,16 +130,15 @@ int
 getNumChannels(nvinfer1::ITensor* t)
 {
   nvinfer1::Dims d = t->getDimensions();
-  assert(d.nbDims == 3);
-
-  return d.d[0];
+  assert(d.nbDims == 4);
+  return d.d[1];
 }
 
 void
 printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput, std::string layerOutput,
     std::string weightPtr)
 {
-  std::cout << std::setw(8) << std::left << layerIndex << std::setw(30) << std::left << layerName;
-  std::cout << std::setw(20) << std::left << layerInput << std::setw(20) << std::left << layerOutput;
+  std::cout << std::setw(7) << std::left << layerIndex << std::setw(40) << std::left << layerName;
+  std::cout << std::setw(19) << std::left << layerInput << std::setw(19) << std::left << layerOutput;
   std::cout << weightPtr << std::endl;
 }

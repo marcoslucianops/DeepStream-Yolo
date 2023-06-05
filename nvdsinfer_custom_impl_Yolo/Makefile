@@ -33,9 +33,9 @@ ifeq ($(OPENCV),)
 	OPENCV=0
 endif
 
-LEGACY?=
-ifeq ($(LEGACY),)
-	LEGACY=0
+GRAPH?=
+ifeq ($(GRAPH),)
+	GRAPH=0
 endif
 
 CC:= g++
@@ -50,13 +50,13 @@ ifeq ($(OPENCV), 1)
 	LIBS+= $(shell pkg-config --libs opencv4 2> /dev/null || pkg-config --libs opencv)
 endif
 
-ifeq ($(LEGACY), 1)
-	COMMON+= -DLEGACY
+ifeq ($(GRAPH), 1)
+	COMMON+= -GRAPH
 endif
 
 CUFLAGS:= -I/opt/nvidia/deepstream/deepstream/sources/includes -I/usr/local/cuda-$(CUDA_VER)/include
 
-LIBS+= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
+LIBS+= -lnvinfer_plugin -lnvinfer -lnvparsers -lnvonnxparser -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
 LFLAGS:= -shared -Wl,--start-group $(LIBS) -Wl,--end-group
 
 INCS:= $(wildcard *.h)

@@ -17,8 +17,8 @@ shortcutLayer(int layerIdx, std::string activation, std::string inputVol, std::s
   assert(block.at("type") == "shortcut");
 
   if (inputVol != shortcutVol) {
-    nvinfer1::ISliceLayer* slice = network->addSlice(*shortcutInput, nvinfer1::Dims{3, {0, 0, 0}}, input->getDimensions(),
-        nvinfer1::Dims{3, {1, 1, 1}});
+    nvinfer1::ISliceLayer* slice = network->addSlice(*shortcutInput, nvinfer1::Dims{4, {0, 0, 0, 0}}, input->getDimensions(),
+        nvinfer1::Dims{4, {1, 1, 1, 1}});
     assert(slice != nullptr);
     std::string sliceLayerName = "slice_" + std::to_string(layerIdx);
     slice->setName(sliceLayerName.c_str());

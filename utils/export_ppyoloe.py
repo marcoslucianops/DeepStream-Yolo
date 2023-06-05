@@ -19,8 +19,8 @@ class DeepStreamOutput(nn.Layer):
         boxes = x['bbox']
         x['bbox_num'] = x['bbox_num'].transpose([0, 2, 1])
         scores = paddle.max(x['bbox_num'], 2, keepdim=True)
-        classes = paddle.cast(paddle.argmax(x['bbox_num'], 2, keepdim=True), dtype='float32')
-        return paddle.concat((boxes, scores, classes), axis=2)
+        classes = paddle.argmax(x['bbox_num'], 2, keepdim=True)
+        return boxes, scores, classes
 
 
 def ppyoloe_export(FLAGS):
@@ -65,8 +65,8 @@ def main(FLAGS):
     img_size = [cfg.eval_height, cfg.eval_width]
 
     onnx_input_im = {}
-    onnx_input_im['image'] = paddle.static.InputSpec(shape=[None, 3, *img_size], dtype='float32', name='image')
-    onnx_input_im['scale_factor'] = paddle.static.InputSpec(shape=[None, 2], dtype='float32', name='scale_factor')
+    onnx_input_im['image'] = paddle.static.InputSpec(shape=[FLAGS.batch, 3, *img_size], dtype='float32', name='image')
+    onnx_input_im['scale_factor'] = paddle.static.InputSpec(shape=[FLAGS.batch, 2], dtype='float32', name='scale_factor')
     onnx_output_file = cfg.filename + '.onnx'
 
     print('\nExporting the model to ONNX\n')
@@ -88,7 +88,15 @@ def parse_args():
     parser.add_argument('--slim_config', default=None, type=str, help='Slim configuration file of slim method')
     parser.add_argument('--opset', type=int, default=11, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
+    parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
+    parser.add_argument('--batch', type=int, default=1, help='Implicit batch-size')
     args = parser.parse_args()
+    if not os.path.isfile(args.weights):
+        raise SystemExit('\nInvalid weights file')
+    if args.dynamic and args.batch > 1:
+        raise SystemExit('\nCannot set dynamic batch-size and implicit batch-size at same time')
+    elif args.dynamic:
+        args.batch = None
     return args
 
 

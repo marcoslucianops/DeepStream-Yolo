@@ -28,7 +28,7 @@ implicitLayer(int layerIdx, std::map<std::string, std::string>& block, std::vect
   convWt.values = val;
   trtWeights.push_back(convWt);
 
-  nvinfer1::IConstantLayer* implicit = network->addConstant(nvinfer1::Dims{3, {filters, 1, 1}}, convWt);
+  nvinfer1::IConstantLayer* implicit = network->addConstant(nvinfer1::Dims{4, {1, filters, 1, 1}}, convWt);
   assert(implicit != nullptr);
   std::string implicitLayerName = block.at("type") + "_" + std::to_string(layerIdx);
   implicit->setName(implicitLayerName.c_str());

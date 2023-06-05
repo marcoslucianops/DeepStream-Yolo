@@ -45,13 +45,19 @@ struct NetworkInfo
 {
   std::string inputBlobName;
   std::string networkType;
-  std::string configFilePath;
-  std::string wtsFilePath;
+  std::string modelName;
+  std::string onnxWtsFilePath;
+  std::string darknetWtsFilePath;
+  std::string darknetCfgFilePath;
+  uint batchSize;
+  int implicitBatch;
   std::string int8CalibPath;
   std::string deviceType;
   uint numDetectedClasses;
   int clusterMode;
   std::string networkMode;
+  float scaleFactor;
+  const float* offsets;
 };
 
 struct TensorInfo
@@ -74,7 +80,8 @@ class Yolo : public IModelParser {
     bool hasFullDimsSupported() const override { return false; }
 
     const char* getModelName() const override {
-      return m_ConfigFilePath.empty() ? m_NetworkType.c_str() : m_ConfigFilePath.c_str();
+      return m_NetworkType == "onnx" ? m_OnnxWtsFilePath.substr(0, m_OnnxWtsFilePath.find(".onnx")).c_str() :
+          m_DarknetCfgFilePath.substr(0, m_DarknetCfgFilePath.find(".cfg")).c_str();
     }
 
     NvDsInferStatus parseModel(nvinfer1::INetworkDefinition& network) override;
@@ -84,17 +91,23 @@ class Yolo : public IModelParser {
   protected:
     const std::string m_InputBlobName;
     const std::string m_NetworkType;
-    const std::string m_ConfigFilePath;
-    const std::string m_WtsFilePath;
+    const std::string m_ModelName;
+    const std::string m_OnnxWtsFilePath;
+    const std::string m_DarknetWtsFilePath;
+    const std::string m_DarknetCfgFilePath;
+    const uint m_BatchSize;
+    const int m_ImplicitBatch;
     const std::string m_Int8CalibPath;
     const std::string m_DeviceType;
     const uint m_NumDetectedClasses;
     const int m_ClusterMode;
     const std::string m_NetworkMode;
+    const float m_ScaleFactor;
+    const float* m_Offsets;
 
+    uint m_InputC;
     uint m_InputH;
     uint m_InputW;
-    uint m_InputC;
     uint64_t m_InputSize;
     uint m_NumClasses;
     uint m_LetterBox;

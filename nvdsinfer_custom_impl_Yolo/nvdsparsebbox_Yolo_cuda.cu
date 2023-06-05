@@ -30,33 +30,33 @@
 #include "nvdsinfer_custom_impl.h"
 
 extern "C" bool
-NvDsInferParseYolo_cuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParseYoloCuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList);
 
 extern "C" bool
-NvDsInferParseYoloE_cuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParseYoloECuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList);
 
-__global__ void decodeTensorYolo_cuda(NvDsInferParseObjectInfo *binfo, float* input, int outputSize, int netW, int netH,
-    float minPreclusterThreshold)
+__global__ void decodeTensorYoloCuda(NvDsInferParseObjectInfo *binfo, float* boxes, float* scores, int* classes,
+    int outputSize, int netW, int netH, float minPreclusterThreshold)
 {
   int x_id = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (x_id >= outputSize)
     return;
 
-  float maxProb = input[x_id * 6 + 4];
-  int maxIndex = (int) input[x_id * 6 + 5];
+  float maxProb = scores[x_id];
+  int maxIndex = classes[x_id];
 
   if (maxProb < minPreclusterThreshold) {
     binfo[x_id].detectionConfidence = 0.0;
     return;
   }
 
-  float bxc = input[x_id * 6 + 0];
-  float byc = input[x_id * 6 + 1];
-  float bw = input[x_id * 6 + 2];
-  float bh = input[x_id * 6 + 3];
+  float bxc = boxes[x_id * 4 + 0];
+  float byc = boxes[x_id * 4 + 1];
+  float bw = boxes[x_id * 4 + 2];
+  float bh = boxes[x_id * 4 + 3];
 
   float x0 = bxc - bw / 2;
   float y0 = byc - bh / 2;
@@ -76,26 +76,26 @@ __global__ void decodeTensorYolo_cuda(NvDsInferParseObjectInfo *binfo, float* in
   binfo[x_id].classId = maxIndex;
 }
 
-__global__ void decodeTensorYoloE_cuda(NvDsInferParseObjectInfo *binfo, float* input, int outputSize, int netW, int netH,
-    float minPreclusterThreshold)
+__global__ void decodeTensorYoloECuda(NvDsInferParseObjectInfo *binfo, float* boxes, float* scores, int* classes,
+    int outputSize, int netW, int netH, float minPreclusterThreshold)
 {
   int x_id = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (x_id >= outputSize)
     return;
 
-  float maxProb = input[x_id * 6 + 4];
-  int maxIndex = (int) input[x_id * 6 + 5];
+  float maxProb = scores[x_id];
+  int maxIndex = classes[x_id];
 
   if (maxProb < minPreclusterThreshold) {
     binfo[x_id].detectionConfidence = 0.0;
     return;
   }
 
-  float x0 = input[x_id * 6 + 0];
-  float y0 = input[x_id * 6 + 1];
-  float x1 = input[x_id * 6 + 2];
-  float y1 = input[x_id * 6 + 3];
+  float x0 = boxes[x_id * 4 + 0];
+  float y0 = boxes[x_id * 4 + 1];
+  float x1 = boxes[x_id * 4 + 2];
+  float y1 = boxes[x_id * 4 + 3];
 
   x0 = fminf(float(netW), fmaxf(float(0.0), x0));
   y0 = fminf(float(netH), fmaxf(float(0.0), y0));
@@ -110,7 +110,7 @@ __global__ void decodeTensorYoloE_cuda(NvDsInferParseObjectInfo *binfo, float* i
   binfo[x_id].classId = maxIndex;
 }
 
-static bool NvDsInferParseCustomYolo_cuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+static bool NvDsInferParseCustomYoloCuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
     NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
@@ -119,9 +119,23 @@ static bool NvDsInferParseCustomYolo_cuda(std::vector<NvDsInferLayerInfo> const&
     return false;
   }
 
-  const NvDsInferLayerInfo &layer = outputLayersInfo[0];
+  NvDsInferLayerInfo* boxes;
+  NvDsInferLayerInfo* scores;
+  NvDsInferLayerInfo* classes;
 
-  const int outputSize = layer.inferDims.d[0];
+  for (uint i = 0; i < 3; ++i) {
+    if (outputLayersInfo[i].dataType == NvDsInferDataType::INT32) {
+      classes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
+    }
+    else if (outputLayersInfo[i].inferDims.d[1] == 4) {
+      boxes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
+    }
+    else {
+      scores = (NvDsInferLayerInfo*) &outputLayersInfo[i];
+    }
+  }
+
+  const int outputSize = boxes->inferDims.d[0];
 
   thrust::device_vector<NvDsInferParseObjectInfo> objects(outputSize);
 
@@ -131,9 +145,9 @@ static bool NvDsInferParseCustomYolo_cuda(std::vector<NvDsInferLayerInfo> const&
   int threads_per_block = 1024;
   int number_of_blocks = ((outputSize - 1) / threads_per_block) + 1;
 
-  decodeTensorYolo_cuda<<<number_of_blocks, threads_per_block>>>(
-      thrust::raw_pointer_cast(objects.data()), (float*) layer.buffer, outputSize, networkInfo.width, networkInfo.height,
-      minPreclusterThreshold);
+  decodeTensorYoloCuda<<<number_of_blocks, threads_per_block>>>(
+      thrust::raw_pointer_cast(objects.data()), (float*) (boxes->buffer), (float*) (scores->buffer),
+      (int*) (classes->buffer), outputSize, networkInfo.width, networkInfo.height, minPreclusterThreshold);
 
   objectList.resize(outputSize);
   thrust::copy(objects.begin(), objects.end(), objectList.begin());
@@ -141,7 +155,7 @@ static bool NvDsInferParseCustomYolo_cuda(std::vector<NvDsInferLayerInfo> const&
   return true;
 }
 
-static bool NvDsInferParseCustomYoloE_cuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+static bool NvDsInferParseCustomYoloECuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
     NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
     std::vector<NvDsInferParseObjectInfo>& objectList)
 {
@@ -150,9 +164,23 @@ static bool NvDsInferParseCustomYoloE_cuda(std::vector<NvDsInferLayerInfo> const
     return false;
   }
 
-  const NvDsInferLayerInfo &layer = outputLayersInfo[0];
+  NvDsInferLayerInfo* boxes;
+  NvDsInferLayerInfo* scores;
+  NvDsInferLayerInfo* classes;
 
-  const int outputSize = layer.inferDims.d[0];
+  for (uint i = 0; i < 3; ++i) {
+    if (outputLayersInfo[i].dataType == NvDsInferDataType::INT32) {
+      classes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
+    }
+    else if (outputLayersInfo[i].inferDims.d[1] == 4) {
+      boxes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
+    }
+    else {
+      scores = (NvDsInferLayerInfo*) &outputLayersInfo[i];
+    }
+  }
+
+  const int outputSize = boxes->inferDims.d[0];
 
   thrust::device_vector<NvDsInferParseObjectInfo> objects(outputSize);
 
@@ -162,9 +190,9 @@ static bool NvDsInferParseCustomYoloE_cuda(std::vector<NvDsInferLayerInfo> const
   int threads_per_block = 1024;
   int number_of_blocks = ((outputSize - 1) / threads_per_block) + 1;
 
-  decodeTensorYoloE_cuda<<<number_of_blocks, threads_per_block>>>(
-      thrust::raw_pointer_cast(objects.data()), (float*) layer.buffer, outputSize, networkInfo.width, networkInfo.height,
-      minPreclusterThreshold);
+  decodeTensorYoloECuda<<<number_of_blocks, threads_per_block>>>(
+      thrust::raw_pointer_cast(objects.data()), (float*) (boxes->buffer), (float*) (scores->buffer),
+      (int*) (classes->buffer), outputSize, networkInfo.width, networkInfo.height, minPreclusterThreshold);
 
   objectList.resize(outputSize);
   thrust::copy(objects.begin(), objects.end(), objectList.begin());
@@ -173,18 +201,18 @@ static bool NvDsInferParseCustomYoloE_cuda(std::vector<NvDsInferLayerInfo> const
 }
 
 extern "C" bool
-NvDsInferParseYolo_cuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParseYoloCuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-  return NvDsInferParseCustomYolo_cuda(outputLayersInfo, networkInfo, detectionParams, objectList);
+  return NvDsInferParseCustomYoloCuda(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
 extern "C" bool
-NvDsInferParseYoloE_cuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+NvDsInferParseYoloECuda(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
 {
-  return NvDsInferParseCustomYoloE_cuda(outputLayersInfo, networkInfo, detectionParams, objectList);
+  return NvDsInferParseCustomYoloECuda(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
-CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYolo_cuda);
-CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloE_cuda);
+CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloCuda);
+CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloECuda);

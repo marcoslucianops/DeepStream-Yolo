@@ -27,9 +27,9 @@ __device__ void softmaxGPU(const float* input, const int bbindex, const int numG
   }
 }
 
-__global__ void gpuRegionLayer(const float* input, float* softmax, float* output, int* count, const uint netWidth,
-    const uint netHeight, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses, const uint numBBoxes,
-    const float* anchors)
+__global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes, float* scores, int* classes,
+    const uint netWidth, const uint netHeight, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses,
+    const uint numBBoxes, const uint64_t lastInputSize, const float* anchors)
 {
   uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
   uint y_id = blockIdx.y * blockDim.y + threadIdx.y;
@@ -41,8 +41,6 @@ __global__ void gpuRegionLayer(const float* input, float* softmax, float* output
   const int numGridCells = gridSizeX * gridSizeY;
   const int bbindex = y_id * gridSizeX + x_id;
 
-  const float objectness = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)]);
-
   float xc = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]) + x_id) * netWidth / gridSizeX;
 
   float yc = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]) + y_id) * netHeight / gridSizeY;
@@ -52,6 +50,8 @@ __global__ void gpuRegionLayer(const float* input, float* softmax, float* output
 
   float h = __expf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)]) * anchors[z_id * 2 + 1] * netHeight /
       gridSizeY;
+
+  const float objectness = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)]);
 
   softmaxGPU(input, bbindex, numGridCells, z_id, numOutputClasses, 1.0, softmax);
 
@@ -66,23 +66,25 @@ __global__ void gpuRegionLayer(const float* input, float* softmax, float* output
     }
   }
 
-  int _count = (int)atomicAdd(count, 1);
+  int count = z_id * gridSizeX * gridSizeY + y_id * gridSizeY + x_id + lastInputSize;
 
-  output[_count * 6 + 0] = xc;
-  output[_count * 6 + 1] = yc;
-  output[_count * 6 + 2] = w;
-  output[_count * 6 + 3] = h;
-  output[_count * 6 + 4] = maxProb * objectness;
-  output[_count * 6 + 5] = maxIndex;
+  boxes[count * 4 + 0] = xc;
+  boxes[count * 4 + 1] = yc;
+  boxes[count * 4 + 2] = w;
+  boxes[count * 4 + 3] = h;
+  scores[count] = maxProb * objectness;
+  classes[count] = maxIndex;
 }
 
-cudaError_t cudaRegionLayer(const void* input, void* softmax, void* output, void* count, const uint& batchSize,
-    uint64_t& inputSize, uint64_t& outputSize, const uint& netWidth, const uint& netHeight, const uint& gridSizeX,
-    const uint& gridSizeY, const uint& numOutputClasses, const uint& numBBoxes, const void* anchors, cudaStream_t stream);
+cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void* scores, void* classes,
+    const uint& batchSize, const uint64_t& inputSize, const uint64_t& outputSize, const uint64_t& lastInputSize,
+    const uint& netWidth, const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+    const uint& numBBoxes, const void* anchors, cudaStream_t stream);
 
-cudaError_t cudaRegionLayer(const void* input, void* softmax, void* output, void* count, const uint& batchSize,
-    uint64_t& inputSize, uint64_t& outputSize, const uint& netWidth, const uint& netHeight, const uint& gridSizeX,
-    const uint& gridSizeY, const uint& numOutputClasses, const uint& numBBoxes, const void* anchors, cudaStream_t stream)
+cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void* scores, void* classes,
+    const uint& batchSize, const uint64_t& inputSize, const uint64_t& outputSize, const uint64_t& lastInputSize,
+    const uint& netWidth, const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+    const uint& numBBoxes, const void* anchors, cudaStream_t stream)
 {
   dim3 threads_per_block(16, 16, 4);
   dim3 number_of_blocks((gridSizeX / threads_per_block.x) + 1, (gridSizeY / threads_per_block.y) + 1,
@@ -92,9 +94,10 @@ cudaError_t cudaRegionLayer(const void* input, void* softmax, void* output, void
     gpuRegionLayer<<<number_of_blocks, threads_per_block, 0, stream>>>(
         reinterpret_cast<const float*> (input) + (batch * inputSize),
         reinterpret_cast<float*> (softmax) + (batch * inputSize),
-        reinterpret_cast<float*> (output) + (batch * 6 * outputSize),
-        reinterpret_cast<int*> (count) + (batch),
-        netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes,
+        reinterpret_cast<float*> (boxes) + (batch * 4 * outputSize),
+        reinterpret_cast<float*> (scores) + (batch * 1 * outputSize),
+        reinterpret_cast<int*> (classes) + (batch * 1 * outputSize),
+        netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, lastInputSize,
         reinterpret_cast<const float*> (anchors));
   }
   return cudaGetLastError();

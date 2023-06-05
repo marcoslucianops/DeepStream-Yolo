@@ -23,7 +23,8 @@ class DeepStreamOutput(nn.Module):
         boxes = x[:, :, :4]
         objectness = x[:, :, 4:5]
         scores, classes = torch.max(x[:, :, 5:], 2, keepdim=True)
-        return torch.cat((boxes, scores * objectness, classes.float()), dim=2)
+        scores *= objectness
+        return boxes, scores, classes
 
 
 def suppress_warnings():
@@ -66,21 +67,27 @@ def main(args):
     if img_size == [640, 640] and args.p6:
         img_size = [1280] * 2
 
-    onnx_input_im = torch.zeros(1, 3, *img_size).to(device)
+    onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
     onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
 
     dynamic_axes = {
         'input': {
             0: 'batch'
         },
-        'output': {
+        'boxes': {
+            0: 'batch'
+        },
+        'scores': {
+            0: 'batch'
+        },
+        'classes': {
             0: 'batch'
         }
     }
 
     print('\nExporting the model to ONNX')
     torch.onnx.export(model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset,
-                      do_constant_folding=True, input_names=['input'], output_names=['output'],
+                      do_constant_folding=True, input_names=['input'], output_names=['boxes', 'scores', 'classes'],
                       dynamic_axes=dynamic_axes if args.dynamic else None)
 
     if args.simplify:
@@ -101,9 +108,12 @@ def parse_args():
     parser.add_argument('--opset', type=int, default=13, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
+    parser.add_argument('--batch', type=int, default=1, help='Implicit batch-size')
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
         raise SystemExit('Invalid weights file')
+    if args.dynamic and args.batch > 1:
+        raise SystemExit('Cannot set dynamic batch-size and implicit batch-size at same time')
     return args
 
 

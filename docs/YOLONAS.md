@@ -46,6 +46,24 @@ Generate the ONNX model file (example for YOLO-NAS S)
 python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --simplify --dynamic
 ```
 
+**NOTE**: To simplify the ONNX model
+
+```
+--simplify
+```
+
+**NOTE**: To use dynamic batch-size
+
+```
+--dynamic
+```
+
+**NOTE**: To use implicit batch-size (example for batch-size = 4)
+
+```
+--batch 4
+```
+
 **NOTE**: If you are using DeepStream 5.1, use opset 12 or lower. The default opset is 14.
 
 ```
@@ -128,7 +146,7 @@ Open the `DeepStream-Yolo` folder and compile the lib
 * DeepStream 5.1 on x86 platform
 
   ```
-  CUDA_VER=11.1 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
+  CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 * DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
@@ -137,16 +155,10 @@ Open the `DeepStream-Yolo` folder and compile the lib
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.0.1 / 6.0 on Jetson platform
+* DeepStream 6.0.1 / 6.0 / 5.1 on Jetson platform
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 5.1 on Jetson platform
-
-  ```
-  CUDA_VER=10.2 LEGACY=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
 ##
@@ -159,7 +171,6 @@ Edit the `config_infer_primary_yolonas.txt` file according to your model (exampl
 [property]
 ...
 onnx-file=yolo_nas_s_coco.onnx
-model-engine-file=yolo_nas_s_coco.onnx_b1_gpu0_fp32.engine
 ...
 num-detected-classes=80
 ...
@@ -170,8 +181,18 @@ parse-bbox-func-name=NvDsInferParseYoloE
 **NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
 
 ```
+...
 maintain-aspect-ratio=1
 symmetric-padding=0
+...
+```
+
+**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
+
+```
+...
+force-implicit-batch-dim=1
+...
 ```
 
 ##
