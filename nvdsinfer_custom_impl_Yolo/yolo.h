@@ -45,7 +45,9 @@
 #define INT int32_t
 #else
 #define INT int
+#endif
 
+#if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR == 0)
 static class Logger : public nvinfer1::ILogger {
   void log(nvinfer1::ILogger::Severity severity, const char* msg) noexcept override {
     if (severity <= nvinfer1::ILogger::Severity::kWARNING)

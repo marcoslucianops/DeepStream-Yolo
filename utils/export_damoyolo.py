@@ -18,6 +18,7 @@ class DeepStreamOutput(nn.Module):
     def forward(self, x):
         boxes = x[1]
         scores, classes = torch.max(x[0], 2, keepdim=True)
+        classes = classes.float()
         return boxes, scores, classes
 
 

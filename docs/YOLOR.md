@@ -55,37 +55,13 @@ Generate the ONNX model file
   python3 export_yolor.py -w yolor-p6.pt --dynamic
   ```
 
-**NOTE**: To simplify the ONNX model (DeepStream >= 6)
-
-```
---simplify
-```
-
-**NOTE**: To use dynamic batch-size (DeepStream >= 6)
-
-```
---dynamic
-```
-
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
-
-```
---batch 4
-```
-
-**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 12.
-
-```
---opset 12
-```
-
 **NOTE**: To convert a P6 model
 
 ```
 --p6
 ```
 
-**NOTE**: To change the inference size (defaut: 640)
+**NOTE**: To change the inference size (defaut: 640 / 1280 for `--p6` models)
 
 ```
 -s SIZE
@@ -104,6 +80,30 @@ or
 
 ```
 -s 1280 1280
+```
+
+**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
+
+```
+--simplify
+```
+
+**NOTE**: To use dynamic batch-size (DeepStream >= 6.1)
+
+```
+--dynamic
+```
+
+**NOTE**: To use implicit batch-size (example for batch-size = 4)
+
+```
+--batch 4
+```
+
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 12.
+
+```
+--opset 12
 ```
 
 #### 5. Copy generated files

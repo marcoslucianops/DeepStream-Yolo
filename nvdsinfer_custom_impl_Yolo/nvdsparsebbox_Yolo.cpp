@@ -73,14 +73,14 @@ addBBoxProposal(const float bx1, const float by1, const float bx2, const float b
 }
 
 static std::vector<NvDsInferParseObjectInfo>
-decodeTensorYolo(const float* boxes, const float* scores, const int* classes, const uint& outputSize, const uint& netW,
+decodeTensorYolo(const float* boxes, const float* scores, const float* classes, const uint& outputSize, const uint& netW,
     const uint& netH, const std::vector<float>& preclusterThreshold)
 {
   std::vector<NvDsInferParseObjectInfo> binfo;
 
   for (uint b = 0; b < outputSize; ++b) {
     float maxProb = scores[b];
-    int maxIndex = classes[b];
+    int maxIndex = (int) classes[b];
 
     if (maxProb < preclusterThreshold[maxIndex])
       continue;
@@ -102,14 +102,14 @@ decodeTensorYolo(const float* boxes, const float* scores, const int* classes, co
 }
 
 static std::vector<NvDsInferParseObjectInfo>
-decodeTensorYoloE(const float* boxes, const float* scores, const int* classes, const uint& outputSize, const uint& netW,
+decodeTensorYoloE(const float* boxes, const float* scores, const float* classes, const uint& outputSize, const uint& netW,
     const uint& netH, const std::vector<float>& preclusterThreshold)
 {
   std::vector<NvDsInferParseObjectInfo> binfo;
 
   for (uint b = 0; b < outputSize; ++b) {
     float maxProb = scores[b];
-    int maxIndex = classes[b];
+    int maxIndex = (int) classes[b];
 
     if (maxProb < preclusterThreshold[maxIndex])
       continue;
@@ -136,26 +136,14 @@ NvDsInferParseCustomYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo
 
   std::vector<NvDsInferParseObjectInfo> objects;
 
-  NvDsInferLayerInfo* boxes;
-  NvDsInferLayerInfo* scores;
-  NvDsInferLayerInfo* classes;
+  const NvDsInferLayerInfo& boxes = outputLayersInfo[0];
+  const NvDsInferLayerInfo& scores = outputLayersInfo[1];
+  const NvDsInferLayerInfo& classes = outputLayersInfo[2];
 
-  for (uint i = 0; i < 3; ++i) {
-    if (outputLayersInfo[i].dataType == NvDsInferDataType::INT32) {
-      classes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
-    }
-    else if (outputLayersInfo[i].inferDims.d[1] == 4) {
-      boxes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
-    }
-    else {
-      scores = (NvDsInferLayerInfo*) &outputLayersInfo[i];
-    }
-  }
+  const uint outputSize = boxes.inferDims.d[0];
 
-  const uint outputSize = boxes->inferDims.d[0];
-
-  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYolo((const float*) (boxes->buffer),
-      (const float*) (scores->buffer), (const int*) (classes->buffer), outputSize, networkInfo.width, networkInfo.height,
+  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYolo((const float*) (boxes.buffer),
+      (const float*) (scores.buffer), (const float*) (classes.buffer), outputSize, networkInfo.width, networkInfo.height,
       detectionParams.perClassPreclusterThreshold);
 
   objects.insert(objects.end(), outObjs.begin(), outObjs.end());
@@ -176,26 +164,14 @@ NvDsInferParseCustomYoloE(std::vector<NvDsInferLayerInfo> const& outputLayersInf
 
   std::vector<NvDsInferParseObjectInfo> objects;
 
-  NvDsInferLayerInfo* boxes;
-  NvDsInferLayerInfo* scores;
-  NvDsInferLayerInfo* classes;
+  const NvDsInferLayerInfo& boxes = outputLayersInfo[0];
+  const NvDsInferLayerInfo& scores = outputLayersInfo[1];
+  const NvDsInferLayerInfo& classes = outputLayersInfo[2];
 
-  for (uint i = 0; i < 3; ++i) {
-    if (outputLayersInfo[i].dataType == NvDsInferDataType::INT32) {
-      classes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
-    }
-    else if (outputLayersInfo[i].inferDims.d[1] == 4) {
-      boxes = (NvDsInferLayerInfo*) &outputLayersInfo[i];
-    }
-    else {
-      scores = (NvDsInferLayerInfo*) &outputLayersInfo[i];
-    }
-  }
+  const uint outputSize = boxes.inferDims.d[0];
 
-  const uint outputSize = boxes->inferDims.d[0];
-
-  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYoloE((const float*) (boxes->buffer),
-      (const float*) (scores->buffer), (const int*) (classes->buffer), outputSize, networkInfo.width, networkInfo.height,
+  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYoloE((const float*) (boxes.buffer),
+      (const float*) (scores.buffer), (const float*) (classes.buffer), outputSize, networkInfo.width, networkInfo.height,
       detectionParams.perClassPreclusterThreshold);
 
   objects.insert(objects.end(), outObjs.begin(), outObjs.end());

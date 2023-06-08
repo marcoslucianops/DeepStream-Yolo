@@ -46,13 +46,13 @@ Generate the ONNX model file (example for YOLOX-s)
 python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model (DeepStream >= 6)
+**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size (DeepStream >= 6)
+**NOTE**: To use dynamic batch-size (DeepStream >= 6.1)
 
 ```
 --dynamic

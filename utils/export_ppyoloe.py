@@ -19,7 +19,7 @@ class DeepStreamOutput(nn.Layer):
         boxes = x['bbox']
         x['bbox_num'] = x['bbox_num'].transpose([0, 2, 1])
         scores = paddle.max(x['bbox_num'], 2, keepdim=True)
-        classes = paddle.argmax(x['bbox_num'], 2, keepdim=True)
+        classes = paddle.cast(paddle.argmax(x['bbox_num'], 2, keepdim=True), dtype='float32')
         return boxes, scores, classes
 
 

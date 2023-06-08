@@ -41,13 +41,13 @@ pip3 install onnx onnxsim onnxruntime
 python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model (DeepStream >= 6)
+**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
 
 ```
 --simplify
 ```
 
-**NOTE**: To use dynamic batch-size (DeepStream >= 6)
+**NOTE**: To use dynamic batch-size (DeepStream >= 6.1)
 
 ```
 --dynamic

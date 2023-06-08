@@ -17,6 +17,7 @@ class DeepStreamOutput(nn.Module):
         objectness = x[:, :, 4:5]
         scores, classes = torch.max(x[:, :, 5:], 2, keepdim=True)
         scores *= objectness
+        classes = classes.float()
         return boxes, scores, classes
 
 

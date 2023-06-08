@@ -43,30 +43,6 @@ Generate the ONNX model file (example for DAMO-YOLO-S*)
 python3 export_damoyolo.py -w damoyolo_tinynasL25_S_477.pth -c configs/damoyolo_tinynasL25_S.py --dynamic
 ```
 
-**NOTE**: To simplify the ONNX model (DeepStream >= 6)
-
-```
---simplify
-```
-
-**NOTE**: To use dynamic batch-size (DeepStream >= 6)
-
-```
---dynamic
-```
-
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
-
-```
---batch 4
-```
-
-**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 11 or lower. The default opset is 11.
-
-```
---opset 11
-```
-
 **NOTE**: To change the inference size (defaut: 640)
 
 ```
@@ -86,6 +62,30 @@ or
 
 ```
 -s 1280 1280
+```
+
+**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
+
+```
+--simplify
+```
+
+**NOTE**: To use dynamic batch-size (DeepStream >= 6.1)
+
+```
+--dynamic
+```
+
+**NOTE**: To use implicit batch-size (example for batch-size = 4)
+
+```
+--batch 4
+```
+
+**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 11 or lower. The default opset is 11.
+
+```
+--opset 11
 ```
 
 #### 5. Copy generated files
