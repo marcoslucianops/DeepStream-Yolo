@@ -92,7 +92,7 @@ or
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 17.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 17.
 
 ```
 --opset 12

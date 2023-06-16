@@ -59,7 +59,7 @@ python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppy
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 11.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 11.
 
 ```
 --opset 12
@@ -134,7 +134,7 @@ parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
 
-**NOTE**: If you use the **legacy** model, you should edit the `config_infer_primary_ppyoloe.txt` file.
+**NOTE**: If you are using the **legacy** model, you should edit the `config_infer_primary_ppyoloe.txt` file.
 
 **NOTE**: The **PP-YOLOE+ and PP-YOLOE legacy** do not resize the input with padding. To get better accuracy, use
 
@@ -182,7 +182,7 @@ force-implicit-batch-dim=1
 config-file=config_infer_primary_ppyoloe_plus.txt
 ```
 
-**NOTE**: If you use the **legacy** model, you should edit it to `config_infer_primary_ppyoloe.txt`.
+**NOTE**: If you are using the **legacy** model, you should edit it to `config_infer_primary_ppyoloe.txt`.
 
 ##
 

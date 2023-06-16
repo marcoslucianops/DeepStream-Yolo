@@ -115,7 +115,7 @@ or
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 14.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 14.
 
 ```
 --opset 12
@@ -189,6 +189,8 @@ num-detected-classes=80
 parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
+
+**NOTE**: If you are using a custom model, you should edit the `config_infer_primary_yolonas_custom.txt` file.
 
 **NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
 

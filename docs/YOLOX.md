@@ -64,7 +64,7 @@ python3 export_yolox.py -w yolox_s.pth -c exps/default/yolox_s.py --dynamic
 --batch 4
 ```
 
-**NOTE**: If you are using DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 11.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 11.
 
 ```
 --opset 12
@@ -139,7 +139,7 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
-**NOTE**: If you use the **legacy** model, you should edit the `config_infer_primary_yolox_legacy.txt` file.
+**NOTE**: If you are using the **legacy** model, you should edit the `config_infer_primary_yolox_legacy.txt` file.
 
 **NOTE**: The **YOLOX and YOLOX legacy** resize the input with left/top padding. To get better accuracy, use
 
@@ -188,7 +188,7 @@ force-implicit-batch-dim=1
 config-file=config_infer_primary_yolox.txt
 ```
 
-**NOTE**: If you use the **legacy** model, you should edit it to `config_infer_primary_yolox_legacy.txt`.
+**NOTE**: If you are using the **legacy** model, you should edit it to `config_infer_primary_yolox_legacy.txt`.
 
 ##
 
