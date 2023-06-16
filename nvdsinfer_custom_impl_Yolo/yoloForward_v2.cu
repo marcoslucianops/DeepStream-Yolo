@@ -27,7 +27,7 @@ __device__ void softmaxGPU(const float* input, const int bbindex, const int numG
   }
 }
 
-__global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes, float* scores, int* classes,
+__global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes, float* scores, float* classes,
     const uint netWidth, const uint netHeight, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses,
     const uint numBBoxes, const uint64_t lastInputSize, const float* anchors)
 {
@@ -73,7 +73,7 @@ __global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes,
   boxes[count * 4 + 2] = w;
   boxes[count * 4 + 3] = h;
   scores[count] = maxProb * objectness;
-  classes[count] = maxIndex;
+  classes[count] = (float) maxIndex;
 }
 
 cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void* scores, void* classes,
@@ -96,7 +96,7 @@ cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void*
         reinterpret_cast<float*> (softmax) + (batch * inputSize),
         reinterpret_cast<float*> (boxes) + (batch * 4 * outputSize),
         reinterpret_cast<float*> (scores) + (batch * 1 * outputSize),
-        reinterpret_cast<int*> (classes) + (batch * 1 * outputSize),
+        reinterpret_cast<float*> (classes) + (batch * 1 * outputSize),
         netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, lastInputSize,
         reinterpret_cast<const float*> (anchors));
   }

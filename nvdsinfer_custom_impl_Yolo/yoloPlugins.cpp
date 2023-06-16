@@ -181,17 +181,13 @@ YoloLayer::getOutputDimensions(INT index, const nvinfer1::DimsExprs* inputs, INT
 bool
 YoloLayer::supportsFormatCombination(INT pos, const nvinfer1::PluginTensorDesc* inOut, INT nbInputs, INT nbOutputs) noexcept
 {
-  return inOut[pos].format == nvinfer1::TensorFormat::kLINEAR && (inOut[pos].type == nvinfer1::DataType::kFLOAT ||
-      inOut[pos].type == nvinfer1::DataType::kINT32);
+  return inOut[pos].format == nvinfer1::TensorFormat::kLINEAR && inOut[pos].type == nvinfer1::DataType::kFLOAT;
 }
 
 nvinfer1::DataType
 YoloLayer::getOutputDataType(INT index, const nvinfer1::DataType* inputTypes, INT nbInputs) const noexcept
 {
   assert(index < 3);
-  if (index == 2) {
-    return nvinfer1::DataType::kINT32;
-  }
   return nvinfer1::DataType::kFLOAT;
 }
 

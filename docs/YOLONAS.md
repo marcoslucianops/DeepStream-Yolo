@@ -190,7 +190,7 @@ parse-bbox-func-name=NvDsInferParseYoloE
 ...
 ```
 
-**NOTE**: If you are using a custom model, you should edit the `config_infer_primary_yolonas_custom.txt` file.
+**NOTE**: If you are using a **custom** model, you should edit the `config_infer_primary_yolonas_custom.txt` file.
 
 **NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
 
@@ -198,6 +198,22 @@ parse-bbox-func-name=NvDsInferParseYoloE
 ...
 maintain-aspect-ratio=1
 symmetric-padding=0
+...
+```
+
+**NOTE**: The **pre-trained YOLO-NAS** uses zero mean normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
+
+```
+...
+net-scale-factor=0.0039215697906911373
+...
+```
+
+**NOTE**: The **custom YOLO-NAS** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
+
+```
+...
+net-scale-factor=1
 ...
 ```
 

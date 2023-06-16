@@ -7,7 +7,7 @@
 
 inline __device__ float sigmoidGPU(const float& x) { return 1.0f / (1.0f + __expf(-x)); }
 
-__global__ void gpuYoloLayer(const float* input, float* boxes, float* scores, int* classes, const uint netWidth,
+__global__ void gpuYoloLayer(const float* input, float* boxes, float* scores, float* classes, const uint netWidth,
     const uint netHeight, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses, const uint numBBoxes,
     const uint64_t lastInputSize, const float scaleXY, const float* anchors, const int* mask)
 {
@@ -54,7 +54,7 @@ __global__ void gpuYoloLayer(const float* input, float* boxes, float* scores, in
   boxes[count * 4 + 2] = w;
   boxes[count * 4 + 3] = h;
   scores[count] = maxProb * objectness;
-  classes[count] = maxIndex;
+  classes[count] = (float) maxIndex;
 }
 
 cudaError_t cudaYoloLayer(const void* input, void* boxes, void* scores, void* classes, const uint& batchSize,
@@ -76,7 +76,7 @@ cudaError_t cudaYoloLayer(const void* input, void* boxes, void* scores, void* cl
         reinterpret_cast<const float*> (input) + (batch * inputSize),
         reinterpret_cast<float*> (boxes) + (batch * 4 * outputSize),
         reinterpret_cast<float*> (scores) + (batch * 1 * outputSize),
-        reinterpret_cast<int*> (classes) + (batch * 1 * outputSize),
+        reinterpret_cast<float*> (classes) + (batch * 1 * outputSize),
         netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, lastInputSize, scaleXY,
         reinterpret_cast<const float*> (anchors), reinterpret_cast<const int*> (mask));
   }
