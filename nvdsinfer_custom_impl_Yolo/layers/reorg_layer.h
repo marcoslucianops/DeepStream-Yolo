@@ -7,6 +7,7 @@
 #define __REORG_LAYER_H__
 
 #include <map>
+#include <string>
 
 #include "NvInfer.h"
 
