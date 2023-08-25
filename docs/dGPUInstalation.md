@@ -2,6 +2,166 @@
 
 To install the DeepStream on dGPU (x86 platform), without docker, we need to do some steps to prepare the computer.
 
+<details><summary>DeepStream 6.3</summary>
+
+### 1. Disable Secure Boot in BIOS
+
+### 2. Install dependencies
+
+```
+sudo apt-get update
+sudo apt-get install gcc make git libtool autoconf autogen pkg-config cmake
+sudo apt-get install python3 python3-dev python3-pip
+sudo apt-get install dkms
+sudo apt install libssl1.1 libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstreamer-plugins-base1.0-dev libgstrtspserver-1.0-0 libjansson4 libyaml-cpp-dev libjsoncpp-dev protobuf-compiler
+sudo apt-get install linux-headers-$(uname -r)
+```
+
+**NOTE**: Purge all NVIDIA driver, CUDA, etc (replace $CUDA_PATH to your CUDA path)
+
+```
+sudo nvidia-uninstall
+sudo $CUDA_PATH/bin/cuda-uninstaller
+sudo apt-get remove --purge '*nvidia*'
+sudo apt-get remove --purge '*cuda*'
+sudo apt-get remove --purge '*cudnn*'
+sudo apt-get remove --purge '*tensorrt*'
+sudo apt autoremove --purge && sudo apt autoclean && sudo apt clean
+```
+
+### 3. Install CUDA Keyring
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+sudo apt-get update
+```
+
+### 4. Download and install NVIDIA Driver
+
+<details><summary>TITAN, GeForce RTX / GTX series and RTX / Quadro series</summary><blockquote>
+
+- Download
+
+  ```
+  wget https://us.download.nvidia.com/XFree86/Linux-x86_64/530.41.03/NVIDIA-Linux-x86_64-530.41.03.run
+  ```
+
+<blockquote><details><summary>Laptop</summary>
+
+* Run
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-530.41.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd
+  ```
+
+  **NOTE**: This step will disable the nouveau drivers.
+
+* Reboot
+
+  ```
+  sudo reboot
+  ```
+
+* Install
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-530.41.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd
+  ```
+
+**NOTE**: If you are using a laptop with NVIDIA Optimius, run
+
+```
+sudo apt-get install nvidia-prime
+sudo prime-select nvidia
+```
+
+</details></blockquote>
+
+<blockquote><details><summary>Desktop</summary>
+
+* Run
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-530.41.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+  ```
+
+  **NOTE**: This step will disable the nouveau drivers.
+
+* Reboot
+
+  ```
+  sudo reboot
+  ```
+
+* Install
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-530.41.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+  ```
+
+</details></blockquote>
+
+</blockquote></details>
+
+<details><summary>Data center / Tesla series</summary><blockquote>
+
+  - Download
+
+    ```
+    wget https://us.download.nvidia.com/tesla/525.125.06/NVIDIA-Linux-x86_64-525.125.06.run
+    ```
+
+  * Run
+
+    ```
+    sudo sh NVIDIA-Linux-x86_64-525.125.06.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+    ```
+
+</blockquote></details>
+
+### 5. Download and install CUDA
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/12.1.1/local_installers/cuda_12.1.1_530.30.02_linux.run
+sudo sh cuda_12.1.1_530.30.02_linux.run --silent --toolkit
+```
+
+* Export environment variables
+
+  ```
+  echo $'export PATH=/usr/local/cuda-12.1/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
+  ```
+
+### 6. Install TensorRT
+
+```
+sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
+sudo apt-get update
+sudo apt-get install libnvinfer8=8.5.3-1+cuda11.8 libnvinfer-plugin8=8.5.3-1+cuda11.8 libnvparsers8=8.5.3-1+cuda11.8 libnvonnxparsers8=8.5.3-1+cuda11.8 libnvinfer-bin=8.5.3-1+cuda11.8 libnvinfer-dev=8.5.3-1+cuda11.8 libnvinfer-plugin-dev=8.5.3-1+cuda11.8 libnvparsers-dev=8.5.3-1+cuda11.8 libnvonnxparsers-dev=8.5.3-1+cuda11.8 libnvinfer-samples=8.5.3-1+cuda11.8 libcudnn8=8.7.0.84-1+cuda11.8 libcudnn8-dev=8.7.0.84-1+cuda11.8 python3-libnvinfer=8.5.3-1+cuda11.8 python3-libnvinfer-dev=8.5.3-1+cuda11.8
+sudo apt-mark hold libnvinfer* libnvparsers* libnvonnxparsers* libcudnn8* python3-libnvinfer* tensorrt
+```
+
+### 7. Download and install the DeepStream SDK
+
+DeepStream 6.3 for Servers and Workstations
+
+```
+wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/deepstream/6.3/files?redirect=true&path=deepstream-6.3_6.3.0-1_amd64.deb' -O deepstream-6.3_6.3.0-1_amd64.deb
+sudo apt-get install ./deepstream-6.3_6.3.0-1_amd64.deb
+rm ${HOME}/.cache/gstreamer-1.0/registry.x86_64.bin
+sudo ln -snf /usr/local/cuda-12.1 /usr/local/cuda
+```
+
+### 8. Reboot the computer
+
+```
+sudo reboot
+```
+
+</details>
+
 <details><summary>DeepStream 6.2</summary>
 
 ### 1. Disable Secure Boot in BIOS
@@ -109,13 +269,13 @@ sudo prime-select nvidia
   - Download
 
     ```
-    wget https://us.download.nvidia.com/XFree86/Linux-x86_64/525.105.17/NVIDIA-Linux-x86_64-525.105.17.run
+    wget https://us.download.nvidia.com/tesla/525.85.12/NVIDIA-Linux-x86_64-525.85.12.run
     ```
 
   * Run
 
     ```
-    sudo sh NVIDIA-Linux-x86_64-525.105.17.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+    sudo sh NVIDIA-Linux-x86_64-525.85.12.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
     ```
 
 </blockquote></details>

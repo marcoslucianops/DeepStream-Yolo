@@ -1,6 +1,6 @@
 # DeepStream-Yolo
 
-NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for YOLO models
+NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for YOLO models
 
 --------------------------------------------------------------------------------------------------
 ### Important: please export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
@@ -55,13 +55,23 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for Y
 
 ### Requirements
 
+#### DeepStream 6.3 on x86 platform
+
+* [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+* [CUDA 12.1 Update 1](https://developer.nvidia.com/cuda-12-1-1-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=runfile_local)
+* [TensorRT 8.5 GA Update 2 (8.5.3.1)](https://developer.nvidia.com/nvidia-tensorrt-8x-download)
+* [NVIDIA Driver 525.125.06 (Data center / Tesla series) / 530.41.03 (TITAN, GeForce RTX / GTX series and RTX / Quadro series)](https://www.nvidia.com.br/Download/index.aspx)
+* [NVIDIA DeepStream SDK 6.3](https://developer.nvidia.com/deepstream-getting-started)
+* [GStreamer 1.16.3](https://gstreamer.freedesktop.org/)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
 #### DeepStream 6.2 on x86 platform
 
 * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 * [CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=runfile_local)
 * [TensorRT 8.5 GA Update 1 (8.5.2.2)](https://developer.nvidia.com/nvidia-tensorrt-8x-download)
 * [NVIDIA Driver 525.85.12 (Data center / Tesla series) / 525.105.17 (TITAN, GeForce RTX / GTX series and RTX / Quadro series)](https://www.nvidia.com.br/Download/index.aspx)
-* [NVIDIA DeepStream SDK 6.2](https://developer.nvidia.com/deepstream-getting-started)
+* [NVIDIA DeepStream SDK 6.2](https://developer.nvidia.com/deepstream-sdk-download-tesla-archived)
 * [GStreamer 1.16.3](https://gstreamer.freedesktop.org/)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
@@ -105,10 +115,16 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for Y
 * [GStreamer 1.14.5](https://gstreamer.freedesktop.org/)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
+#### DeepStream 6.3 on Jetson platform
+
+* [JetPack 5.1.2](https://developer.nvidia.com/embedded/jetpack)
+* [NVIDIA DeepStream SDK 6.3](https://developer.nvidia.com/deepstream-sdk)
+* [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
+
 #### DeepStream 6.2 on Jetson platform
 
-* [JetPack 5.1.1 / 5.1](https://developer.nvidia.com/embedded/jetpack)
-* [NVIDIA DeepStream SDK 6.2](https://developer.nvidia.com/deepstream-sdk)
+* JetPack [5.1.2](https://developer.nvidia.com/embedded/jetpack) / [5.1.1](https://developer.nvidia.com/embedded/jetpack-sdk-511) / [5.1](https://developer.nvidia.com/embedded/jetpack-sdk-51)
+* [NVIDIA DeepStream SDK 6.2](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
 #### DeepStream 6.1.1 on Jetson platform
@@ -125,7 +141,7 @@ NVIDIA DeepStream SDK 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for Y
 
 #### DeepStream 6.0.1 / 6.0 on Jetson platform
 
-* [JetPack 4.6.2](https://developer.nvidia.com/embedded/jetpack-sdk-462)
+* [JetPack 4.6.4](https://developer.nvidia.com/jetpack-sdk-464)
 * [NVIDIA DeepStream SDK 6.0.1 / 6.0](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived)
 * [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo)
 
@@ -167,6 +183,12 @@ cd DeepStream-Yolo
 
 #### 3. Compile the lib
 
+* DeepStream 6.3 on x86 platform
+
+  ```
+  CUDA_VER=12.1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 on x86 platform
 
   ```
@@ -197,7 +219,7 @@ cd DeepStream-Yolo
   CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
+* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
@@ -252,15 +274,15 @@ config-file=config_infer_primary_yoloV2.txt
 * x86 platform
 
   ```
-  nvcr.io/nvidia/deepstream:6.2-devel
-  nvcr.io/nvidia/deepstream:6.2-triton
+  nvcr.io/nvidia/deepstream:6.3-gc-triton-devel
+  nvcr.io/nvidia/deepstream:6.3-triton-multiarch
   ```
 
 * Jetson platform
 
   ```
-  nvcr.io/nvidia/deepstream-l4t:6.2-samples
-  nvcr.io/nvidia/deepstream-l4t:6.2-triton
+  nvcr.io/nvidia/deepstream-l4t:6.3-samples
+  nvcr.io/nvidia/deepstream:6.3-triton-multiarch
   ```
 
   **NOTE**: To compile the `nvdsinfer_custom_impl_Yolo`, you need to install the g++ inside the container
@@ -269,7 +291,7 @@ config-file=config_infer_primary_yoloV2.txt
   apt-get install build-essential
   ```
 
-  **NOTE**: With DeepStream 6.2, the docker containers do not package libraries necessary for certain multimedia operations like audio data parsing, CPU decode, and CPU encode. This change could affect processing certain video streams/files like mp4 that include audio track. Please run the below script inside the docker images to install additional packages that might be necessary to use all of the DeepStreamSDK features:
+  **NOTE**: With DeepStream 6.3, the docker containers do not package libraries necessary for certain multimedia operations like audio data parsing, CPU decode, and CPU encode. This change could affect processing certain video streams/files like mp4 that include audio track. Please run the below script inside the docker images to install additional packages that might be necessary to use all of the DeepStreamSDK features:
   
   ```
   /opt/nvidia/deepstream/deepstream/user_additional_install.sh

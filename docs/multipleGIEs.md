@@ -50,6 +50,12 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
 
 **NOTE**: Do it for each GIE folder, replacing the GIE folder name (`gie1/nvdsinfer_custom_impl_Yolo`).
 
+* DeepStream 6.3 on x86 platform
+
+  ```
+  CUDA_VER=12.1 make -C gie1/nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 on x86 platform
 
   ```
@@ -74,7 +80,7 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
   CUDA_VER=11.4 make -C gie1/nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
+* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C gie1/nvdsinfer_custom_impl_Yolo

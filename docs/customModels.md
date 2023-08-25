@@ -25,6 +25,12 @@ cd DeepStream-Yolo
 
 ### Compile the lib
 
+* DeepStream 6.3 on x86 platform
+
+  ```
+  CUDA_VER=12.1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 on x86 platform
 
   ```
@@ -49,13 +55,19 @@ cd DeepStream-Yolo
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.0.1 / 6.0 on Jetson platform
+* DeepStream 6.0.1 / 6.0 / 5.1 on Jetson platform
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo

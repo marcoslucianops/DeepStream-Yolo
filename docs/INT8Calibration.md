@@ -8,6 +8,12 @@ sudo apt-get install libopencv-dev
 
 ### 2. Compile/recompile the `nvdsinfer_custom_impl_Yolo` lib with OpenCV support
 
+* DeepStream 6.3 on x86 platform
+
+  ```
+  CUDA_VER=12.1 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.2 on x86 platform
 
   ```
@@ -38,7 +44,7 @@ sudo apt-get install libopencv-dev
   CUDA_VER=11.1 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.2 / 6.1.1 / 6.1 on Jetson platform
+* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo
