@@ -196,3 +196,4 @@ NvDsInferParseYoloE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvD
 }
 
 CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYolo);
+CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloE);
