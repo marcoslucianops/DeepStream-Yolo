@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -64,8 +64,9 @@ addBBoxProposal(const float bx1, const float by1, const float bx2, const float b
 {
   NvDsInferParseObjectInfo bbi = convertBBox(bx1, by1, bx2, by2, netW, netH);
 
-  if (bbi.width < 1 || bbi.height < 1)
+  if (bbi.width < 1 || bbi.height < 1) {
       return;
+  }
 
   bbi.detectionConfidence = maxProb;
   bbi.classId = maxIndex;
@@ -82,8 +83,9 @@ decodeTensorYolo(const float* boxes, const float* scores, const float* classes, 
     float maxProb = scores[b];
     int maxIndex = (int) classes[b];
 
-    if (maxProb < preclusterThreshold[maxIndex])
+    if (maxProb < preclusterThreshold[maxIndex]) {
       continue;
+    }
 
     float bxc = boxes[b * 4 + 0];
     float byc = boxes[b * 4 + 1];
@@ -111,8 +113,9 @@ decodeTensorYoloE(const float* boxes, const float* scores, const float* classes,
     float maxProb = scores[b];
     int maxIndex = (int) classes[b];
 
-    if (maxProb < preclusterThreshold[maxIndex])
+    if (maxProb < preclusterThreshold[maxIndex]) {
       continue;
+    }
 
     float bx1 = boxes[b * 4 + 0];
     float by1 = boxes[b * 4 + 1];
