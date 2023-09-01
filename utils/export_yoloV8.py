@@ -8,7 +8,7 @@ import torch.nn as nn
 from copy import deepcopy
 from ultralytics import YOLO
 from ultralytics.yolo.utils.torch_utils import select_device
-from ultralytics.nn.modules import C2f, Detect
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 
 
 class DeepStreamOutput(nn.Module):
@@ -38,7 +38,7 @@ def yolov8_export(weights, device):
     model.float()
     model = model.fuse()
     for k, m in model.named_modules():
-        if isinstance(m, Detect):
+        if isinstance(m, (Detect, RTDETRDecoder)):
             m.dynamic = False
             m.export = True
             m.format = 'onnx'
