@@ -37,9 +37,9 @@ wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
 
 **NOTE**: You can use your custom model.
 
-#### 4. Reparameterize your model
+#### 4. Reparameterize your model (for custom models)
 
-[YOLOv7](https://github.com/WongKinYiu/yolov7/releases/) and its variants cannot be directly converted to engine file. Therefore, you will have to reparameterize your model using the code [here](https://github.com/WongKinYiu/yolov7/blob/main/tools/reparameterization.ipynb). Make sure to convert your custom checkpoints in yolov7 repository, and then save your reparmeterized checkpoints for conversion in the next step.
+Custom YOLOv7 models cannot be directly converted to engine file. Therefore, you will have to reparameterize your model using the code [here](https://github.com/WongKinYiu/yolov7/blob/main/tools/reparameterization.ipynb). Make sure to convert your custom checkpoints in YOLOv7 repository, and then save your reparmeterized checkpoints for conversion in the next step.
 
 #### 5. Convert model
 
