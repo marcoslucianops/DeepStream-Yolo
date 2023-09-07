@@ -184,6 +184,7 @@ parse-bbox-func-name=NvDsInferParseYolo
 **NOTE**: The **YOLOR** resizes the input with center padding. To get better accuracy, use
 
 ```
+[property]
 ...
 maintain-aspect-ratio=1
 symmetric-padding=1
@@ -193,6 +194,7 @@ symmetric-padding=1
 **NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
 
 ```
+[property]
 ...
 force-implicit-batch-dim=1
 ...

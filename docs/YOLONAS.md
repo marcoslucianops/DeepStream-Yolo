@@ -201,6 +201,7 @@ parse-bbox-func-name=NvDsInferParseYoloE
 **NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
 
 ```
+[property]
 ...
 maintain-aspect-ratio=1
 symmetric-padding=0
@@ -210,6 +211,7 @@ symmetric-padding=0
 **NOTE**: The **pre-trained YOLO-NAS** uses zero mean normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```
+[property]
 ...
 net-scale-factor=0.0039215697906911373
 ...
@@ -218,6 +220,7 @@ net-scale-factor=0.0039215697906911373
 **NOTE**: The **custom YOLO-NAS** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```
+[property]
 ...
 net-scale-factor=1
 ...
@@ -226,6 +229,7 @@ net-scale-factor=1
 **NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
 
 ```
+[property]
 ...
 force-implicit-batch-dim=1
 ...

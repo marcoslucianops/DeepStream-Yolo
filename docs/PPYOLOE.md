@@ -145,6 +145,7 @@ parse-bbox-func-name=NvDsInferParseYoloE
 **NOTE**: The **PP-YOLOE+ and PP-YOLOE legacy** do not resize the input with padding. To get better accuracy, use
 
 ```
+[property]
 ...
 maintain-aspect-ratio=0
 ...
@@ -153,6 +154,7 @@ maintain-aspect-ratio=0
 **NOTE**: The **PP-YOLOE+** uses zero mean normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```
+[property]
 ...
 net-scale-factor=0.0039215697906911373
 ...
@@ -163,6 +165,7 @@ net-scale-factor=0.0039215697906911373
 Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
 
 ```
+[property]
 ...
 net-scale-factor=0.0173520735727919486
 offsets=123.675;116.28;103.53
@@ -172,6 +175,7 @@ offsets=123.675;116.28;103.53
 **NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
 
 ```
+[property]
 ...
 force-implicit-batch-dim=1
 ...

@@ -166,6 +166,7 @@ parse-bbox-func-name=NvDsInferParseYoloE
 **NOTE**: The **DAMO-YOLO** do not resize the input with padding. To get better accuracy, use
 
 ```
+[property]
 ...
 maintain-aspect-ratio=0
 ...
@@ -174,6 +175,7 @@ maintain-aspect-ratio=0
 **NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
 
 ```
+[property]
 ...
 force-implicit-batch-dim=1
 ...

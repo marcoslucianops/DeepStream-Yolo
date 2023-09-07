@@ -150,6 +150,7 @@ parse-bbox-func-name=NvDsInferParseYolo
 **NOTE**: The **YOLOX and YOLOX legacy** resize the input with left/top padding. To get better accuracy, use
 
 ```
+[property]
 ...
 maintain-aspect-ratio=1
 symmetric-padding=0
@@ -159,6 +160,7 @@ symmetric-padding=0
 **NOTE**: The **YOLOX** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```
+[property]
 ...
 net-scale-factor=1
 ...
@@ -169,6 +171,7 @@ net-scale-factor=1
 Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
 
 ```
+[property]
 ...
 net-scale-factor=0.0173520735727919486
 offsets=123.675;116.28;103.53
@@ -178,6 +181,7 @@ offsets=123.675;116.28;103.53
 **NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
 
 ```
+[property]
 ...
 force-implicit-batch-dim=1
 ...

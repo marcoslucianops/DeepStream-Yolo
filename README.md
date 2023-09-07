@@ -4,6 +4,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 
 --------------------------------------------------------------------------------------------------
 ### YOLO-Pose: https://github.com/marcoslucianops/DeepStream-Yolo-Pose
+### YOLO-Seg: https://github.com/marcoslucianops/DeepStream-Yolo-Seg
 --------------------------------------------------------------------------------------------------
 ### Important: please export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
 --------------------------------------------------------------------------------------------------
@@ -29,13 +30,14 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 * INT8 calibration (PTQ) for Darknet and ONNX exported models
 * New output structure (fix wrong output on DeepStream < 6.2) - it need to export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
 * **YOLO-Pose: https://github.com/marcoslucianops/DeepStream-Yolo-Pose**
+* **YOLO-Seg: https://github.com/marcoslucianops/DeepStream-Yolo-Seg**
 
 ##
 
 ### Getting started
 
 * [Requirements](#requirements)
-* [Suported models](#supported-models)
+* [Supported models](#supported-models)
 * [Benchmarks](docs/benchmarks.md)
 * [dGPU installation](docs/dGPUInstalation.md)
 * [Basic usage](#basic-usage)
@@ -156,7 +158,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 
 ##
 
-### Suported models
+### Supported models
 
 * [Darknet](https://github.com/AlexeyAB/darknet)
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
