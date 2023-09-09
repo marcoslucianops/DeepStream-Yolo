@@ -89,12 +89,12 @@ def parse_args():
     parser.add_argument('--opset', type=int, default=11, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
-    parser.add_argument('--batch', type=int, default=1, help='Implicit batch-size')
+    parser.add_argument('--batch', type=int, default=1, help='Static batch-size')
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
         raise SystemExit('\nInvalid weights file')
     if args.dynamic and args.batch > 1:
-        raise SystemExit('\nCannot set dynamic batch-size and implicit batch-size at same time')
+        raise SystemExit('\nCannot set dynamic batch-size and static batch-size at same time')
     elif args.dynamic:
         args.batch = None
     return args

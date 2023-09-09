@@ -116,7 +116,7 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
     }
   }
 
-  if (!m_ImplicitBatch && network->getInput(0)->getDimensions().d[0] == -1) {
+  if ((m_NetworkType == "darknet" && !m_ImplicitBatch) || network->getInput(0)->getDimensions().d[0] == -1) {
     nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
     assert(profile);
     for (INT i = 0; i < network->getNbInputs(); ++i) {

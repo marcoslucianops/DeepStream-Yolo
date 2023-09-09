@@ -76,7 +76,7 @@ or
 --dynamic
 ```
 
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
+**NOTE**: To use static batch-size (example for batch-size = 4)
 
 ```
 --batch 4
@@ -169,15 +169,6 @@ parse-bbox-func-name=NvDsInferParseYoloE
 [property]
 ...
 maintain-aspect-ratio=0
-...
-```
-
-**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
-
-```
-[property]
-...
-force-implicit-batch-dim=1
 ...
 ```
 

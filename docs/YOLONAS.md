@@ -109,7 +109,7 @@ or
 --dynamic
 ```
 
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
+**NOTE**: To use static batch-size (example for batch-size = 4)
 
 ```
 --batch 4
@@ -223,15 +223,6 @@ net-scale-factor=0.0039215697906911373
 [property]
 ...
 net-scale-factor=1
-...
-```
-
-**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
-
-```
-[property]
-...
-force-implicit-batch-dim=1
 ...
 ```
 

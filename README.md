@@ -5,6 +5,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 --------------------------------------------------------------------------------------------------
 ### YOLO-Pose: https://github.com/marcoslucianops/DeepStream-Yolo-Pose
 ### YOLO-Seg: https://github.com/marcoslucianops/DeepStream-Yolo-Seg
+### YOLO-Face: https://github.com/marcoslucianops/DeepStream-Yolo-Face
 --------------------------------------------------------------------------------------------------
 ### Important: please export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
 --------------------------------------------------------------------------------------------------
@@ -13,7 +14,6 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 
 * DeepStream tutorials
 * Updated INT8 calibration
-* Support for segmentation models
 * Support for classification models
 
 ### Improvements on this repository
@@ -31,6 +31,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 * New output structure (fix wrong output on DeepStream < 6.2) - it need to export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
 * **YOLO-Pose: https://github.com/marcoslucianops/DeepStream-Yolo-Pose**
 * **YOLO-Seg: https://github.com/marcoslucianops/DeepStream-Yolo-Seg**
+* **YOLO-Face: https://github.com/marcoslucianops/DeepStream-Yolo-Face**
 
 ##
 
@@ -243,14 +244,6 @@ cd DeepStream-Yolo
 ...
 custom-network-config=yolov4.cfg
 model-file=yolov4.weights
-...
-```
-
-**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
-
-```
-...
-force-implicit-batch-dim=1
 ...
 ```
 

@@ -37,7 +37,7 @@ wget https://paddledet.bj.bcebos.com/models/ppyoloe_plus_crn_s_80e_coco.pdparams
 Generate the ONNX model file (example for PP-YOLOE+_s)
 
 ```
-pip3 install onnx onnxsim onnxruntime
+pip3 install onnx onnxsim onnxruntime paddle2onnx
 python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml --dynamic
 ```
 
@@ -53,7 +53,7 @@ python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppy
 --dynamic
 ```
 
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
+**NOTE**: To use static batch-size (example for batch-size = 4)
 
 ```
 --batch 4
@@ -169,15 +169,6 @@ Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
 ...
 net-scale-factor=0.0173520735727919486
 offsets=123.675;116.28;103.53
-...
-```
-
-**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
-
-```
-[property]
-...
-force-implicit-batch-dim=1
 ...
 ```
 
