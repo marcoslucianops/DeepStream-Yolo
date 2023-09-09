@@ -247,6 +247,14 @@ model-file=yolov4.weights
 ...
 ```
 
+**NOTE**: For **Darknet** models, by default, the dynamic batch-size is set. To use static batch-size, uncomment the line
+
+```
+...
+force-implicit-batch-dim=1
+...
+```
+
 #### 5. Run
 
 ```
