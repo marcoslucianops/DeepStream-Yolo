@@ -7,7 +7,7 @@
 
 nvinfer1::ITensor*
 routeLayer(int layerIdx, std::string& layers, std::map<std::string, std::string>& block,
-    std::vector<nvinfer1::ITensor*> tensorOutputs, nvinfer1::INetworkDefinition* network)
+    std::vector<nvinfer1::ITensor*> tensorOutputs, nvinfer1::INetworkDefinition* network, uint batchSize)
 {
   nvinfer1::ITensor* output;
 
@@ -69,13 +69,14 @@ routeLayer(int layerIdx, std::string& layers, std::map<std::string, std::string>
     int group_id = stoi(block.at("group_id"));
     int startSlice = (prevTensorDims.d[1] / groups) * group_id;
     int channelSlice = (prevTensorDims.d[1] / groups);
-    nvinfer1::ISliceLayer* slice = network->addSlice(*output, nvinfer1::Dims{4, {0, startSlice, 0, 0}},
-        nvinfer1::Dims{4, {prevTensorDims.d[0], channelSlice, prevTensorDims.d[2], prevTensorDims.d[3]}},
-        nvinfer1::Dims{4, {1, 1, 1, 1}});
-    assert(slice != nullptr);
-    std::string sliceLayerName = "slice_" + std::to_string(layerIdx);
-    slice->setName(sliceLayerName.c_str());
-    output = slice->getOutput(0);
+
+    std::string name = "slice";
+    nvinfer1::Dims start = {4, {0, startSlice, 0, 0}};
+    nvinfer1::Dims size = {4, {prevTensorDims.d[0], channelSlice, prevTensorDims.d[2], prevTensorDims.d[3]}};
+    nvinfer1::Dims stride = {4, {1, 1, 1, 1}};
+
+    output = sliceLayer(layerIdx, name, output, start, size, stride, network, batchSize);
+    assert(output != nullptr);
   }
 
   return output;

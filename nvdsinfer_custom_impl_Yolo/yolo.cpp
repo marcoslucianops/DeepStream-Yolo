@@ -361,7 +361,7 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
       std::string inputVol = dimsToString(previous->getDimensions());
       std::string shortcutVol = dimsToString(tensorOutputs[i + from - 1]->getDimensions());
       previous = shortcutLayer(i, activation, inputVol, shortcutVol, m_ConfigBlocks.at(i), previous,
-          tensorOutputs[i + from - 1], &network);
+          tensorOutputs[i + from - 1], &network, m_BatchSize);
       assert(previous != nullptr);
       std::string outputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);
@@ -394,7 +394,7 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
     }
     else if (m_ConfigBlocks.at(i).at("type") == "route") {
       std::string layers;
-      previous = routeLayer(i, layers, m_ConfigBlocks.at(i), tensorOutputs, &network);
+      previous = routeLayer(i, layers, m_ConfigBlocks.at(i), tensorOutputs, &network, m_BatchSize);
       assert(previous != nullptr);
       std::string outputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);
@@ -422,7 +422,7 @@ Yolo::buildYoloNetwork(std::vector<float>& weights, nvinfer1::INetworkDefinition
     }
     else if (m_ConfigBlocks.at(i).at("type") == "reorg" || m_ConfigBlocks.at(i).at("type") == "reorg3d") {
       std::string inputVol = dimsToString(previous->getDimensions());
-      previous = reorgLayer(i, m_ConfigBlocks.at(i), previous, &network);
+      previous = reorgLayer(i, m_ConfigBlocks.at(i), previous, &network, m_BatchSize);
       assert(previous != nullptr);
       std::string outputVol = dimsToString(previous->getDimensions());
       tensorOutputs.push_back(previous);

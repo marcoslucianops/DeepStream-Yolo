@@ -10,7 +10,7 @@
 
 nvinfer1::ITensor*
 reorgLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::ITensor* input,
-    nvinfer1::INetworkDefinition* network)
+    nvinfer1::INetworkDefinition* network, uint batchSize)
 {
   nvinfer1::ITensor* output;
 
@@ -24,39 +24,34 @@ reorgLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::IT
   nvinfer1::Dims inputDims = input->getDimensions();
 
   if (block.at("type") == "reorg3d") {
-    nvinfer1::ISliceLayer* slice1 = network->addSlice(*input, nvinfer1::Dims{4, {0, 0, 0, 0}},
-        nvinfer1::Dims{4, {inputDims.d[0], inputDims.d[1], inputDims.d[2] / stride, inputDims.d[3] / stride}},
-        nvinfer1::Dims{4, {1, 1, stride, stride}});
-    assert(slice1 != nullptr);
-    std::string slice1LayerName = "slice1_" + std::to_string(layerIdx);
-    slice1->setName(slice1LayerName.c_str());
+    std::string name1 = "slice1";
+    std::string name2 = "slice2";
+    std::string name3 = "slice3";
+    std::string name4 = "slice4";
+    nvinfer1::Dims start1 = {4, {0, 0, 0, 0}};
+    nvinfer1::Dims start2 = {4, {0, 0, 0, 1}};
+    nvinfer1::Dims start3 = {4, {0, 0, 1, 0}};
+    nvinfer1::Dims start4 = {4, {0, 0, 1, 1}};
+    nvinfer1::Dims sizeAll = {4, {inputDims.d[0], inputDims.d[1], inputDims.d[2] / stride, inputDims.d[3] / stride}};
+    nvinfer1::Dims strideAll = {4, {1, 1, stride, stride}};
 
-    nvinfer1::ISliceLayer* slice2 = network->addSlice(*input, nvinfer1::Dims{4, {0, 0, 0, 1}},
-        nvinfer1::Dims{4, {inputDims.d[0], inputDims.d[1], inputDims.d[2] / stride, inputDims.d[3] / stride}},
-        nvinfer1::Dims{4, {1, 1, stride, stride}});
-    assert(slice2 != nullptr);
-    std::string slice2LayerName = "slice2_" + std::to_string(layerIdx);
-    slice2->setName(slice2LayerName.c_str());
+    nvinfer1::ITensor* slice1 = sliceLayer(layerIdx, name1, input, start1, sizeAll, strideAll, network, batchSize);
+    assert(output != nullptr);
 
-    nvinfer1::ISliceLayer* slice3 = network->addSlice(*input, nvinfer1::Dims{4, {0, 0, 1, 0}},
-        nvinfer1::Dims{4, {inputDims.d[0], inputDims.d[1], inputDims.d[2] / stride, inputDims.d[3] / stride}},
-        nvinfer1::Dims{4, {1, 1, stride, stride}});
-    assert(slice3 != nullptr);
-    std::string slice3LayerName = "slice3_" + std::to_string(layerIdx);
-    slice3->setName(slice3LayerName.c_str());
+    nvinfer1::ITensor* slice2 = sliceLayer(layerIdx, name2, input, start2, sizeAll, strideAll, network, batchSize);
+    assert(output != nullptr);
 
-    nvinfer1::ISliceLayer* slice4 = network->addSlice(*input, nvinfer1::Dims{4, {0, 0, 1, 1}},
-        nvinfer1::Dims{4, {inputDims.d[0], inputDims.d[1], inputDims.d[2] / stride, inputDims.d[3] / stride}},
-        nvinfer1::Dims{4, {1, 1, stride, stride}});
-    assert(slice4 != nullptr);
-    std::string slice4LayerName = "slice4_" + std::to_string(layerIdx);
-    slice4->setName(slice4LayerName.c_str());
+    nvinfer1::ITensor* slice3 = sliceLayer(layerIdx, name3, input, start3, sizeAll, strideAll, network, batchSize);
+    assert(output != nullptr);
+
+    nvinfer1::ITensor* slice4 = sliceLayer(layerIdx, name4, input, start4, sizeAll, strideAll, network, batchSize);
+    assert(output != nullptr);
 
     std::vector<nvinfer1::ITensor*> concatInputs;
-    concatInputs.push_back(slice1->getOutput(0));
-    concatInputs.push_back(slice2->getOutput(0));
-    concatInputs.push_back(slice3->getOutput(0));
-    concatInputs.push_back(slice4->getOutput(0));
+    concatInputs.push_back(slice1);
+    concatInputs.push_back(slice2);
+    concatInputs.push_back(slice3);
+    concatInputs.push_back(slice4);
 
     nvinfer1::IConcatenationLayer* concat = network->addConcatenation(concatInputs.data(), concatInputs.size());
     assert(concat != nullptr);
