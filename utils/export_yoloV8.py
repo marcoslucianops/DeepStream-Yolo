@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from copy import deepcopy
 from ultralytics import YOLO
-from ultralytics.yolo.utils.torch_utils import select_device
+from ultralytics.utils.torch_utils import select_device
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 
 
