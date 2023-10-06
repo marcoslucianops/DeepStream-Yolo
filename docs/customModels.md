@@ -19,13 +19,29 @@ cd DeepStream-Yolo
 
 #### 2. Copy the class names file to DeepStream-Yolo folder and remane it to `labels.txt`
 
-#### 3. Copy the `cfg` and `weights`/`wts` files to DeepStream-Yolo folder
-
-**NOTE**: It is important to keep the YOLO model reference (`yolov4_`, `yolov5_`, `yolor_`, etc) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+#### 3. Copy the `onnx` or `cfg` and `weights` files to DeepStream-Yolo folder
 
 ##
 
 ### Compile the lib
+
+* DeepStream 6.3 on x86 platform
+
+  ```
+  CUDA_VER=12.1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 6.2 on x86 platform
+
+  ```
+  CUDA_VER=11.8 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 6.1.1 on x86 platform
+
+  ```
+  CUDA_VER=11.7 make -C nvdsinfer_custom_impl_Yolo
+  ```
 
 * DeepStream 6.1 on x86 platform
 
@@ -39,13 +55,19 @@ cd DeepStream-Yolo
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.1 on Jetson platform
+* DeepStream 5.1 on x86 platform
+
+  ```
+  CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.0.1 / 6.0 on Jetson platform
+* DeepStream 6.0.1 / 6.0 / 5.1 on Jetson platform
 
   ```
   CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
@@ -177,22 +199,23 @@ To understand and edit `config_infer_primary.txt` file, read the [DeepStream Plu
   model-color-format=0
   ```
 
-  **NOTE**: Set it according to the number of channels in the `cfg` file (1=GRAYSCALE, 3=RGB).
+  **NOTE**: Set it according to the number of channels in the `cfg` file (1=GRAYSCALE, 3=RGB for Darknet YOLO) or your model configuration (ONNX).
 
-* custom-network-config
+* custom-network-config and model-file (Darknet YOLO)
 
   * Example for custom YOLOv4 model
 
     ```
     custom-network-config=yolov4_custom.cfg
-    ```
-
-* model-file
-
-  * Example for custom YOLOv4 model
-
-    ```
     model-file=yolov4_custom.weights
+    ```
+
+* onnx-file (ONNX)
+
+  * Example for custom YOLOv8 model
+
+    ```
+    onnx-file=yolov8s_custom.onnx
     ```
 
 * model-engine-file 
@@ -221,7 +244,7 @@ To understand and edit `config_infer_primary.txt` file, read the [DeepStream Plu
     model-engine-file=model_b2_gpu0_fp32.engine
     ```
 
-  **NOTE**: To change the generated engine filename, you need to edit and rebuild the `nvdsinfer_model_builder.cpp` file (`/opt/nvidia/deepstream/deepstream/sources/libs/nvdsinfer/nvdsinfer_model_builder.cpp`, lines 825-827)
+  **NOTE**: To change the generated engine filename (Darknet YOLO), you need to edit and rebuild the `nvdsinfer_model_builder.cpp` file (`/opt/nvidia/deepstream/deepstream/sources/libs/nvdsinfer/nvdsinfer_model_builder.cpp`, lines 825-827)
 
   ```
   suggestedPathName =
@@ -248,7 +271,7 @@ To understand and edit `config_infer_primary.txt` file, read the [DeepStream Plu
   num-detected-classes=80
   ```
 
-  **NOTE**: Set it according to number of classes in `cfg` file.
+  **NOTE**: Set it according to number of classes in `cfg` file (Darknet YOLO) or your model configuration (ONNX).
 
 * interval
 

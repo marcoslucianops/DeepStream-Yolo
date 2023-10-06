@@ -1,5 +1,5 @@
 ################################################################################
-# Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -13,7 +13,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -25,12 +25,17 @@
 
 CUDA_VER?=
 ifeq ($(CUDA_VER),)
-  $(error "CUDA_VER is not set")
+	$(error "CUDA_VER is not set")
 endif
 
 OPENCV?=
 ifeq ($(OPENCV),)
-  OPENCV=0
+	OPENCV=0
+endif
+
+GRAPH?=
+ifeq ($(GRAPH),)
+	GRAPH=0
 endif
 
 CC:= g++
@@ -40,45 +45,30 @@ CFLAGS:= -Wall -std=c++11 -shared -fPIC -Wno-error=deprecated-declarations
 CFLAGS+= -I/opt/nvidia/deepstream/deepstream/sources/includes -I/usr/local/cuda-$(CUDA_VER)/include
 
 ifeq ($(OPENCV), 1)
-COMMON= -DOPENCV
-CFLAGS+= $(shell pkg-config --cflags opencv4 2> /dev/null || pkg-config --cflags opencv)
-LIBS+= $(shell pkg-config --libs opencv4 2> /dev/null || pkg-config --libs opencv)
+	COMMON+= -DOPENCV
+	CFLAGS+= $(shell pkg-config --cflags opencv4 2> /dev/null || pkg-config --cflags opencv)
+	LIBS+= $(shell pkg-config --libs opencv4 2> /dev/null || pkg-config --libs opencv)
 endif
 
-LIBS+= -lnvinfer_plugin -lnvinfer -lnvparsers -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
+ifeq ($(GRAPH), 1)
+	COMMON+= -GRAPH
+endif
+
+CUFLAGS:= -I/opt/nvidia/deepstream/deepstream/sources/includes -I/usr/local/cuda-$(CUDA_VER)/include
+
+LIBS+= -lnvinfer_plugin -lnvinfer -lnvparsers -lnvonnxparser -L/usr/local/cuda-$(CUDA_VER)/lib64 -lcudart -lcublas -lstdc++fs
 LFLAGS:= -shared -Wl,--start-group $(LIBS) -Wl,--end-group
 
 INCS:= $(wildcard *.h)
-SRCFILES:= nvdsinfer_yolo_engine.cpp \
-           nvdsparsebbox_Yolo.cpp \
-           yoloPlugins.cpp \
-           layers/convolutional_layer.cpp \
-           layers/batchnorm_layer.cpp \
-           layers/implicit_layer.cpp \
-           layers/channels_layer.cpp \
-           layers/shortcut_layer.cpp \
-           layers/route_layer.cpp \
-           layers/upsample_layer.cpp \
-           layers/pooling_layer.cpp \
-           layers/activation_layer.cpp \
-           layers/reorg_layer.cpp \
-           layers/reduce_layer.cpp \
-           layers/shuffle_layer.cpp \
-           layers/softmax_layer.cpp \
-           layers/cls_layer.cpp \
-           layers/reg_layer.cpp \
-           utils.cpp \
-           yolo.cpp \
-           yoloForward.cu \
-           yoloForward_v2.cu \
-           yoloForward_nc.cu \
-           yoloForward_r.cu \
-           yoloForward_e.cu \
-           sortDetections.cu
+
+SRCFILES:= $(filter-out calibrator.cpp, $(wildcard *.cpp))
 
 ifeq ($(OPENCV), 1)
-SRCFILES+= calibrator.cpp
+	SRCFILES+= calibrator.cpp
 endif
+
+SRCFILES+= $(wildcard layers/*.cpp)
+SRCFILES+= $(wildcard *.cu)
 
 TARGET_LIB:= libnvdsinfer_custom_impl_Yolo.so
 
@@ -90,12 +80,8 @@ all: $(TARGET_LIB)
 %.o: %.cpp $(INCS) Makefile
 	$(CC) -c $(COMMON) -o $@ $(CFLAGS) $<
 
-ifeq ($(CUDA_VER), 10.2)
-CUB=-I/usr/local/cuda-$(CUDA_VER)/include/thrust/system/cuda/detail
-endif
-
 %.o: %.cu $(INCS) Makefile
-	$(NVCC) -c -o $@ $(CUB) --compiler-options '-fPIC' $<
+	$(NVCC) -c -o $@ --compiler-options '-fPIC' $(CUFLAGS) $<
 
 $(TARGET_LIB) : $(TARGET_OBJS)
 	$(CC) -o $@  $(TARGET_OBJS) $(LFLAGS)

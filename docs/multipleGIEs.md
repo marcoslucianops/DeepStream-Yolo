@@ -26,9 +26,7 @@ cd DeepStream-Yolo
 
 #### 3. Copy the class names file to each GIE folder and remane it to `labels.txt`
 
-#### 4. Copy the `cfg` and `weights`/`wts` files to each GIE folder
-
-**NOTE**: It is important to keep the YOLO model reference (`yolov4_`, `yolov5_`, `yolor_`, etc) in you `cfg` and `weights`/`wts` filenames to generate the engine correctly.
+#### 4. Copy the `onnx` or `cfg` and `weights` files to each GIE folder
 
 ##
 
@@ -52,6 +50,24 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
 
 **NOTE**: Do it for each GIE folder, replacing the GIE folder name (`gie1/nvdsinfer_custom_impl_Yolo`).
 
+* DeepStream 6.3 on x86 platform
+
+  ```
+  CUDA_VER=12.1 make -C gie1/nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 6.2 on x86 platform
+
+  ```
+  CUDA_VER=11.8 make -C gie1/nvdsinfer_custom_impl_Yolo
+  ```
+
+* DeepStream 6.1.1 on x86 platform
+
+  ```
+  CUDA_VER=11.7 make -C gie1/nvdsinfer_custom_impl_Yolo
+  ```
+
 * DeepStream 6.1 on x86 platform
 
   ```
@@ -64,7 +80,7 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
   CUDA_VER=11.4 make -C gie1/nvdsinfer_custom_impl_Yolo
   ```
 
-* DeepStream 6.1 on Jetson platform
+* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   CUDA_VER=11.4 make -C gie1/nvdsinfer_custom_impl_Yolo
@@ -80,22 +96,36 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
 
 ### Edit the config_infer_primary files
 
-**NOTE**: Edit the files according to the model you will use (YOLOv4, YOLOv5, YOLOR, etc).
+**NOTE**: Edit the files according to the model you will use (YOLOv8, YOLOv5, YOLOv4, etc).
 
 **NOTE**: Do it for each GIE folder.
 
 * Edit the path of the `cfg` file
 
-  Example for gie1
+  Example for gie1 (Darknet YOLO)
 
   ```
   custom-network-config=gie1/yolo.cfg
-   ```
+  model-file=yolo.weights
+  ```
 
-  Example for gie2
+  Example for gie2 (Darknet YOLO)
 
   ```
   custom-network-config=gie2/yolo.cfg
+  model-file=yolo.weights
+  ```
+
+  Example for gie1 (ONNX)
+
+  ```
+  onnx-file=yolo.onnx
+  ```
+
+  Example for gie2 (ONNX)
+
+  ```
+  onnx-file=yolo.onnx
   ```
 
 * Edit the gie-unique-id
