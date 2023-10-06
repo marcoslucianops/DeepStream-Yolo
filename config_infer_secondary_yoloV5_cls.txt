@@ -78,7 +78,7 @@ network-mode=2
 ## 0=Detector, 1=Classifier, 2=Segmentation, 3=Instance Segmentation
 network-type=1
 classifier-async-mode=0
-classifier-threshold=0.4
+classifier-threshold=0.25
 
 parse-classifier-func-name=NvDsInferCustomYolov5ClsParse
 custom-lib-path=nvdsinfer_custom_impl_Yolo_cls/libnvinfer_custom_impl_yolov5_cls_parser.so
@@ -86,7 +86,7 @@ custom-lib-path=nvdsinfer_custom_impl_Yolo_cls/libnvinfer_custom_impl_yolov5_cls
 ## Re-inference interval for objects, in frames
 #secondary-reinfer-interval=4
 ## Scale and padding the image maintain aspect ratio
-#maintain-aspect-ratio=0
+maintain-aspect-ratio=1
 #symmetric-padding=0
 #output-tensor-meta=1
 #input-object-min-width=128

@@ -23,8 +23,7 @@ class ClassificationOutput(nn.Module):
 
     def forward(self, x):
         scores = torch.softmax(x, dim=1)  # Apply Softmax
-        return scores,
-
+        return scores.float()
 
 def suppress_warnings():
     warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)

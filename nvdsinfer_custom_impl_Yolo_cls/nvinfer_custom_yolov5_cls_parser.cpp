@@ -27,6 +27,7 @@
 // include header
 #include <vector>
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -59,7 +60,24 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
     /* Get the number of attributes supported by the classifier. */
     unsigned int numAttributes = outputLayersInfo.size();
 
-    std::cout << "numAttributes: " << numAttributes << std::endl;
+    std::ifstream fdict;
+
+    if(!dict_ready) {
+        fdict.open("labels_cls.txt");
+        if(!fdict.is_open())
+        {
+            std::cout << "open label file failed." << std::endl;
+	        return false;
+        }
+	    while(!fdict.eof()) {
+	        std::string strLineAnsi;
+	        if ( getline(fdict, strLineAnsi) ) {
+	            dict_table.push_back(strLineAnsi);
+	        }
+        }
+        dict_ready=true;
+        fdict.close();
+    }
 
     /* Iterate through all the output coverage layers of the classifier.
     */
@@ -78,13 +96,14 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
         float maxProbability = 0;
         bool attrFound = false;
         NvDsInferAttribute attr;
-
+        
         /* Iterate through all the probabilities that the object belongs to
          * each class. Find the maximum probability and the corresponding class
          * which meets the minimum threshold. */
         for (unsigned int c = 0; c < numClasses; c++)
         {
             float probability = outputCoverageBuffer[c];
+            
             if (probability > classifierThreshold
                     && probability > maxProbability)
             {
@@ -95,18 +114,19 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
                 attr.attributeConfidence = probability;
             }
         }
-        // if (attrFound)
-        // {
-        //     if (labels.size() > attr.attributeIndex &&
-        //             attr.attributeValue < labels[attr.attributeIndex].size())
-        //         attr.attributeLabel =
-        //             strdup(labels[attr.attributeIndex][attr.attributeValue].c_str());
-        //     else
-        //         attr.attributeLabel = nullptr;
-        //     attrList.push_back(attr);
-        //     if (attr.attributeLabel)
-        //         descString.append(attr.attributeLabel).append(" ");
-        // }
+
+        if (attrFound)
+        {
+            if (dict_table.size() > attr.attributeIndex &&
+                    attr.attributeValue < dict_table.size())
+                attr.attributeLabel =
+                    strdup(dict_table[attr.attributeValue].c_str());
+            else
+                attr.attributeLabel = nullptr;
+            attrList.push_back(attr);
+            if (attr.attributeLabel)
+                descString.append(attr.attributeLabel).append(" ");
+        }
     }
 
     return true;

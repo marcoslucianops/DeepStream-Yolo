@@ -58,5 +58,15 @@ gie-unique-id=1
 nvbuf-memory-type=0
 config-file=config_infer_primary.txt
 
+[secondary-gie]
+enable=1
+#(0): nvinfer; (1): nvinferserver
+plugin-type=0
+#gpu-id=0
+#operate_on_gie_id should match the provided unique id of primary infer.
+operate-on-gie-id=1
+model-engine-file=yolov5s-cls.onnx_b16_gpu0_fp16.engine
+config-file=config_infer_secondary_yoloV5_cls.txt
+
 [tests]
 file-loop=0
