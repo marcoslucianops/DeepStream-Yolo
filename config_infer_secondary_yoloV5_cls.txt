@@ -63,7 +63,7 @@ gie-unique-id=4
 net-scale-factor=0.017352074
 offsets=123.675;116.28;103.53
 onnx-file=yolov5s-cls.onnx
-#model-engine-file=yolov5s-cls.onnx_b16_gpu0_fp16.engine
+model-engine-file=yolov5s-cls.onnx_b16_gpu0_fp16.engine
 labelfile-path=labels_cls.txt
 force-implicit-batch-dim=0
 batch-size=16
@@ -86,11 +86,11 @@ custom-lib-path=nvdsinfer_custom_impl_Yolo_cls/libnvinfer_custom_impl_yolov5_cls
 ## Re-inference interval for objects, in frames
 #secondary-reinfer-interval=4
 ## Scale and padding the image maintain aspect ratio
-maintain-aspect-ratio=1
-#symmetric-padding=0
+maintain-aspect-ratio=0
+symmetric-padding=0
 #output-tensor-meta=1
-#input-object-min-width=128
-#input-object-min-height=128
+input-object-min-width=0
+input-object-min-height=0
 operate-on-gie-id=1
 #operate-on-class-ids=0
 classifier-type=imagenet
