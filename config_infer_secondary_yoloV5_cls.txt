@@ -64,7 +64,7 @@ net-scale-factor=0.017352074
 offsets=123.675;116.28;103.53
 onnx-file=yolov5s-cls.onnx
 model-engine-file=yolov5s-cls.onnx_b16_gpu0_fp16.engine
-labelfile-path=labels_cls.txt
+labelfile-path=imagenet_class.txt
 force-implicit-batch-dim=0
 batch-size=16
 # 0=NCHW 1=NHWC
