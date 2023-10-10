@@ -14,8 +14,8 @@ nvbuf-memory-type=0
 [source0]
 enable=1
 type=3
-#uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4
-uri=file://./assets/apple.mp4
+uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4
+#uri=file://./assets/apple.mp4
 num-sources=1
 gpu-id=0
 cudadec-memtype=0
