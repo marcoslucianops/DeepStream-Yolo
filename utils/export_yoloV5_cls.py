@@ -2,6 +2,9 @@
 ----------------------------------------------------------------------------
 Usage:
     - python export_yoloV5_cls.py --weights yolov5s-cls.pt -s 224 224 --opset 12 --simplify --dynamic
+    
+    trtexec
+    -  /usr/src/tensorrt/bin/trtexec --onnx=yolov5s-cls.onnx --shapes=input:16x3x224x224 --fp16 --saveEngine=yolov5s-cls.onnx_b16_gpu0_fp16.engine
 ----------------------------------------------------------------------------
 """
 
@@ -71,6 +74,11 @@ def main(args):
                       do_constant_folding=True, input_names=['input'], output_names=['output'],
                       dynamic_axes=dynamic_axes if args.dynamic else None)
 
+    # ONNX model check 
+    print('Validating the ONNX model')
+    onnx_model = onnx.load(onnx_output_file)
+    onnx.checker.check_model(onnx_model, full_check=True) # full_check=True: check that the model is structurally valid and conforms to the ONNX specification
+    
     if args.simplify:
         print('Simplifying the ONNX model')
         import onnxsim
