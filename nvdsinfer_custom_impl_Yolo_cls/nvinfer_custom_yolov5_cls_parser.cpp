@@ -60,23 +60,28 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
     /* Get the number of attributes supported by the classifier. */
     unsigned int numAttributes = outputLayersInfo.size();
 
-    std::ifstream fdict;
+    std::ifstream file;
 
     if(!dict_ready) {
-        fdict.open("labels_cls.txt");
-        if(!fdict.is_open())
-        {
-            std::cout << "open label file failed." << std::endl;
-	        return false;
+        file.open("imagenet_classes.txt");
+
+        if (file.is_open()) {
+            std::string line;
+            while (std::getline(file, line)) {
+                size_t colon_pos = line.find(':');
+                if (colon_pos != std::string::npos) {
+                    std::string value = line.substr(colon_pos + 2);  // +2 to skip ": "
+                    value = value.substr(0, value.size() - 1);  // remove the trailing comma
+                    dict_table.push_back(value);
+                }
+            }
+            dict_ready=true;
+            file.close();
+        } else {
+            std::cerr << "Unable to open file\n";
+            return 1;
         }
-	    while(!fdict.eof()) {
-	        std::string strLineAnsi;
-	        if ( getline(fdict, strLineAnsi) ) {
-	            dict_table.push_back(strLineAnsi);
-	        }
-        }
-        dict_ready=true;
-        fdict.close();
+
     }
 
     /* Iterate through all the output coverage layers of the classifier.
@@ -100,6 +105,9 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
         /* Iterate through all the probabilities that the object belongs to
          * each class. Find the maximum probability and the corresponding class
          * which meets the minimum threshold. */
+
+        // Verify that the sum is 1 for softmax output
+        float prob_sum = 0;
         for (unsigned int c = 0; c < numClasses; c++)
         {
             float probability = outputCoverageBuffer[c];
@@ -113,7 +121,12 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
                 attr.attributeValue = c;
                 attr.attributeConfidence = probability;
             }
+
+            prob_sum += probability;
         }
+
+        // if (abs(prob_sum - 1.0f) > 0.001)
+        //     throw std::runtime_error("softmax output is not valid");
 
         if (attrFound)
         {
@@ -126,6 +139,15 @@ bool NvDsInferCustomYolov5ClsParse(std::vector<NvDsInferLayerInfo> const &output
             attrList.push_back(attr);
             if (attr.attributeLabel)
                 descString.append(attr.attributeLabel).append(" ");
+        }
+        else {
+            NvDsInferAttribute attr;
+            attr.attributeIndex = -1;
+            attr.attributeValue = 1; 
+
+            attr.attributeLabel = strdup("Unknown");
+            attrList.push_back(attr);
+            descString.append(attr.attributeLabel).append(" ");
         }
     }
 
