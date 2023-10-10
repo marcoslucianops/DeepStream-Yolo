@@ -64,7 +64,7 @@ net-scale-factor=0.017352074
 offsets=123.675;116.28;103.53
 onnx-file=yolov5s-cls.onnx
 model-engine-file=yolov5s-cls.onnx_b16_gpu0_fp16.engine
-labelfile-path=imagenet_class.txt
+labelfile-path=imagenet_classes.txt
 force-implicit-batch-dim=0
 batch-size=16
 # 0=NCHW 1=NHWC
@@ -79,15 +79,17 @@ network-mode=2
 network-type=1
 classifier-async-mode=0
 classifier-threshold=0.25
+## Deprecated
+#is-classifier=0
 
 parse-classifier-func-name=NvDsInferCustomYolov5ClsParse
 custom-lib-path=nvdsinfer_custom_impl_Yolo_cls/libnvinfer_custom_impl_yolov5_cls_parser.so
 
 ## Re-inference interval for objects, in frames
-#secondary-reinfer-interval=4
+#secondary-reinfer-intrval=14
 ## Scale and padding the image maintain aspect ratio
-maintain-aspect-ratio=0
-symmetric-padding=0
+maintain-aspect-ratio=1
+symmetric-padding=1
 #output-tensor-meta=1
 input-object-min-width=0
 input-object-min-height=0
