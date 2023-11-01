@@ -22,16 +22,14 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 * Support for non square models
 * Models benchmarks
 * Support for Darknet models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing
-* Support for YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing
+* Support for RT-DETR, YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, YOLOX, YOLOR, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing
 * GPU bbox parser (it is slightly slower than CPU bbox parser on V100 GPU tests)
 * Support for DeepStream 5.1
 * Custom ONNX model parser (`NvDsInferYoloCudaEngineGet`)
 * Dynamic batch-size for Darknet and ONNX exported models
 * INT8 calibration (PTQ) for Darknet and ONNX exported models
 * New output structure (fix wrong output on DeepStream < 6.2) - it need to export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
-* **YOLO-Pose: https://github.com/marcoslucianops/DeepStream-Yolo-Pose**
-* **YOLO-Seg: https://github.com/marcoslucianops/DeepStream-Yolo-Seg**
-* **YOLO-Face: https://github.com/marcoslucianops/DeepStream-Yolo-Face**
+* **RT-DETR (https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetr_pytorch)**
 
 ##
 
@@ -54,6 +52,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 * [DAMO-YOLO usage](docs/DAMOYOLO.md)
 * [PP-YOLOE / PP-YOLOE+ usage](docs/PPYOLOE.md)
 * [YOLO-NAS usage](docs/YOLONAS.md)
+* [RT-DETR usage](docs/RTDETR.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
