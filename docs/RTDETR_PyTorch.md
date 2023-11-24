@@ -1,4 +1,4 @@
-# RT-DETR usage
+# RT-DETR PyTorch usage
 
 **NOTE**: https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetr_pytorch version.
 
@@ -29,7 +29,7 @@ Copy the `export_rtdetr_pytorch.py` file from `DeepStream-Yolo/utils` directory 
 
 #### 3. Download the model
 
-Download the `pth` file from [RT-DETR](https://github.com/lyuwenyu/storage/releases) releases (example for RT-DETR-R50)
+Download the `pth` file from [RT-DETR PyTorch](https://github.com/lyuwenyu/storage/releases/tag/v0.1) releases (example for RT-DETR-R50)
 
 ```
 wget https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r50vd_6x_coco_from_paddle.pth
