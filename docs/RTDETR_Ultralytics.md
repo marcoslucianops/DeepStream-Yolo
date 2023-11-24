@@ -1,6 +1,6 @@
-# RT-DETR usage
+# RT-DETR Ultralytics usage
 
-**NOTE**: https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetr_pytorch version.
+**NOTE**: Ultralytics (https://docs.ultralytics.com/models/rtdetr) version.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
@@ -12,12 +12,13 @@
 
 ### Convert model
 
-#### 1. Download the RT-DETR repo and install the requirements
+#### 1. Download the Ultralytics repo and install the requirements
 
 ```
-git clone https://github.com/lyuwenyu/RT-DETR.git
-cd RT-DETR/rtdetr_pytorch
+git clone https://github.com/ultralytics/ultralytics.git
+cd ultralytics
 pip3 install -r requirements.txt
+python3 setup.py install
 pip3 install onnx onnxsim onnxruntime
 ```
 
@@ -25,24 +26,24 @@ pip3 install onnx onnxsim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_rtdetr_pytorch.py` file from `DeepStream-Yolo/utils` directory to the `RT-DETR/rtdetr_pytorch` folder.
+Copy the `export_rtdetr_ultralytics.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder.
 
 #### 3. Download the model
 
-Download the `pth` file from [RT-DETR](https://github.com/lyuwenyu/storage/releases) releases (example for RT-DETR-R50)
+Download the `pt` file from [Ultralytics](https://github.com/ultralytics/assets/releases/) releases (example for RT-DETR-l)
 
 ```
-wget https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r50vd_6x_coco_from_paddle.pth
+wget https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for RT-DETR-R50)
+Generate the ONNX model file (example for RT-DETR-l)
 
 ```
-python3 export_rtdetr_pytorch.py -w rtdetr_r50vd_6x_coco_from_paddle.pth -c configs/rtdetr/rtdetr_r50vd_6x_coco.yml --dynamic
+python3 export_rtdetr_ultralytics.py -w rtdetr-l.pt --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -152,12 +153,12 @@ Open the `DeepStream-Yolo` folder and compile the lib
 
 ### Edit the config_infer_primary_rtdetr file
 
-Edit the `config_infer_primary_rtdetr.txt` file according to your model (example for RT-DETR-R50 with 80 classes)
+Edit the `config_infer_primary_rtdetr.txt` file according to your model (example for RT-DETR-l with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=rtdetr_r50vd_6x_coco_from_paddle.onnx
+onnx-file=rtdetr-l.onnx
 ...
 num-detected-classes=80
 ...
@@ -165,7 +166,7 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
-**NOTE**: The **RT-DETR** do not resize the input with padding. To get better accuracy, use
+**NOTE**: The **RT-DETR Ultralytics** do not resize the input with padding. To get better accuracy, use
 
 ```
 [property]

@@ -30,6 +30,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 * INT8 calibration (PTQ) for Darknet and ONNX exported models
 * New output structure (fix wrong output on DeepStream < 6.2) - it need to export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
 * **RT-DETR (https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetr_pytorch)**
+* **RT-DETR Ultralytics (https://docs.ultralytics.com/models/rtdetr)**
 
 ##
 
@@ -53,6 +54,7 @@ NVIDIA DeepStream SDK 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration
 * [PP-YOLOE / PP-YOLOE+ usage](docs/PPYOLOE.md)
 * [YOLO-NAS usage](docs/YOLONAS.md)
 * [RT-DETR usage](docs/RTDETR.md)
+* [RT-DETR Ultralytics usage](docs/RTDETR_Ultralytics.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
