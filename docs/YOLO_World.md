@@ -48,7 +48,7 @@ python3 export_yoloWorld.py -w yolov8l-worldv2.pt --dynamic --simplify
 
 **NOTE**: To set custom classes
 ```
-python3 export_yoloWorld.py -w yolov8l-worldv2.pt --dynamic --simplify --custom-classes "person, dachshund, navy jacket"
+python3 export_yoloWorld.py -w yolov8l-worldv2.pt --dynamic --simplify --custom-classes "person, dachshund, navy tie"
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
