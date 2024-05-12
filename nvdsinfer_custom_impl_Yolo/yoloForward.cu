@@ -15,8 +15,9 @@ __global__ void gpuYoloLayer(const float* input, float* boxes, float* scores, fl
   uint y_id = blockIdx.y * blockDim.y + threadIdx.y;
   uint z_id = blockIdx.z * blockDim.z + threadIdx.z;
 
-  if (x_id >= gridSizeX || y_id >= gridSizeY || z_id >= numBBoxes)
+  if (x_id >= gridSizeX || y_id >= gridSizeY || z_id >= numBBoxes) {
     return;
+  }
 
   const int numGridCells = gridSizeX * gridSizeY;
   const int bbindex = y_id * gridSizeX + x_id;
@@ -47,7 +48,7 @@ __global__ void gpuYoloLayer(const float* input, float* boxes, float* scores, fl
     }
   }
 
-  int count = z_id * gridSizeX * gridSizeY + y_id * gridSizeY + x_id + lastInputSize;
+  int count = numGridCells * z_id + bbindex + lastInputSize;
 
   boxes[count * 4 + 0] = xc;
   boxes[count * 4 + 1] = yc;

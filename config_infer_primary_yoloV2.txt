@@ -16,6 +16,7 @@ process-mode=1
 network-type=0
 cluster-mode=2
 maintain-aspect-ratio=0
+force-implicit-batch-dim=0
 #workspace-size=2000
 parse-bbox-func-name=NvDsInferParseYolo
 #parse-bbox-func-name=NvDsInferParseYoloCuda

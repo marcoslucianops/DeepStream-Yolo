@@ -50,47 +50,37 @@ const char* YOLOLAYER_PLUGIN_VERSION {"2"};
 
 **NOTE**: Do it for each GIE folder, replacing the GIE folder name (`gie1/nvdsinfer_custom_impl_Yolo`).
 
-* DeepStream 6.3 on x86 platform
+1. Set the `CUDA_VER` according to your DeepStream version
+
+```
+export CUDA_VER=XY.Z
+```
+
+* x86 platform
 
   ```
-  CUDA_VER=12.1 make -C gie1/nvdsinfer_custom_impl_Yolo
+  DeepStream 7.0 / 6.4 = 12.2
+  DeepStream 6.3 = 12.1
+  DeepStream 6.2 = 11.8
+  DeepStream 6.1.1 = 11.7
+  DeepStream 6.1 = 11.6
+  DeepStream 6.0.1 / 6.0 = 11.4
+  DeepStream 5.1 = 11.1
   ```
 
-* DeepStream 6.2 on x86 platform
+* Jetson platform
 
   ```
-  CUDA_VER=11.8 make -C gie1/nvdsinfer_custom_impl_Yolo
+  DeepStream 7.0 / 6.4 = 12.2
+  DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
+  DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
   ```
 
-* DeepStream 6.1.1 on x86 platform
+2. Make the lib
 
-  ```
-  CUDA_VER=11.7 make -C gie1/nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.1 on x86 platform
-
-  ```
-  CUDA_VER=11.6 make -C gie1/nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 on x86 platform
-
-  ```
-  CUDA_VER=11.4 make -C gie1/nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
-
-  ```
-  CUDA_VER=11.4 make -C gie1/nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 on Jetson platform
-
-  ```
-  CUDA_VER=10.2 make -C gie1/nvdsinfer_custom_impl_Yolo
-  ```
+```
+make -C gie1/nvdsinfer_custom_impl_Yolo clean && make -C gie1/nvdsinfer_custom_impl_Yolo
+```
 
 ##
 

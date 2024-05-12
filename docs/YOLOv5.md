@@ -106,55 +106,39 @@ Copy the generated ONNX model file and labels.txt file (if generated) to the `De
 
 ### Compile the lib
 
-Open the `DeepStream-Yolo` folder and compile the lib
+1. Open the `DeepStream-Yolo` folder and compile the lib
 
-* DeepStream 6.3 on x86 platform
+2. Set the `CUDA_VER` according to your DeepStream version
 
-  ```
-  CUDA_VER=12.1 make -C nvdsinfer_custom_impl_Yolo
-  ```
+```
+export CUDA_VER=XY.Z
+```
 
-* DeepStream 6.2 on x86 platform
-
-  ```
-  CUDA_VER=11.8 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.1.1 on x86 platform
+* x86 platform
 
   ```
-  CUDA_VER=11.7 make -C nvdsinfer_custom_impl_Yolo
+  DeepStream 7.0 / 6.4 = 12.2
+  DeepStream 6.3 = 12.1
+  DeepStream 6.2 = 11.8
+  DeepStream 6.1.1 = 11.7
+  DeepStream 6.1 = 11.6
+  DeepStream 6.0.1 / 6.0 = 11.4
+  DeepStream 5.1 = 11.1
   ```
 
-* DeepStream 6.1 on x86 platform
+* Jetson platform
 
   ```
-  CUDA_VER=11.6 make -C nvdsinfer_custom_impl_Yolo
+  DeepStream 7.0 / 6.4 = 12.2
+  DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
+  DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
   ```
 
-* DeepStream 6.0.1 / 6.0 on x86 platform
+3. Make the lib
 
-  ```
-  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 5.1 on x86 platform
-
-  ```
-  CUDA_VER=11.1 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
-
-  ```
-  CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo
-  ```
-
-* DeepStream 6.0.1 / 6.0 / 5.1 on Jetson platform
-
-  ```
-  CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo
-  ```
+```
+make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
+```
 
 ##
 
