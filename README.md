@@ -3,7 +3,7 @@
 NVIDIA DeepStream SDK 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  configuration for YOLO models
 
 --------------------------------------------------------------------------------------------------
-For now, I am limited for some updates. Thank you for understanding.
+### For now, I am limited for some updates. Thank you for understanding.
 --------------------------------------------------------------------------------------------------
 ### YOLO-Pose: https://github.com/marcoslucianops/DeepStream-Yolo-Pose
 ### YOLO-Seg: https://github.com/marcoslucianops/DeepStream-Yolo-Seg
