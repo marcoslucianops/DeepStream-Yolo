@@ -307,17 +307,17 @@ config-file=config_infer_primary_yoloV2.txt
   nvcr.io/nvidia/deepstream:7.0-triton-multiarch
   ```
 
-  **NOTE**: To compile the `nvdsinfer_custom_impl_Yolo`, you need to install the g++ inside the container
+**NOTE**: To compile the `nvdsinfer_custom_impl_Yolo`, you need to install the g++ inside the container
 
-  ```
-  apt-get install build-essential
-  ```
+```
+apt-get install build-essential
+```
 
-  **NOTE**: With DeepStream 7.0, the docker containers do not package libraries necessary for certain multimedia operations like audio data parsing, CPU decode, and CPU encode. This change could affect processing certain video streams/files like mp4 that include audio track. Please run the below script inside the docker images to install additional packages that might be necessary to use all of the DeepStreamSDK features:
-  
-  ```
-  /opt/nvidia/deepstream/deepstream/user_additional_install.sh
-  ```
+**NOTE**: With DeepStream 7.0, the docker containers do not package libraries necessary for certain multimedia operations like audio data parsing, CPU decode, and CPU encode. This change could affect processing certain video streams/files like mp4 that include audio track. Please run the below script inside the docker images to install additional packages that might be necessary to use all of the DeepStreamSDK features:
+
+```
+/opt/nvidia/deepstream/deepstream/user_additional_install.sh
+```
 
 ##
 
