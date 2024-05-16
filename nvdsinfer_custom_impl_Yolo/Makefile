@@ -51,7 +51,7 @@ ifeq ($(OPENCV), 1)
 endif
 
 ifeq ($(GRAPH), 1)
-	COMMON+= -GRAPH
+	COMMON+= -DGRAPH
 endif
 
 CUFLAGS:= -I/opt/nvidia/deepstream/deepstream/sources/includes -I/usr/local/cuda-$(CUDA_VER)/include
