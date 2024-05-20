@@ -249,7 +249,7 @@ YoloLayer::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const nvinfer1::
     else {
       void* softmax;
       CUDA_CHECK(cudaMalloc(&softmax, sizeof(float) * inputSize * batchSize));
-      CUDA_CHECK(cudaMemsetAsync((float*)softmax, 0, sizeof(float) * inputSize * batchSize, stream));
+      CUDA_CHECK(cudaMemsetAsync((float*) softmax, 0, sizeof(float) * inputSize * batchSize, stream));
 
       CUDA_CHECK(cudaRegionLayer(inputs[i], softmax, boxes, scores, classes, batchSize, inputSize, m_OutputSize,
           lastInputSize, m_NetWidth, m_NetHeight, gridSizeX, gridSizeY, m_NumClasses, numBBoxes, v_anchors, stream));
