@@ -53,7 +53,7 @@ wget https://github.com/THU-MIG/yolov10/releases/download/v1.1/yolov10s.pt
 Generate the ONNX model file (example for YOLOv10s)
 
 ```
-python3 export_yolov10.py -w yolov10s.pt --dynamic
+python3 export_yoloV10.py -w yolov10s.pt --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
