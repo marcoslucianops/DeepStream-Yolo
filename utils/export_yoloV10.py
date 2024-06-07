@@ -28,7 +28,7 @@ def suppress_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 
-def yolov8_export(weights, device):
+def yolov10_export(weights, device):
     model = YOLO(weights)
     model = deepcopy(model.model).to(device)
     for p in model.parameters():
@@ -53,10 +53,10 @@ def main(args):
 
     print('\nStarting: %s' % args.weights)
 
-    print('Opening YOLOv8 model\n')
+    print('Opening YOLOv10 model\n')
 
     device = select_device('cpu')
-    model = yolov8_export(args.weights, device)
+    model = yolov10_export(args.weights, device)
 
     if len(model.names.keys()) > 0:
         print('\nCreating labels.txt file')
@@ -103,7 +103,7 @@ def main(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='DeepStream YOLOv8 conversion')
+    parser = argparse.ArgumentParser(description='DeepStream YOLOv10 conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
     parser.add_argument('--opset', type=int, default=16, help='ONNX opset version')
