@@ -47,6 +47,7 @@ NVIDIA DeepStream SDK 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 5.1  c
 * [YOLOv6 usage](docs/YOLOv6.md)
 * [YOLOv7 usage](docs/YOLOv7.md)
 * [YOLOv8 usage](docs/YOLOv8.md)
+* [YOLOv10 usage](docs/YOLOv10.md)
 * [YOLOR usage](docs/YOLOR.md)
 * [YOLOX usage](docs/YOLOX.md)
 * [DAMO-YOLO usage](docs/DAMOYOLO.md)
