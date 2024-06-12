@@ -51,10 +51,10 @@ def main(args):
     device = select_device('cpu')
     model = yolov5_export(args.weights, device)
 
-    if len(model.names.keys()) > 0:
+    if len(model.names) > 0:
         print('\nCreating labels.txt file')
         f = open('labels.txt', 'w')
-        for name in model.names.values():
+        for name in model.names:
             f.write(name + '\n')
         f.close()
 
