@@ -20,6 +20,9 @@ class DeepStreamOutput(nn.Module):
         boxes = x[:, :, :4]
         scores, classes = torch.max(x[:, :, 4:], 2, keepdim=True)
         classes = classes.float()
+        class_19_mask = (classes == 19) & (scores > 0.44)
+        if not class_19_mask.any():
+            scores.fill_(0.01)
         return boxes, scores, classes
 
 
