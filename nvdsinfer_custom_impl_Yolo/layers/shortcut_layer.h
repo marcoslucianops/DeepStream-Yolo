@@ -15,6 +15,6 @@
 
 nvinfer1::ITensor* shortcutLayer(int layerIdx, std::string activation, std::string inputVol, std::string shortcutVol,
     std::map<std::string, std::string>& block, nvinfer1::ITensor* input, nvinfer1::ITensor* shortcut,
-    nvinfer1::INetworkDefinition* network, uint batchSize);
+    nvinfer1::INetworkDefinition* network);
 
 #endif

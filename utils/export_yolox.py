@@ -1,10 +1,8 @@
 import os
-import sys
-import argparse
-import warnings
 import onnx
 import torch
 import torch.nn as nn
+
 from yolox.exp import get_exp
 from yolox.utils import replace_module
 from yolox.models.network_blocks import SiLU
@@ -16,17 +14,14 @@ class DeepStreamOutput(nn.Module):
 
     def forward(self, x):
         boxes = x[:, :, :4]
+        convert_matrix = torch.tensor(
+            [[1, 0, 1, 0], [0, 1, 0, 1], [-0.5, 0, 0.5, 0], [0, -0.5, 0, 0.5]], dtype=boxes.dtype, device=boxes.device
+        )
+        boxes @= convert_matrix
         objectness = x[:, :, 4:5]
-        scores, classes = torch.max(x[:, :, 5:], 2, keepdim=True)
+        scores, labels = torch.max(x[:, :, 5:], dim=-1, keepdim=True)
         scores *= objectness
-        classes = classes.float()
-        return boxes, scores, classes
-
-
-def suppress_warnings():
-    warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
-    warnings.filterwarnings('ignore', category=UserWarning)
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
+        return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
 def yolox_export(weights, exp_file):
@@ -42,10 +37,19 @@ def yolox_export(weights, exp_file):
     return model, exp
 
 
+def suppress_warnings():
+    import warnings
+    warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
+    warnings.filterwarnings('ignore', category=UserWarning)
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    warnings.filterwarnings('ignore', category=ResourceWarning)
+
+
 def main(args):
     suppress_warnings()
 
-    print('\nStarting: %s' % args.weights)
+    print(f'\nStarting: {args.weights}')
 
     print('Opening YOLOX model')
 
@@ -57,39 +61,35 @@ def main(args):
     img_size = [exp.input_size[1], exp.input_size[0]]
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
-    onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
+    onnx_output_file = f'{args.weights}.onnx'
 
     dynamic_axes = {
         'input': {
             0: 'batch'
         },
-        'boxes': {
-            0: 'batch'
-        },
-        'scores': {
-            0: 'batch'
-        },
-        'classes': {
+        'output': {
             0: 'batch'
         }
     }
 
     print('Exporting the model to ONNX')
-    torch.onnx.export(model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset,
-                      do_constant_folding=True, input_names=['input'], output_names=['boxes', 'scores', 'classes'],
-                      dynamic_axes=dynamic_axes if args.dynamic else None)
+    torch.onnx.export(
+        model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset, do_constant_folding=True,
+        input_names=['input'], output_names=['output'], dynamic_axes=dynamic_axes if args.dynamic else None
+    )
 
     if args.simplify:
         print('Simplifying the ONNX model')
-        import onnxsim
+        import onnxslim
         model_onnx = onnx.load(onnx_output_file)
-        model_onnx, _ = onnxsim.simplify(model_onnx)
+        model_onnx = onnxslim.slim(model_onnx)
         onnx.save(model_onnx, onnx_output_file)
 
-    print('Done: %s\n' % onnx_output_file)
+    print(f'Done: {onnx_output_file}\n')
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description='DeepStream YOLOX conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pth) file path (required)')
     parser.add_argument('-c', '--exp', required=True, help='Input exp (.py) file path (required)')
@@ -100,8 +100,6 @@ def parse_args():
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
         raise SystemExit('Invalid weights file')
-    if not os.path.isfile(args.exp):
-        raise SystemExit('Invalid exp file')
     if args.dynamic and args.batch > 1:
         raise SystemExit('Cannot set dynamic batch-size and static batch-size at same time')
     return args
@@ -109,4 +107,4 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    sys.exit(main(args))
+    main(args)

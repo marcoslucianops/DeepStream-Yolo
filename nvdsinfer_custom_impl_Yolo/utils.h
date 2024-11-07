@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2024, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,13 +41,14 @@ float clamp(const float val, const float minVal, const float maxVal);
 
 bool fileExists(const std::string fileName, bool verbose = true);
 
-std::vector<float> loadWeights(const std::string weightsFilePath, const std::string& modelName);
+std::vector<float> loadWeights(const std::string weightsFilePath);
 
 std::string dimsToString(const nvinfer1::Dims d);
 
 int getNumChannels(nvinfer1::ITensor* t);
 
 void printLayerInfo(
-    std::string layerIndex, std::string layerName, std::string layerInput,  std::string layerOutput, std::string weightPtr);
+    std::string layerIndex, std::string layerName, std::string layerInput,  std::string layerOutput,
+    std::string weightPtr);
 
 #endif

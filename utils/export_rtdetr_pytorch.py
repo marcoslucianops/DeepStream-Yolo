@@ -1,31 +1,28 @@
 import os
-import sys
-import argparse
-import warnings
 import onnx
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
 from src.core import YAMLConfig
 
 
 class DeepStreamOutput(nn.Module):
-    def __init__(self, img_size):
-        self.img_size = img_size
+    def __init__(self, img_size, use_focal_loss):
         super().__init__()
+        self.img_size = img_size
+        self.use_focal_loss = use_focal_loss
 
     def forward(self, x):
         boxes = x['pred_boxes']
-        boxes[:, :, [0, 2]] *= self.img_size[1]
-        boxes[:, :, [1, 3]] *= self.img_size[0]
-        scores, classes = torch.max(x['pred_logits'], 2, keepdim=True)
-        classes = classes.float()
-        return boxes, scores, classes
-
-
-def suppress_warnings():
-    warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
-    warnings.filterwarnings('ignore', category=UserWarning)
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
+        convert_matrix = torch.tensor(
+            [[1, 0, 1, 0], [0, 1, 0, 1], [-0.5, 0, 0.5, 0], [0, -0.5, 0, 0.5]], dtype=boxes.dtype, device=boxes.device
+        )
+        boxes @= convert_matrix
+        boxes *= torch.as_tensor([[*self.img_size]]).flip(1).tile([1, 2]).unsqueeze(1)
+        scores = F.sigmoid(x['pred_logits']) if self.use_focal_loss else F.softmax(x['pred_logits'])[:, :, :-1]
+        scores, labels = torch.max(scores, dim=-1, keepdim=True)
+        return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
 def rtdetr_pytorch_export(weights, cfg_file, device):
@@ -36,57 +33,62 @@ def rtdetr_pytorch_export(weights, cfg_file, device):
     else:
         state = checkpoint['model']
     cfg.model.load_state_dict(state)
-    return cfg.model.deploy()
+    return cfg.model.deploy(), cfg.postprocessor.use_focal_loss
+
+
+def suppress_warnings():
+    import warnings
+    warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
+    warnings.filterwarnings('ignore', category=UserWarning)
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    warnings.filterwarnings('ignore', category=ResourceWarning)
 
 
 def main(args):
     suppress_warnings()
 
-    print('\nStarting: %s' % args.weights)
+    print(f'\nStarting: {args.weights}')
 
-    print('Opening RT-DETR PyTorch model\n')
+    print('Opening RT-DETR PyTorch model')
 
     device = torch.device('cpu')
-    model = rtdetr_pytorch_export(args.weights, args.config, device)
+    model, use_focal_loss = rtdetr_pytorch_export(args.weights, args.config, device)
 
     img_size = args.size * 2 if len(args.size) == 1 else args.size
 
-    model = nn.Sequential(model, DeepStreamOutput(img_size))
+    model = nn.Sequential(model, DeepStreamOutput(img_size, use_focal_loss))
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
-    onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
+    onnx_output_file = f'{args.weights}.onnx'
 
     dynamic_axes = {
         'input': {
             0: 'batch'
         },
-        'boxes': {
-            0: 'batch'
-        },
-        'scores': {
-            0: 'batch'
-        },
-        'classes': {
+        'output': {
             0: 'batch'
         }
     }
 
-    print('\nExporting the model to ONNX')
-    torch.onnx.export(model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset,
-                      do_constant_folding=True, input_names=['input'], output_names=['boxes', 'scores', 'classes'],
-                      dynamic_axes=dynamic_axes if args.dynamic else None)
+    print('Exporting the model to ONNX')
+    torch.onnx.export(
+        model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset, do_constant_folding=True,
+        input_names=['input'], output_names=['output'], dynamic_axes=dynamic_axes if args.dynamic else None
+    )
 
     if args.simplify:
         print('Simplifying the ONNX model')
-        import onnxsim
+        import onnxslim
         model_onnx = onnx.load(onnx_output_file)
-        model_onnx, _ = onnxsim.simplify(model_onnx)
+        model_onnx = onnxslim.slim(model_onnx)
         onnx.save(model_onnx, onnx_output_file)
 
-    print('Done: %s\n' % onnx_output_file)
+    print(f'Done: {onnx_output_file}\n')
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description='DeepStream RT-DETR PyTorch conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pth) file path (required)')
     parser.add_argument('-c', '--config', required=True, help='Input YAML (.yml) file path (required)')
@@ -107,4 +109,4 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    sys.exit(main(args))
+    main(args)

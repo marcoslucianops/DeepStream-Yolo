@@ -1,10 +1,8 @@
-# YOLO-NAS usage
-
-**NOTE**: The yaml file is not required.
+# RTMDet (MMYOLO) usage
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_yolonas file](#edit-the-config_infer_primary_yolonas-file)
+* [Edit the config_infer_primary_rtmdet file](#edit-the-config_infer_primary_rtmdet-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,13 +10,17 @@
 
 ### Convert model
 
-#### 1. Download the YOLO-NAS repo and install the requirements
+#### 1. Download the RTMDet (MMYOLO) repo and install the requirements
 
 ```
-git clone https://github.com/Deci-AI/super-gradients.git
-cd super-gradients
-pip3 install -r requirements.txt
-python3 setup.py install
+git clone https://github.com/open-mmlab/mmyolo.git
+cd mmyolo
+pip3 install openmim
+mim install "mmengine>=0.6.0"
+mim install "mmcv>=2.0.0rc4,<2.1.0"
+mim install "mmdet>=3.0.0,<4.0.0"
+pip3 install -r requirements/albu.txt
+mim install -v -e .
 pip3 install onnx onnxslim onnxruntime
 ```
 
@@ -26,54 +28,24 @@ pip3 install onnx onnxslim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_yolonas.py` file from `DeepStream-Yolo/utils` directory to the `super-gradients` folder.
+Copy the `export_rtmdet.py` file from `DeepStream-Yolo/utils` directory to the `mmyolo` folder.
 
 #### 3. Download the model
 
-Download the `pth` file from [YOLO-NAS](https://sghub.deci.ai/) releases (example for YOLO-NAS S)
+Download the `pth` file from [RTMDet (MMYOLO)](https://github.com/open-mmlab/mmyolo/tree/main/configs/rtmdet) releases (example for RTMDet-s*)
 
 ```
-wget https://sghub.deci.ai/models/yolo_nas_s_coco.pth
+wget https://download.openmmlab.com/mmrazor/v1/rtmdet_distillation/kd_s_rtmdet_m_neck_300e_coco/kd_s_rtmdet_m_neck_300e_coco_20230220_140647-446ff003.pth
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLO-NAS S)
+Generate the ONNX model file (example for RTMDet-s*)
 
 ```
-python3 export_yolonas.py -m yolo_nas_s -w yolo_nas_s_coco.pth --dynamic
-```
-
-**NOTE**: Model names
-
-```
--m yolo_nas_s
-```
-
-or
-
-```
--m yolo_nas_m
-```
-
-or
-
-```
--m yolo_nas_l
-```
-
-**NOTE**: Number of classes (example for 80 classes)
-
-```
--n 80
-```
-
-or
-
-```
---classes 80
+python3 export_rtmdet.py -w kd_s_rtmdet_m_neck_300e_coco_20230220_140647-446ff003.pth -c configs/rtmdet/distillation/kd_s_rtmdet_m_neck_300e_coco.py --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -115,15 +87,15 @@ or
 --batch 4
 ```
 
-**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 14.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 17.
 
 ```
 --opset 12
 ```
 
-#### 5. Copy generated file
+#### 5. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
 
 ##
 
@@ -167,14 +139,14 @@ make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
 
 ##
 
-### Edit the config_infer_primary_yolonas file
+### Edit the config_infer_primary_rtmdet file
 
-Edit the `config_infer_primary_yolonas.txt` file according to your model (example for YOLO-NAS S with 80 classes)
+Edit the `config_infer_primary_rtmdet.txt` file according to your model (example for RTMDet-s* with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=yolo_nas_s_coco.pth.onnx
+onnx-file=kd_s_rtmdet_m_neck_300e_coco_20230220_140647-446ff003.pth.onnx
 ...
 num-detected-classes=80
 ...
@@ -182,33 +154,34 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
-**NOTE**: If you are using a **custom** model, you should edit the `config_infer_primary_yolonas_custom.txt` file.
-
-**NOTE**: The **YOLO-NAS** resizes the input with left/top padding. To get better accuracy, use
+**NOTE**: The **RTMDet (MMYOLO)** resizes the input with center padding. To get better accuracy, use
 
 ```
 [property]
 ...
 maintain-aspect-ratio=1
-symmetric-padding=0
+symmetric-padding=1
 ...
 ```
 
-**NOTE**: The **pre-trained YOLO-NAS** uses zero mean normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
-
-```
-[property]
-...
-net-scale-factor=0.0039215697906911373
-...
-```
-
-**NOTE**: The **custom YOLO-NAS** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
+**NOTE**: The **RTMDet (MMYOLO)** uses BGR color format for the image input. It is important to change the `model-color-format` according to the trained values.
 
 ```
 [property]
 ...
-net-scale-factor=1
+model-color-format=1
+...
+```
+
+**NOTE**: The **RTMDet (MMYOLO)** uses normalization on the image preprocess. It is important to change the `net-scale-factor` and `offsets` according to the trained values.
+
+Default: `mean = 0.485, 0.456, 0.406` and `std = 0.229, 0.224, 0.225`
+
+```
+[property]
+...
+net-scale-factor=0.0173520735727919486
+offsets=103.53;116.28;123.675
 ...
 ```
 
@@ -220,7 +193,7 @@ net-scale-factor=1
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_yolonas.txt
+config-file=config_infer_primary_rtmdet.txt
 ```
 
 ##

@@ -10,7 +10,7 @@
 
 nvinfer1::ITensor*
 reorgLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::ITensor* input,
-    nvinfer1::INetworkDefinition* network, uint batchSize)
+    nvinfer1::INetworkDefinition* network)
 {
   nvinfer1::ITensor* output;
 
@@ -35,17 +35,17 @@ reorgLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::IT
     nvinfer1::Dims sizeAll = {4, {inputDims.d[0], inputDims.d[1], inputDims.d[2] / stride, inputDims.d[3] / stride}};
     nvinfer1::Dims strideAll = {4, {1, 1, stride, stride}};
 
-    nvinfer1::ITensor* slice1 = sliceLayer(layerIdx, name1, input, start1, sizeAll, strideAll, network, batchSize);
-    assert(output != nullptr);
+    nvinfer1::ITensor* slice1 = sliceLayer(layerIdx, name1, input, start1, sizeAll, strideAll, network);
+    assert(slice1 != nullptr);
 
-    nvinfer1::ITensor* slice2 = sliceLayer(layerIdx, name2, input, start2, sizeAll, strideAll, network, batchSize);
-    assert(output != nullptr);
+    nvinfer1::ITensor* slice2 = sliceLayer(layerIdx, name2, input, start2, sizeAll, strideAll, network);
+    assert(slice2 != nullptr);
 
-    nvinfer1::ITensor* slice3 = sliceLayer(layerIdx, name3, input, start3, sizeAll, strideAll, network, batchSize);
-    assert(output != nullptr);
+    nvinfer1::ITensor* slice3 = sliceLayer(layerIdx, name3, input, start3, sizeAll, strideAll, network);
+    assert(slice3 != nullptr);
 
-    nvinfer1::ITensor* slice4 = sliceLayer(layerIdx, name4, input, start4, sizeAll, strideAll, network, batchSize);
-    assert(output != nullptr);
+    nvinfer1::ITensor* slice4 = sliceLayer(layerIdx, name4, input, start4, sizeAll, strideAll, network);
+    assert(slice4 != nullptr);
 
     std::vector<nvinfer1::ITensor*> concatInputs;
     concatInputs.push_back(slice1);

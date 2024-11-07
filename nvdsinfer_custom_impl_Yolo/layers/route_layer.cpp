@@ -7,7 +7,7 @@
 
 nvinfer1::ITensor*
 routeLayer(int layerIdx, std::string& layers, std::map<std::string, std::string>& block,
-    std::vector<nvinfer1::ITensor*> tensorOutputs, nvinfer1::INetworkDefinition* network, uint batchSize)
+    std::vector<nvinfer1::ITensor*> tensorOutputs, nvinfer1::INetworkDefinition* network)
 {
   nvinfer1::ITensor* output;
 
@@ -49,7 +49,6 @@ routeLayer(int layerIdx, std::string& layers, std::map<std::string, std::string>
     int axis = 1;
     if (block.find("axis") != block.end()) {
       axis += std::stoi(block.at("axis"));
-      std::cout << axis << std::endl;
     }
     if (axis < 0) {
       axis += concatInputs[0]->getDimensions().nbDims;
@@ -75,7 +74,7 @@ routeLayer(int layerIdx, std::string& layers, std::map<std::string, std::string>
     nvinfer1::Dims size = {4, {prevTensorDims.d[0], channelSlice, prevTensorDims.d[2], prevTensorDims.d[3]}};
     nvinfer1::Dims stride = {4, {1, 1, 1, 1}};
 
-    output = sliceLayer(layerIdx, name, output, start, size, stride, network, batchSize);
+    output = sliceLayer(layerIdx, name, output, start, size, stride, network);
     assert(output != nullptr);
   }
 

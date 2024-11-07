@@ -15,7 +15,7 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
 {
   nvinfer1::ITensor* output;
 
-  assert(block.at("type") == "convolutional" || block.at("type") == "c2f");
+  assert(block.at("type") == "conv" || block.at("type") == "convolutional");
   assert(block.find("filters") != block.end());
   assert(block.find("pad") != block.end());
   assert(block.find("size") != block.end());
@@ -28,27 +28,35 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
   std::string activation = block.at("activation");
   int bias = filters;
 
-  bool batchNormalize = false;
+  int batchNormalize = 0;
+  float eps = 1.0e-5;
   if (block.find("batch_normalize") != block.end()) {
     bias = 0;
     batchNormalize = (block.at("batch_normalize") == "1");
+    if (block.find("eps") != block.end()) {
+      eps = std::stof(block.at("eps"));
+    }
   }
 
   if (block.find("bias") != block.end()) {
     bias = std::stoi(block.at("bias"));
-    if (bias == 1)
+    if (bias == 1) {
       bias = filters;
+    }
   }
 
   int groups = 1;
-  if (block.find("groups") != block.end())
+  if (block.find("groups") != block.end()) {
     groups = std::stoi(block.at("groups"));
+  }
 
   int pad;
-  if (padding)
+  if (padding) {
     pad = (kernelSize - 1) / 2;
-  else
+  }
+  else {
     pad = 0;
+  }
 
   int size = filters * inputChannels * kernelSize * kernelSize / groups;
   std::vector<float> bnBiases;
@@ -58,7 +66,7 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
   nvinfer1::Weights convWt {nvinfer1::DataType::kFLOAT, nullptr, size};
   nvinfer1::Weights convBias {nvinfer1::DataType::kFLOAT, nullptr, bias};
 
-  if (batchNormalize == false) {
+  if (batchNormalize == 0) {
     float* val;
     if (bias != 0) {
       val = new float[filters];
@@ -91,7 +99,7 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
       ++weightPtr;
     }
     for (int i = 0; i < filters; ++i) {
-      bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+      bnRunningVar.push_back(sqrt(weights[weightPtr] + eps));
       ++weightPtr;
     }
     float* val;
@@ -110,40 +118,49 @@ convolutionalLayer(int layerIdx, std::map<std::string, std::string>& block, std:
     }
     convWt.values = val;
     trtWeights.push_back(convWt);
-    if (bias != 0)
+    if (bias != 0) {
       trtWeights.push_back(convBias);
+    }
   }
 
-  nvinfer1::IConvolutionLayer* conv = network->addConvolutionNd(*input, filters, nvinfer1::Dims{2, {kernelSize, kernelSize}},
-      convWt, convBias);
+  nvinfer1::IConvolutionLayer* conv = network->addConvolutionNd(*input, filters,
+      nvinfer1::Dims{2, {kernelSize, kernelSize}}, convWt, convBias);
   assert(conv != nullptr);
   std::string convLayerName = "conv_" + layerName + std::to_string(layerIdx);
   conv->setName(convLayerName.c_str());
   conv->setStrideNd(nvinfer1::Dims{2, {stride, stride}});
   conv->setPaddingNd(nvinfer1::Dims{2, {pad, pad}});
 
-  if (block.find("groups") != block.end())
+  if (block.find("groups") != block.end()) {
     conv->setNbGroups(groups);
+  }
 
   output = conv->getOutput(0);
 
-  if (batchNormalize == true) {
+  if (batchNormalize == 1) {
     size = filters;
     nvinfer1::Weights shift {nvinfer1::DataType::kFLOAT, nullptr, size};
     nvinfer1::Weights scale {nvinfer1::DataType::kFLOAT, nullptr, size};
     nvinfer1::Weights power {nvinfer1::DataType::kFLOAT, nullptr, size};
+
     float* shiftWt = new float[size];
-    for (int i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i) {
       shiftWt[i] = bnBiases.at(i) - ((bnRunningMean.at(i) * bnWeights.at(i)) / bnRunningVar.at(i));
+    }
     shift.values = shiftWt;
+
     float* scaleWt = new float[size];
-    for (int i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i) {
       scaleWt[i] = bnWeights.at(i) / bnRunningVar[i];
+    }
     scale.values = scaleWt;
+
     float* powerWt = new float[size];
-    for (int i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i) {
       powerWt[i] = 1.0;
+    }
     power.values = powerWt;
+
     trtWeights.push_back(shift);
     trtWeights.push_back(scale);
     trtWeights.push_back(power);

@@ -19,7 +19,7 @@ git clone https://github.com/Megvii-BaseDetection/YOLOX.git
 cd YOLOX
 pip3 install -r requirements.txt
 python3 setup.py develop
-pip3 install onnx onnxsim onnxruntime
+pip3 install onnx onnxslim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
@@ -89,6 +89,7 @@ export CUDA_VER=XY.Z
 * x86 platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 = 12.1
   DeepStream 6.2 = 11.8
@@ -101,6 +102,7 @@ export CUDA_VER=XY.Z
 * Jetson platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
   DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
@@ -121,7 +123,7 @@ Edit the `config_infer_primary_yolox.txt` file according to your model (example 
 ```
 [property]
 ...
-onnx-file=yolox_s.onnx
+onnx-file=yolox_s.pth.onnx
 ...
 num-detected-classes=80
 ...

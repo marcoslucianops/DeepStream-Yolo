@@ -27,9 +27,9 @@ __device__ void softmaxGPU(const float* input, const int bbindex, const int numG
   }
 }
 
-__global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes, float* scores, float* classes,
-    const uint netWidth, const uint netHeight, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses,
-    const uint numBBoxes, const uint64_t lastInputSize, const float* anchors)
+__global__ void gpuRegionLayer(const float* input, float* softmax, float* output, const uint netWidth,
+    const uint netHeight, const uint gridSizeX, const uint gridSizeY, const uint numOutputClasses, const uint numBBoxes,
+    const uint64_t lastInputSize, const float* anchors)
 {
   uint x_id = blockIdx.x * blockDim.x + threadIdx.x;
   uint y_id = blockIdx.y * blockDim.y + threadIdx.y;
@@ -42,15 +42,17 @@ __global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes,
   const int numGridCells = gridSizeX * gridSizeY;
   const int bbindex = y_id * gridSizeX + x_id;
 
-  float xc = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]) + x_id) * netWidth / gridSizeX;
+  float xc = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 0)]) + x_id) * netWidth /
+      gridSizeX;
 
-  float yc = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]) + y_id) * netHeight / gridSizeY;
+  float yc = (sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 1)]) + y_id) * netHeight /
+      gridSizeY;
 
   float w = __expf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 2)]) * anchors[z_id * 2] * netWidth /
       gridSizeX;
 
-  float h = __expf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)]) * anchors[z_id * 2 + 1] * netHeight /
-      gridSizeY;
+  float h = __expf(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 3)]) * anchors[z_id * 2 + 1] *
+      netHeight / gridSizeY;
 
   const float objectness = sigmoidGPU(input[bbindex + numGridCells * (z_id * (5 + numOutputClasses) + 4)]);
 
@@ -69,22 +71,22 @@ __global__ void gpuRegionLayer(const float* input, float* softmax, float* boxes,
 
   int count = numGridCells * z_id + bbindex + lastInputSize;
 
-  boxes[count * 4 + 0] = xc;
-  boxes[count * 4 + 1] = yc;
-  boxes[count * 4 + 2] = w;
-  boxes[count * 4 + 3] = h;
-  scores[count] = maxProb * objectness;
-  classes[count] = (float) maxIndex;
+  output[count * 6 + 0] = xc - w * 0.5;
+  output[count * 6 + 1] = yc - h * 0.5;
+  output[count * 6 + 2] = xc + w * 0.5;
+  output[count * 6 + 3] = yc + h * 0.5;
+  output[count * 6 + 4] = maxProb * objectness;
+  output[count * 6 + 5] = (float) maxIndex;
 }
 
-cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void* scores, void* classes,
-    const uint& batchSize, const uint64_t& inputSize, const uint64_t& outputSize, const uint64_t& lastInputSize,
-    const uint& netWidth, const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+cudaError_t cudaRegionLayer(const void* input, void* softmax, void* output, const uint& batchSize,
+    const uint64_t& inputSize, const uint64_t& outputSize, const uint64_t& lastInputSize, const uint& netWidth,
+    const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
     const uint& numBBoxes, const void* anchors, cudaStream_t stream);
 
-cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void* scores, void* classes,
-    const uint& batchSize, const uint64_t& inputSize, const uint64_t& outputSize, const uint64_t& lastInputSize,
-    const uint& netWidth, const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
+cudaError_t cudaRegionLayer(const void* input, void* softmax, void* output, const uint& batchSize,
+    const uint64_t& inputSize, const uint64_t& outputSize, const uint64_t& lastInputSize, const uint& netWidth,
+    const uint& netHeight, const uint& gridSizeX, const uint& gridSizeY, const uint& numOutputClasses,
     const uint& numBBoxes, const void* anchors, cudaStream_t stream)
 {
   dim3 threads_per_block(16, 16, 4);
@@ -95,9 +97,7 @@ cudaError_t cudaRegionLayer(const void* input, void* softmax, void* boxes, void*
     gpuRegionLayer<<<number_of_blocks, threads_per_block, 0, stream>>>(
         reinterpret_cast<const float*> (input) + (batch * inputSize),
         reinterpret_cast<float*> (softmax) + (batch * inputSize),
-        reinterpret_cast<float*> (boxes) + (batch * 4 * outputSize),
-        reinterpret_cast<float*> (scores) + (batch * 1 * outputSize),
-        reinterpret_cast<float*> (classes) + (batch * 1 * outputSize),
+        reinterpret_cast<float*> (output) + (batch * 6 * outputSize),
         netWidth, netHeight, gridSizeX, gridSizeY, numOutputClasses, numBBoxes, lastInputSize,
         reinterpret_cast<const float*> (anchors));
   }

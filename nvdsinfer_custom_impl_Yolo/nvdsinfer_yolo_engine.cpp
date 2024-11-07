@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2024, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,14 +35,14 @@
 static bool
 getYoloNetworkInfo(NetworkInfo& networkInfo, const NvDsInferContextInitParams* initParams)
 {
-  std::string onnxWtsFilePath = initParams->onnxFilePath;
-  std::string darknetWtsFilePath = initParams->modelFilePath;
-  std::string darknetCfgFilePath = initParams->customNetworkConfigFilePath;
+  std::string onnxFilePath = initParams->onnxFilePath;
+  std::string wtsFilePath = initParams->modelFilePath;
+  std::string cfgFilePath = initParams->customNetworkConfigFilePath;
 
-  std::string yoloType = onnxWtsFilePath != "" ? "onnx" : "darknet";
+  std::string yoloType = onnxFilePath != "" ? "onnx" : "darknet";
   std::string modelName = yoloType == "onnx" ?
-      onnxWtsFilePath.substr(0, onnxWtsFilePath.find(".onnx")).substr(onnxWtsFilePath.rfind("/") + 1) :
-      darknetWtsFilePath.substr(0, darknetWtsFilePath.find(".weights")).substr(darknetWtsFilePath.rfind("/") + 1);
+      onnxFilePath.substr(0, onnxFilePath.find(".onnx")).substr(onnxFilePath.rfind("/") + 1) :
+      cfgFilePath.substr(0, cfgFilePath.find(".cfg")).substr(cfgFilePath.rfind("/") + 1);
 
   std::transform(modelName.begin(), modelName.end(), modelName.begin(), [] (uint8_t c) {
     return std::tolower(c);
@@ -51,9 +51,9 @@ getYoloNetworkInfo(NetworkInfo& networkInfo, const NvDsInferContextInitParams* i
   networkInfo.inputBlobName = "input";
   networkInfo.networkType = yoloType;
   networkInfo.modelName = modelName;
-  networkInfo.onnxWtsFilePath = onnxWtsFilePath;
-  networkInfo.darknetWtsFilePath = darknetWtsFilePath;
-  networkInfo.darknetCfgFilePath = darknetCfgFilePath;
+  networkInfo.onnxFilePath = onnxFilePath;
+  networkInfo.wtsFilePath = wtsFilePath;
+  networkInfo.cfgFilePath = cfgFilePath;
   networkInfo.batchSize = initParams->maxBatchSize;
   networkInfo.implicitBatch = initParams->forceImplicitBatchDimension;
   networkInfo.int8CalibPath = initParams->int8CalibrationFilePath;
@@ -63,26 +63,30 @@ getYoloNetworkInfo(NetworkInfo& networkInfo, const NvDsInferContextInitParams* i
   networkInfo.scaleFactor = initParams->networkScaleFactor;
   networkInfo.offsets = initParams->offsets;
   networkInfo.workspaceSize = initParams->workspaceSize;
+  networkInfo.inputFormat = initParams->networkInputFormat;
 
-  if (initParams->networkMode == NvDsInferNetworkMode_FP32)
+  if (initParams->networkMode == NvDsInferNetworkMode_FP32) {
     networkInfo.networkMode = "FP32";
-  else if (initParams->networkMode == NvDsInferNetworkMode_INT8)
+  }
+  else if (initParams->networkMode == NvDsInferNetworkMode_INT8) {
     networkInfo.networkMode = "INT8";
-  else if (initParams->networkMode == NvDsInferNetworkMode_FP16)
+  }
+  else if (initParams->networkMode == NvDsInferNetworkMode_FP16) {
     networkInfo.networkMode = "FP16";
+  }
 
   if (yoloType == "onnx") {
-    if (!fileExists(networkInfo.onnxWtsFilePath)) {
-      std::cerr << "ONNX model file does not exist\n" << std::endl;
+    if (!fileExists(networkInfo.onnxFilePath)) {
+      std::cerr << "ONNX file does not exist\n" << std::endl;
       return false;
     }
   }
   else {
-    if (!fileExists(networkInfo.darknetWtsFilePath)) {
+    if (!fileExists(networkInfo.wtsFilePath)) {
       std::cerr << "Darknet weights file does not exist\n" << std::endl;
       return false;
     }
-    else if (!fileExists(networkInfo.darknetCfgFilePath)) {
+    else if (!fileExists(networkInfo.cfgFilePath)) {
       std::cerr << "Darknet cfg file does not exist\n" << std::endl;
       return false;
     }
@@ -106,7 +110,8 @@ NvDsInferCreateModelParser(const NvDsInferContextInitParams* initParams)
 #if NV_TENSORRT_MAJOR >= 8
 extern "C" bool
 NvDsInferYoloCudaEngineGet(nvinfer1::IBuilder* const builder, nvinfer1::IBuilderConfig* const builderConfig,
-    const NvDsInferContextInitParams* const initParams, nvinfer1::DataType dataType, nvinfer1::ICudaEngine*& cudaEngine);
+    const NvDsInferContextInitParams* const initParams, nvinfer1::DataType dataType,
+    nvinfer1::ICudaEngine*& cudaEngine);
 
 extern "C" bool
 NvDsInferYoloCudaEngineGet(nvinfer1::IBuilder* const builder, nvinfer1::IBuilderConfig* const builderConfig,

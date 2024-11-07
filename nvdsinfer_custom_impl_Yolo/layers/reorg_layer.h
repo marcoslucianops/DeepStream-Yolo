@@ -14,6 +14,6 @@
 #include "slice_layer.h"
 
 nvinfer1::ITensor* reorgLayer(int layerIdx, std::map<std::string, std::string>& block, nvinfer1::ITensor* input,
-    nvinfer1::INetworkDefinition* network, uint batchSize);
+    nvinfer1::INetworkDefinition* network);
 
 #endif

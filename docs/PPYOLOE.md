@@ -1,6 +1,6 @@
 # PP-YOLOE / PP-YOLOE+ usage
 
-**NOTE**: You can use the release/2.6 branch of the PPYOLOE repo to convert all model versions.
+**NOTE**: You can use the develop branch of the PPYOLOE repo to convert all model versions.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
@@ -14,7 +14,7 @@
 
 #### 1. Download the PaddleDetection repo and install the requirements
 
-https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.7/docs/tutorials/INSTALL.md
+https://github.com/PaddlePaddle/PaddleDetection/blob/develop/docs/tutorials/INSTALL.md
 
 **NOTE**: It is recommended to use Python virtualenv.
 
@@ -24,7 +24,7 @@ Copy the `export_ppyoloe.py` file from `DeepStream-Yolo/utils` directory to the 
 
 #### 3. Download the model
 
-Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyoloe) releases (example for PP-YOLOE+_s)
+Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/develop/configs/ppyoloe) releases (example for PP-YOLOE+_s)
 
 ```
 wget https://paddledet.bj.bcebos.com/models/ppyoloe_plus_crn_s_80e_coco.pdparams
@@ -37,7 +37,7 @@ wget https://paddledet.bj.bcebos.com/models/ppyoloe_plus_crn_s_80e_coco.pdparams
 Generate the ONNX model file (example for PP-YOLOE+_s)
 
 ```
-pip3 install onnx onnxsim onnxruntime paddle2onnx
+pip3 install onnx onnxslim onnxruntime paddle2onnx
 python3 export_ppyoloe.py -w ppyoloe_plus_crn_s_80e_coco.pdparams -c configs/ppyoloe/ppyoloe_plus_crn_s_80e_coco.yml --dynamic
 ```
 
@@ -84,6 +84,7 @@ export CUDA_VER=XY.Z
 * x86 platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 = 12.1
   DeepStream 6.2 = 11.8
@@ -96,6 +97,7 @@ export CUDA_VER=XY.Z
 * Jetson platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
   DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
@@ -116,11 +118,11 @@ Edit the `config_infer_primary_ppyoloe_plus.txt` file according to your model (e
 ```
 [property]
 ...
-onnx-file=ppyoloe_plus_crn_s_80e_coco.onnx
+onnx-file=ppyoloe_plus_crn_s_80e_coco.pdparams.onnx
 ...
 num-detected-classes=80
 ...
-parse-bbox-func-name=NvDsInferParseYoloE
+parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 

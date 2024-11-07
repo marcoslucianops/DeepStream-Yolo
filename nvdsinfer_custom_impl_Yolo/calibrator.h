@@ -12,18 +12,19 @@
 #include "NvInfer.h"
 #include "opencv2/opencv.hpp"
 
-#define CUDA_CHECK(status) {                                                                                               \
-  if (status != 0) {                                                                                                       \
-    std::cout << "CUDA failure: " << cudaGetErrorString(status) << " in file " << __FILE__  << " at line "  << __LINE__ << \
-        std::endl;                                                                                                         \
-    abort();                                                                                                               \
-  }                                                                                                                        \
+#define CUDA_CHECK(status) {                                                                                           \
+  if (status != 0) {                                                                                                   \
+    std::cout << "CUDA failure: " << cudaGetErrorString(status) << " in file " << __FILE__  << " at line "  <<         \
+        __LINE__ << std::endl;                                                                                         \
+    abort();                                                                                                           \
+  }                                                                                                                    \
 }
 
 class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
   public:
     Int8EntropyCalibrator2(const int& batchSize, const int& channels, const int& height, const int& width,
-        const float& scaleFactor, const float* offsets, const std::string& imgPath, const std::string& calibTablePath);
+        const float& scaleFactor, const float* offsets, const int& inputFormat, const std::string& imgPath,
+        const std::string& calibTablePath);
 
     virtual ~Int8EntropyCalibrator2();
 
@@ -43,6 +44,7 @@ class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
     int letterBox;
     float scaleFactor;
     const float* offsets;
+    int inputFormat;
     std::string calibTablePath;
     size_t imageIndex;
     size_t inputCount;
@@ -53,7 +55,7 @@ class Int8EntropyCalibrator2 : public nvinfer1::IInt8EntropyCalibrator2 {
     std::vector<char> calibrationCache;
 };
 
-std::vector<float> prepareImage(cv::Mat& img, int input_c, int input_h, int input_w, float scaleFactor,
-    const float* offsets);
+std::vector<float> prepareImage(cv::Mat& img, int inputC, int inputH, int inputW, float scaleFactor,
+    const float* offsets, int inputFormat);
 
 #endif //CALIBRATOR_H

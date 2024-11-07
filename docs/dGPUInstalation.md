@@ -29,6 +29,157 @@ sudo apt-get install linux-headers-$(uname -r)
 sudo reboot
 ```
 
+<details><summary>DeepStream 7.1</summary>
+
+### 1. Dependencies
+
+```
+sudo apt-get install dkms
+sudo apt-get install libssl3 libssl-dev libgles2-mesa-dev libgstreamer1.0-0 gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstreamer-plugins-base1.0-dev libgstrtspserver-1.0-0 libjansson4 libyaml-cpp-dev libjsoncpp-dev protobuf-compiler
+```
+
+### 2. CUDA Keyring
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+sudo apt-get update
+```
+
+### 3. GCC 12
+
+```
+sudo apt-get install gcc-12 g++-12
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
+sudo update-initramfs -u
+```
+
+### 4. NVIDIA Driver
+
+<details><summary>TITAN, GeForce RTX / GTX series and RTX / Quadro series</summary><blockquote>
+
+- Download
+
+  ```
+  wget https://us.download.nvidia.com/XFree86/Linux-x86_64/560.35.03/NVIDIA-Linux-x86_64-560.35.03.run
+  ```
+
+<blockquote><details><summary>Laptop</summary>
+
+* Run
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-560.35.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd
+  ```
+
+  **NOTE**: This step will disable the nouveau drivers.
+
+* Reboot
+
+  ```
+  sudo reboot
+  ```
+
+* Install
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-560.35.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd
+  ```
+
+**NOTE**: If you are using a laptop with NVIDIA Optimius, run
+
+```
+sudo apt-get install nvidia-prime
+sudo prime-select nvidia
+```
+
+</details></blockquote>
+
+<blockquote><details><summary>Desktop</summary>
+
+* Run
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-560.35.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+  ```
+
+  **NOTE**: This step will disable the nouveau drivers.
+
+* Reboot
+
+  ```
+  sudo reboot
+  ```
+
+* Install
+
+  ```
+  sudo sh NVIDIA-Linux-x86_64-560.35.03.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+  ```
+
+</details></blockquote>
+
+</blockquote></details>
+
+<details><summary>Data center / Tesla series</summary><blockquote>
+
+  - Download
+
+    ```
+    wget https://us.download.nvidia.com/tesla/535.183.06/NVIDIA-Linux-x86_64-535.183.06.run
+    ```
+
+  * Run
+
+    ```
+    sudo sh NVIDIA-Linux-x86_64-535.183.06.run --no-cc-version-check --silent --disable-nouveau --dkms --install-libglvnd --run-nvidia-xconfig
+    ```
+
+</blockquote></details>
+
+### 5. CUDA
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/12.6.2/local_installers/cuda_12.6.2_560.35.03_linux.run
+sudo sh cuda_12.6.2_560.35.03_linux.run --silent --toolkit
+```
+
+* Export environment variables
+
+  ```
+  echo $'export PATH=/usr/local/cuda-12.6/bin${PATH:+:${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc && source ~/.bashrc
+  ```
+
+### 6. TensorRT
+
+```
+sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub
+sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /"
+sudo apt-get update
+sudo apt-get install libnvinfer-dev=10.3.0.26-1+cuda12.5 libnvinfer-dispatch-dev=10.3.0.26-1+cuda12.5 libnvinfer-dispatch10=10.3.0.26-1+cuda12.5 libnvinfer-headers-dev=10.3.0.26-1+cuda12.5 libnvinfer-headers-plugin-dev=10.3.0.26-1+cuda12.5 libnvinfer-lean-dev=10.3.0.26-1+cuda12.5 libnvinfer-lean10=10.3.0.26-1+cuda12.5 libnvinfer-plugin-dev=10.3.0.26-1+cuda12.5 libnvinfer-plugin10=10.3.0.26-1+cuda12.5 libnvinfer-vc-plugin-dev=10.3.0.26-1+cuda12.5 libnvinfer-vc-plugin10=10.3.0.26-1+cuda12.5 libnvinfer10=10.3.0.26-1+cuda12.5 libnvonnxparsers-dev=10.3.0.26-1+cuda12.5 libnvonnxparsers10=10.3.0.26-1+cuda12.5 tensorrt-dev=10.3.0.26-1+cuda12.5 libnvinfer-samples=10.3.0.26-1+cuda12.5 libnvinfer-bin=10.3.0.26-1+cuda12.5 libcudnn9-cuda-12=9.3.0.75-1 libcudnn9-dev-cuda-12=9.3.0.75-1
+sudo apt-mark hold libnvinfer* libnvparsers* libnvonnxparsers* libcudnn9* python3-libnvinfer* uff-converter-tf* onnx-graphsurgeon* graphsurgeon-tf* tensorrt*
+```
+
+### 7. DeepStream SDK
+
+DeepStream 7.1 for Servers and Workstations
+
+```
+wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/deepstream/7.1/files?redirect=true&path=deepstream-7.1_7.1.0-1_amd64.deb' -O deepstream-7.1_7.1.0-1_amd64.deb
+sudo apt-get install ./deepstream-7.1_7.1.0-1_amd64.deb
+rm ${HOME}/.cache/gstreamer-1.0/registry.x86_64.bin
+sudo ln -snf /usr/local/cuda-12.6 /usr/local/cuda
+```
+
+### 8. Reboot
+
+```
+sudo reboot
+```
+
+</details>
+
 <details><summary>DeepStream 7.0</summary>
 
 ### 1. Dependencies

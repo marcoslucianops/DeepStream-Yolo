@@ -17,8 +17,8 @@ network-type=0
 cluster-mode=2
 maintain-aspect-ratio=0
 #workspace-size=2000
-parse-bbox-func-name=NvDsInferParseYoloE
-#parse-bbox-func-name=NvDsInferParseYoloECuda
+parse-bbox-func-name=NvDsInferParseYolo
+#parse-bbox-func-name=NvDsInferParseYoloCuda
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
 engine-create-func-name=NvDsInferYoloCudaEngineGet
 

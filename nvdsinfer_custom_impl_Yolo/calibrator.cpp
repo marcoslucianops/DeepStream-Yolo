@@ -8,9 +8,10 @@
 #include <fstream>
 #include <iterator>
 
-Int8EntropyCalibrator2::Int8EntropyCalibrator2(const int& batchSize, const int& channels, const int& height, const int& width,
-    const float& scaleFactor, const float* offsets, const std::string& imgPath, const std::string& calibTablePath) :
-    batchSize(batchSize), inputC(channels), inputH(height), inputW(width), scaleFactor(scaleFactor), offsets(offsets),
+Int8EntropyCalibrator2::Int8EntropyCalibrator2(const int& batchSize, const int& channels, const int& height,
+    const int& width, const float& scaleFactor, const float* offsets, const int& inputFormat,
+    const std::string& imgPath, const std::string& calibTablePath) : batchSize(batchSize), inputC(channels),
+    inputH(height), inputW(width), scaleFactor(scaleFactor), offsets(offsets), inputFormat(inputFormat),
     calibTablePath(calibTablePath), imageIndex(0)
 {
   inputCount = batchSize * channels * height * width;
@@ -54,7 +55,7 @@ Int8EntropyCalibrator2::getBatch(void** bindings, const char** names, int nbBind
       return false;
     }
   
-    std::vector<float> inputData = prepareImage(img, inputC, inputH, inputW, scaleFactor, offsets);
+    std::vector<float> inputData = prepareImage(img, inputC, inputH, inputW, scaleFactor, offsets, inputFormat);
 
     size_t len = inputData.size();
     memcpy(ptr, inputData.data(), len * sizeof(float));
@@ -93,32 +94,46 @@ Int8EntropyCalibrator2::writeCalibrationCache(const void* cache, std::size_t len
 }
 
 std::vector<float>
-prepareImage(cv::Mat& img, int input_c, int input_h, int input_w, float scaleFactor, const float* offsets)
+prepareImage(cv::Mat& img, int inputC, int inputH, int inputW, float scaleFactor, const float* offsets, int inputFormat)
 {
   cv::Mat out;
 
-  cv::cvtColor(img, out, cv::COLOR_BGR2RGB);
+  if (inputFormat == 0) {
+    cv::cvtColor(img, out, cv::COLOR_BGR2RGB);
+  }
+  else if (inputFormat == 2) {
+    cv::cvtColor(img, out, cv::COLOR_BGR2GRAY);
+  }
+  else {
+    out = img;
+  }
 
-  int image_w = img.cols;
-  int image_h = img.rows;
+  int imageW = img.cols;
+  int imageH = img.rows;
 
-  if (image_w != input_w || image_h != input_h) {
-    float resizeFactor = std::max(input_w / (float) image_w, input_h / (float) img.rows);
+  if (imageW != inputW || imageH != inputH) {
+    float resizeFactor = std::max(inputW / (float) imageW, inputH / (float) imageH);
     cv::resize(out, out, cv::Size(0, 0), resizeFactor, resizeFactor, cv::INTER_CUBIC);
-    cv::Rect crop(cv::Point(0.5 * (out.cols - input_w), 0.5 * (out.rows - input_h)), cv::Size(input_w, input_h));
+    cv::Rect crop(cv::Point(0.5 * (out.cols - inputW), 0.5 * (out.rows - inputH)), cv::Size(inputW, inputH));
     out = out(crop);
   }
 
   out.convertTo(out, CV_32F, scaleFactor);
-  cv::subtract(out, cv::Scalar(offsets[2] / 255, offsets[1] / 255, offsets[0] / 255), out, cv::noArray(), -1);
 
-  std::vector<cv::Mat> input_channels(input_c);
-  cv::split(out, input_channels);
-  std::vector<float> result(input_h * input_w * input_c);
+  if (inputFormat == 2) {
+    cv::subtract(out, cv::Scalar(offsets[0] / 255), out);
+  }
+  else {
+    cv::subtract(out, cv::Scalar(offsets[0] / 255, offsets[1] / 255, offsets[3] / 255), out);
+  }
+
+  std::vector<cv::Mat> inputChannels(inputC);
+  cv::split(out, inputChannels);
+  std::vector<float> result(inputH * inputW * inputC);
   auto data = result.data();
-  int channelLength = input_h * input_w;
-  for (int i = 0; i < input_c; ++i) {
-    memcpy(data, input_channels[i].data, channelLength * sizeof(float));
+  int channelLength = inputH * inputW;
+  for (int i = 0; i < inputC; ++i) {
+    memcpy(data, inputChannels[i].data, channelLength * sizeof(float));
     data += channelLength;
   }
 

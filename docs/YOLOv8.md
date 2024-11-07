@@ -17,9 +17,8 @@
 ```
 git clone https://github.com/ultralytics/ultralytics.git
 cd ultralytics
-pip3 install -r requirements.txt
-python3 setup.py install
-pip3 install onnx onnxsim onnxruntime
+pip3 install -e .
+pip3 install onnx onnxslim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
@@ -33,7 +32,7 @@ Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `
 Download the `pt` file from [YOLOv8](https://github.com/ultralytics/assets/releases/) releases (example for YOLOv8s)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
+wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt
 ```
 
 **NOTE**: You can use your custom model.
@@ -85,7 +84,7 @@ or
 --batch 4
 ```
 
-**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 16.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 17.
 
 ```
 --opset 12
@@ -110,6 +109,7 @@ export CUDA_VER=XY.Z
 * x86 platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 = 12.1
   DeepStream 6.2 = 11.8
@@ -122,6 +122,7 @@ export CUDA_VER=XY.Z
 * Jetson platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
   DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
@@ -142,7 +143,7 @@ Edit the `config_infer_primary_yoloV8.txt` file according to your model (example
 ```
 [property]
 ...
-onnx-file=yolov8s.onnx
+onnx-file=yolov8s.pt.onnx
 ...
 num-detected-classes=80
 ...

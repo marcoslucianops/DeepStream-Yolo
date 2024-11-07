@@ -17,9 +17,8 @@
 ```
 git clone https://github.com/ultralytics/ultralytics.git
 cd ultralytics
-pip3 install -r requirements.txt
-python3 setup.py install
-pip3 install onnx onnxsim onnxruntime
+pip3 install -e .
+pip3 install onnx onnxslim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
@@ -30,17 +29,17 @@ Copy the `export_rtdetr_ultralytics.py` file from `DeepStream-Yolo/utils` direct
 
 #### 3. Download the model
 
-Download the `pt` file from [Ultralytics](https://github.com/ultralytics/assets/releases/) releases (example for RT-DETR-l)
+Download the `pt` file from [Ultralytics](https://github.com/ultralytics/assets/releases/) releases (example for RT-DETR-L)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/rtdetr-l.pt
+wget https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-l.pt
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for RT-DETR-l)
+Generate the ONNX model file (example for RT-DETR-L)
 
 ```
 python3 export_rtdetr_ultralytics.py -w rtdetr-l.pt --dynamic
@@ -110,6 +109,7 @@ export CUDA_VER=XY.Z
 * x86 platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 = 12.1
   DeepStream 6.2 = 11.8
@@ -122,6 +122,7 @@ export CUDA_VER=XY.Z
 * Jetson platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
   DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
@@ -137,12 +138,12 @@ make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
 
 ### Edit the config_infer_primary_rtdetr file
 
-Edit the `config_infer_primary_rtdetr.txt` file according to your model (example for RT-DETR-l with 80 classes)
+Edit the `config_infer_primary_rtdetr.txt` file according to your model (example for RT-DETR-L with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=rtdetr-l.onnx
+onnx-file=rtdetr-l.pt.onnx
 ...
 num-detected-classes=80
 ...

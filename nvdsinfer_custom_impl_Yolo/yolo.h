@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2024, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,9 +61,9 @@ struct NetworkInfo
   std::string inputBlobName;
   std::string networkType;
   std::string modelName;
-  std::string onnxWtsFilePath;
-  std::string darknetWtsFilePath;
-  std::string darknetCfgFilePath;
+  std::string onnxFilePath;
+  std::string wtsFilePath;
+  std::string cfgFilePath;
   uint batchSize;
   int implicitBatch;
   std::string int8CalibPath;
@@ -74,6 +74,7 @@ struct NetworkInfo
   float scaleFactor;
   const float* offsets;
   uint workspaceSize;
+  int inputFormat;
 };
 
 struct TensorInfo
@@ -96,8 +97,7 @@ class Yolo : public IModelParser {
     bool hasFullDimsSupported() const override { return false; }
 
     const char* getModelName() const override {
-      return m_NetworkType == "onnx" ? m_OnnxWtsFilePath.substr(0, m_OnnxWtsFilePath.find(".onnx")).c_str() :
-          m_DarknetCfgFilePath.substr(0, m_DarknetCfgFilePath.find(".cfg")).c_str();
+      return m_ModelName.c_str();
     }
 
     NvDsInferStatus parseModel(nvinfer1::INetworkDefinition& network) override;
@@ -112,9 +112,9 @@ class Yolo : public IModelParser {
     const std::string m_InputBlobName;
     const std::string m_NetworkType;
     const std::string m_ModelName;
-    const std::string m_OnnxWtsFilePath;
-    const std::string m_DarknetWtsFilePath;
-    const std::string m_DarknetCfgFilePath;
+    const std::string m_OnnxFilePath;
+    const std::string m_WtsFilePath;
+    const std::string m_CfgFilePath;
     const uint m_BatchSize;
     const int m_ImplicitBatch;
     const std::string m_Int8CalibPath;
@@ -125,6 +125,7 @@ class Yolo : public IModelParser {
     const float m_ScaleFactor;
     const float* m_Offsets;
     const uint m_WorkspaceSize;
+    const int m_InputFormat;
 
     uint m_InputC;
     uint m_InputH;

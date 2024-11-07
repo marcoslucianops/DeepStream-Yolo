@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2024, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,7 @@ fileExists(const std::string fileName, bool verbose)
 }
 
 std::vector<float>
-loadWeights(const std::string weightsFilePath, const std::string& modelName)
+loadWeights(const std::string weightsFilePath)
 {
   assert(fileExists(weightsFilePath));
   std::cout << "\nLoading pre-trained weights" << std::endl;
@@ -81,13 +81,14 @@ loadWeights(const std::string weightsFilePath, const std::string& modelName)
     assert(file.good());
     std::string line;
 
-    if (modelName.find("yolov2") != std::string::npos && modelName.find("yolov2-tiny") == std::string::npos) {
-        // Remove 4 int32 bytes of data from the stream belonging to the header
-        file.ignore(4 * 4);
+    if (weightsFilePath.find("yolov2") != std::string::npos &&
+        weightsFilePath.find("yolov2-tiny") == std::string::npos) {
+      // Remove 4 int32 bytes of data from the stream belonging to the header
+      file.ignore(4 * 4);
     }
     else {
-        // Remove 5 int32 bytes of data from the stream belonging to the header
-        file.ignore(4 * 5);
+      // Remove 5 int32 bytes of data from the stream belonging to the header
+      file.ignore(4 * 5);
     }
 
     char floatWeight[4];
@@ -105,7 +106,7 @@ loadWeights(const std::string weightsFilePath, const std::string& modelName)
     assert(0);
   }
 
-  std::cout << "Loading weights of " << modelName << " complete" << std::endl;
+  std::cout << "Loading " << weightsFilePath << " complete" << std::endl;
   std::cout << "Total weights read: " << weights.size() << std::endl;
 
   return weights;

@@ -14,13 +14,13 @@
 
 #### 1. Download the PaddleDetection repo and install the requirements
 
-https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.7/docs/tutorials/INSTALL.md
+https://github.com/PaddlePaddle/PaddleDetection/blob/develop/docs/tutorials/INSTALL.md
 
 ```
 git clone https://github.com/lyuwenyu/RT-DETR.git
 cd RT-DETR/rtdetr_paddle
 pip3 install -r requirements.txt
-pip3 install onnx onnxsim onnxruntime paddle2onnx
+pip3 install onnx onnxslim onnxruntime paddle2onnx
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
@@ -90,6 +90,7 @@ export CUDA_VER=XY.Z
 * x86 platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 = 12.1
   DeepStream 6.2 = 11.8
@@ -102,6 +103,7 @@ export CUDA_VER=XY.Z
 * Jetson platform
 
   ```
+  DeepStream 7.1 = 12.6
   DeepStream 7.0 / 6.4 = 12.2
   DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 = 11.4
   DeepStream 6.0.1 / 6.0 / 5.1 = 10.2
@@ -122,7 +124,7 @@ Edit the `config_infer_primary_rtdetr.txt` file according to your model (example
 ```
 [property]
 ...
-onnx-file=rtdetr_r50vd_6x_coco.onnx
+onnx-file=rtdetr_r50vd_6x_coco.pdparams.onnx
 ...
 num-detected-classes=80
 ...

@@ -1,10 +1,8 @@
 import os
-import sys
-import argparse
-import warnings
 import onnx
 import torch
 import torch.nn as nn
+
 from super_gradients.training import models
 
 
@@ -14,15 +12,17 @@ class DeepStreamOutput(nn.Module):
 
     def forward(self, x):
         boxes = x[0]
-        scores, classes = torch.max(x[1], 2, keepdim=True)
-        classes = classes.float()
-        return boxes, scores, classes
+        scores, labels = torch.max(x[1], dim=-1, keepdim=True)
+        return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
 def suppress_warnings():
+    import warnings
     warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
     warnings.filterwarnings('ignore', category=UserWarning)
     warnings.filterwarnings('ignore', category=DeprecationWarning)
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    warnings.filterwarnings('ignore', category=ResourceWarning)
 
 
 def yolonas_export(model_name, weights, num_classes, size):
@@ -36,9 +36,9 @@ def yolonas_export(model_name, weights, num_classes, size):
 def main(args):
     suppress_warnings()
 
-    print('\nStarting: %s' % args.weights)
+    print(f'\nStarting: {args.weights}')
 
-    print('Opening YOLO-NAS model\n')
+    print('Opening YOLO-NAS model')
 
     device = torch.device('cpu')
     model = yolonas_export(args.model, args.weights, args.classes, args.size)
@@ -48,39 +48,35 @@ def main(args):
     img_size = args.size * 2 if len(args.size) == 1 else args.size
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
-    onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
+    onnx_output_file = f'{args.weights}.onnx'
 
     dynamic_axes = {
         'input': {
             0: 'batch'
         },
-        'boxes': {
-            0: 'batch'
-        },
-        'scores': {
-            0: 'batch'
-        },
-        'classes': {
+        'output': {
             0: 'batch'
         }
     }
 
-    print('\nExporting the model to ONNX')
-    torch.onnx.export(model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset,
-                      do_constant_folding=True, input_names=['input'], output_names=['boxes', 'scores', 'classes'],
-                      dynamic_axes=dynamic_axes if args.dynamic else None)
+    print('Exporting the model to ONNX')
+    torch.onnx.export(
+        model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset, do_constant_folding=True,
+        input_names=['input'], output_names=['output'], dynamic_axes=dynamic_axes if args.dynamic else None
+    )
 
     if args.simplify:
         print('Simplifying the ONNX model')
-        import onnxsim
+        import onnxslim
         model_onnx = onnx.load(onnx_output_file)
-        model_onnx, _ = onnxsim.simplify(model_onnx)
+        model_onnx = onnxslim.slim(model_onnx)
         onnx.save(model_onnx, onnx_output_file)
 
-    print('Done: %s\n' % onnx_output_file)
+    print(f'Done: {onnx_output_file}\n')
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description='DeepStream YOLO-NAS conversion')
     parser.add_argument('-m', '--model', required=True, help='Model name (required)')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pth) file path (required)')
@@ -102,4 +98,4 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    sys.exit(main(args))
+    main(args)

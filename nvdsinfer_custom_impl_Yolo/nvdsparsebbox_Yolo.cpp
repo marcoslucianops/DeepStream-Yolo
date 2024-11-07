@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2024, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,10 +29,6 @@
 
 extern "C" bool
 NvDsInferParseYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
-    NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList);
-
-extern "C" bool
-NvDsInferParseYoloE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList);
 
 static NvDsInferParseObjectInfo
@@ -65,7 +61,7 @@ addBBoxProposal(const float bx1, const float by1, const float bx2, const float b
   NvDsInferParseObjectInfo bbi = convertBBox(bx1, by1, bx2, by2, netW, netH);
 
   if (bbi.width < 1 || bbi.height < 1) {
-      return;
+    return;
   }
 
   bbi.detectionConfidence = maxProb;
@@ -74,53 +70,23 @@ addBBoxProposal(const float bx1, const float by1, const float bx2, const float b
 }
 
 static std::vector<NvDsInferParseObjectInfo>
-decodeTensorYolo(const float* boxes, const float* scores, const float* classes, const uint& outputSize, const uint& netW,
-    const uint& netH, const std::vector<float>& preclusterThreshold)
+decodeTensorYolo(const float* output, const uint& outputSize, const uint& netW, const uint& netH,
+    const std::vector<float>& preclusterThreshold)
 {
   std::vector<NvDsInferParseObjectInfo> binfo;
 
   for (uint b = 0; b < outputSize; ++b) {
-    float maxProb = scores[b];
-    int maxIndex = (int) classes[b];
+    float maxProb = output[b * 6 + 4];
+    int maxIndex = (int) output[b * 6 + 5];
 
     if (maxProb < preclusterThreshold[maxIndex]) {
       continue;
     }
 
-    float bxc = boxes[b * 4 + 0];
-    float byc = boxes[b * 4 + 1];
-    float bw = boxes[b * 4 + 2];
-    float bh = boxes[b * 4 + 3];
-
-    float bx1 = bxc - bw / 2;
-    float by1 = byc - bh / 2;
-    float bx2 = bx1 + bw;
-    float by2 = by1 + bh;
-
-    addBBoxProposal(bx1, by1, bx2, by2, netW, netH, maxIndex, maxProb, binfo);
-  }
-
-  return binfo;
-}
-
-static std::vector<NvDsInferParseObjectInfo>
-decodeTensorYoloE(const float* boxes, const float* scores, const float* classes, const uint& outputSize, const uint& netW,
-    const uint& netH, const std::vector<float>& preclusterThreshold)
-{
-  std::vector<NvDsInferParseObjectInfo> binfo;
-
-  for (uint b = 0; b < outputSize; ++b) {
-    float maxProb = scores[b];
-    int maxIndex = (int) classes[b];
-
-    if (maxProb < preclusterThreshold[maxIndex]) {
-      continue;
-    }
-
-    float bx1 = boxes[b * 4 + 0];
-    float by1 = boxes[b * 4 + 1];
-    float bx2 = boxes[b * 4 + 2];
-    float by2 = boxes[b * 4 + 3];
+    float bx1 = output[b * 6 + 0];
+    float by1 = output[b * 6 + 1];
+    float bx2 = output[b * 6 + 2];
+    float by2 = output[b * 6 + 3];
 
     addBBoxProposal(bx1, by1, bx2, by2, netW, netH, maxIndex, maxProb, binfo);
   }
@@ -129,8 +95,9 @@ decodeTensorYoloE(const float* boxes, const float* scores, const float* classes,
 }
 
 static bool
-NvDsInferParseCustomYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
-    NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
+NvDsInferParseCustomYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+    NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
+    std::vector<NvDsInferParseObjectInfo>& objectList)
 {
   if (outputLayersInfo.empty()) {
     std::cerr << "ERROR: Could not find output layer in bbox parsing" << std::endl;
@@ -139,43 +106,11 @@ NvDsInferParseCustomYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo
 
   std::vector<NvDsInferParseObjectInfo> objects;
 
-  const NvDsInferLayerInfo& boxes = outputLayersInfo[0];
-  const NvDsInferLayerInfo& scores = outputLayersInfo[1];
-  const NvDsInferLayerInfo& classes = outputLayersInfo[2];
+  const NvDsInferLayerInfo& output = outputLayersInfo[0];
+  const uint outputSize = output.inferDims.d[0];
 
-  const uint outputSize = boxes.inferDims.d[0];
-
-  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYolo((const float*) (boxes.buffer),
-      (const float*) (scores.buffer), (const float*) (classes.buffer), outputSize, networkInfo.width, networkInfo.height,
-      detectionParams.perClassPreclusterThreshold);
-
-  objects.insert(objects.end(), outObjs.begin(), outObjs.end());
-
-  objectList = objects;
-
-  return true;
-}
-
-static bool
-NvDsInferParseCustomYoloE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
-    NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
-{
-  if (outputLayersInfo.empty()) {
-    std::cerr << "ERROR: Could not find output layer in bbox parsing" << std::endl;
-    return false;
-  }
-
-  std::vector<NvDsInferParseObjectInfo> objects;
-
-  const NvDsInferLayerInfo& boxes = outputLayersInfo[0];
-  const NvDsInferLayerInfo& scores = outputLayersInfo[1];
-  const NvDsInferLayerInfo& classes = outputLayersInfo[2];
-
-  const uint outputSize = boxes.inferDims.d[0];
-
-  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYoloE((const float*) (boxes.buffer),
-      (const float*) (scores.buffer), (const float*) (classes.buffer), outputSize, networkInfo.width, networkInfo.height,
-      detectionParams.perClassPreclusterThreshold);
+  std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYolo((const float*) (output.buffer), outputSize,
+      networkInfo.width, networkInfo.height, detectionParams.perClassPreclusterThreshold);
 
   objects.insert(objects.end(), outObjs.begin(), outObjs.end());
 
@@ -191,12 +126,4 @@ NvDsInferParseYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDs
   return NvDsInferParseCustomYolo(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
-extern "C" bool
-NvDsInferParseYoloE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
-    NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferParseObjectInfo>& objectList)
-{
-  return NvDsInferParseCustomYoloE(outputLayersInfo, networkInfo, detectionParams, objectList);
-}
-
 CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYolo);
-CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloE);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2024, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,12 @@
 
 #include "yolo.h"
 
-#define CUDA_CHECK(status) {                                                                                               \
-  if (status != 0) {                                                                                                       \
-    std::cout << "CUDA failure: " << cudaGetErrorString(status) << " in file " << __FILE__  << " at line "  << __LINE__ << \
-        std::endl;                                                                                                         \
-    abort();                                                                                                               \
-  }                                                                                                                        \
+#define CUDA_CHECK(status) {                                                                                           \
+  if (status != 0) {                                                                                                   \
+    std::cout << "CUDA failure: " << cudaGetErrorString(status) << " in file " << __FILE__  << " at line "  <<         \
+        __LINE__ << std::endl;                                                                                         \
+    abort();                                                                                                           \
+  }                                                                                                                    \
 }
 
 namespace {
@@ -62,7 +62,7 @@ class YoloLayer : public nvinfer1::IPluginV2DynamicExt {
 
     void serialize(void* buffer) const noexcept override;
 
-    int getNbOutputs() const noexcept override { return 3; }
+    int getNbOutputs() const noexcept override { return 1; }
 
     nvinfer1::DimsExprs getOutputDimensions(INT index, const nvinfer1::DimsExprs* inputs, INT nbInputDims,
         nvinfer1::IExprBuilder& exprBuilder) noexcept override;
@@ -70,8 +70,8 @@ class YoloLayer : public nvinfer1::IPluginV2DynamicExt {
     size_t getWorkspaceSize(const nvinfer1::PluginTensorDesc* inputs, INT nbInputs,
         const nvinfer1::PluginTensorDesc* outputs, INT nbOutputs) const noexcept override { return 0; }
 
-    bool supportsFormatCombination(INT pos, const nvinfer1::PluginTensorDesc* inOut, INT nbInputs, INT nbOutputs) noexcept
-        override;
+    bool supportsFormatCombination(INT pos, const nvinfer1::PluginTensorDesc* inOut, INT nbInputs, INT nbOutputs)
+        noexcept override;
 
     const char* getPluginType() const noexcept override { return YOLOLAYER_PLUGIN_NAME; }
 
@@ -84,8 +84,8 @@ class YoloLayer : public nvinfer1::IPluginV2DynamicExt {
     nvinfer1::DataType getOutputDataType(INT index, const nvinfer1::DataType* inputTypes, INT nbInputs) const noexcept
         override;
     
-    void attachToContext(cudnnContext* cudnnContext, cublasContext* cublasContext, nvinfer1::IGpuAllocator* gpuAllocator)
-        noexcept override {}
+    void attachToContext(cudnnContext* cudnnContext, cublasContext* cublasContext,
+        nvinfer1::IGpuAllocator* gpuAllocator) noexcept override {}
 
     void configurePlugin(const nvinfer1::DynamicPluginTensorDesc* in, INT nbInput,
         const nvinfer1::DynamicPluginTensorDesc* out, INT nbOutput) noexcept override;
@@ -126,8 +126,8 @@ class YoloLayerPluginCreator : public nvinfer1::IPluginCreator {
       return nullptr;
     }
 
-    nvinfer1::IPluginV2DynamicExt* deserializePlugin(const char* name, const void* serialData, size_t serialLength) noexcept
-        override {
+    nvinfer1::IPluginV2DynamicExt* deserializePlugin(const char* name, const void* serialData, size_t serialLength)
+        noexcept override {
       std::cout << "Deserialize yoloLayer plugin: " << name << std::endl;
       return new YoloLayer(serialData, serialLength);
     }

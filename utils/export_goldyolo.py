@@ -3,10 +3,20 @@ import onnx
 import torch
 import torch.nn as nn
 
-import models
-from models.experimental import attempt_load
-from utils.torch_utils import select_device
-from utils.activations import Hardswish, SiLU
+import yolov6.utils.general as _m
+from yolov6.layers.common import SiLU
+from gold_yolo.switch_tool import switch_to_deploy
+from yolov6.utils.checkpoint import load_checkpoint
+
+
+def _dist2bbox(distance, anchor_points, box_format='xyxy'):
+    lt, rb = torch.split(distance, 2, -1)
+    x1y1 = anchor_points - lt
+    x2y2 = anchor_points + rb
+    bbox = torch.cat([x1y1, x2y2], -1)
+    return bbox
+
+_m.dist2bbox.__code__ = _dist2bbox.__code__
 
 
 class DeepStreamOutput(nn.Module):
@@ -15,28 +25,26 @@ class DeepStreamOutput(nn.Module):
 
     def forward(self, x):
         boxes = x[:, :, :4]
-        convert_matrix = torch.tensor(
-            [[1, 0, 1, 0], [0, 1, 0, 1], [-0.5, 0, 0.5, 0], [0, -0.5, 0, 0.5]], dtype=boxes.dtype, device=boxes.device
-        )
-        boxes @= convert_matrix
         objectness = x[:, :, 4:5]
         scores, labels = torch.max(x[:, :, 5:], dim=-1, keepdim=True)
         scores *= objectness
         return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
-def yolov7_export(weights, device):
-    model = attempt_load(weights, map_location=device)
-    for k, m in model.named_modules():
-        m._non_persistent_buffers_set = set()
-        if isinstance(m, models.common.Conv):
-            if isinstance(m.act, nn.Hardswish):
-                m.act = Hardswish()
-            elif isinstance(m.act, nn.SiLU):
-                m.act = SiLU()
-    model.model[-1].export = False
-    model.model[-1].concat = True
+def gold_yolo_export(weights, device, inplace=True, fuse=True):
+    model = load_checkpoint(weights, map_location=device, inplace=inplace, fuse=fuse)
+    model = switch_to_deploy(model)
+    for layer in model.modules():
+        t = type(layer)
+        if t.__name__ == 'RepVGGBlock':
+            layer.switch_to_deploy()
     model.eval()
+    for k, m in model.named_modules():
+        if m.__class__.__name__ == 'Conv':
+            if isinstance(m.act, nn.SiLU):
+                m.act = SiLU()
+        elif m.__class__.__name__ == 'Detect':
+            m.inplace = False
     return model
 
 
@@ -54,23 +62,14 @@ def main(args):
 
     print(f'\nStarting: {args.weights}')
 
-    print('Opening YOLOv7 model')
+    print('Opening Gold-YOLO model')
 
-    device = select_device('cpu')
-    model = yolov7_export(args.weights, device)
-
-    if hasattr(model, 'names') and len(model.names) > 0:
-        print('Creating labels.txt file')
-        with open('labels.txt', 'w', encoding='utf-8') as f:
-            for name in model.names:
-                f.write(f'{name}\n')
+    device = torch.device('cpu')
+    model = gold_yolo_export(args.weights, device)
 
     model = nn.Sequential(model, DeepStreamOutput())
 
     img_size = args.size * 2 if len(args.size) == 1 else args.size
-
-    if img_size == [640, 640] and args.p6:
-        img_size = [1280] * 2
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
     onnx_output_file = f'{args.weights}.onnx'
@@ -102,11 +101,10 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DeepStream YOLOv7 conversion')
+    parser = argparse.ArgumentParser(description='DeepStream Gold-YOLO conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
-    parser.add_argument('--p6', action='store_true', help='P6 model')
-    parser.add_argument('--opset', type=int, default=12, help='ONNX opset version')
+    parser.add_argument('--opset', type=int, default=13, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
     parser.add_argument('--batch', type=int, default=1, help='Static batch-size')

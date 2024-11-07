@@ -14,8 +14,9 @@ activationLayer(int layerIdx, std::string activation, nvinfer1::ITensor* input, 
 {
   nvinfer1::ITensor* output;
 
-  if (activation == "linear")
+  if (activation == "linear") {
     output = input;
+  }
   else if (activation == "relu") {
     nvinfer1::IActivationLayer* relu = network->addActivation(*input, nvinfer1::ActivationType::kRELU);
     assert(relu != nullptr);
