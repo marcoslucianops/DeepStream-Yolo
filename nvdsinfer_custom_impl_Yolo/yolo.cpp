@@ -193,7 +193,12 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
   config->setProfilingVerbosity(nvinfer1::ProfilingVerbosity::kDETAILED);
 #endif
 
+#if NV_TENSORRT_MAJOR >= 8 && NV_TENSORRT_MINOR > 0
   nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(*builder->getLogger());
+#else
+  nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(logger);
+#endif
+
   assert(runtime);
 
   nvinfer1::IHostMemory* serializedEngine = builder->buildSerializedNetwork(*network, *config);
