@@ -143,6 +143,24 @@ symmetric-padding=0
 ...
 ```
 
+**NOTE**: The **YOLOX** uses BGR color format for the image input. It is important to change the `model-color-format` according to the trained values.
+
+```
+[property]
+...
+model-color-format=1
+...
+```
+
+**NOTE**: The **YOLOX legacy** uses RGB color format for the image input. It is important to change the `model-color-format` according to the trained values.
+
+```
+[property]
+...
+model-color-format=0
+...
+```
+
 **NOTE**: The **YOLOX** uses no normalization on the image preprocess. It is important to change the `net-scale-factor` according to the trained values.
 
 ```

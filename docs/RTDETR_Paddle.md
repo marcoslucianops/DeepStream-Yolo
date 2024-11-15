@@ -141,6 +141,15 @@ maintain-aspect-ratio=0
 ...
 ```
 
+**NOTE**: The **RT-DETR** do not require NMS. To get better accuracy, use
+
+```
+[property]
+...
+cluster-mode=4
+...
+```
+
 ##
 
 ### Edit the deepstream_app_config file

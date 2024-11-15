@@ -222,6 +222,7 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * [DAMO-YOLO](https://github.com/tinyvision/DAMO-YOLO)
 * [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/develop/configs/ppyoloe)
 * [YOLO-NAS](https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md)
+* [RT-DETR](https://github.com/lyuwenyu/RT-DETR)
 
 ##
 
