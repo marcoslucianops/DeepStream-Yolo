@@ -1,10 +1,8 @@
-# RT-DETR Paddle usage
-
-**NOTE**: https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetr_paddle version.
+# CO-DETR (MMDetection) usage
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_rtdetr file](#edit-the-config_infer_primary_rtdetr-file)
+* [Edit the config_infer_primary_codetr file](#edit-the-config_infer_primary_codetr-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,39 +10,62 @@
 
 ### Convert model
 
-#### 1. Download the PaddleDetection repo and install the requirements
-
-https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.8/docs/tutorials/INSTALL.md
+#### 1. Download the CO-DETR (MMDetection) repo and install the requirements
 
 ```
-git clone https://github.com/lyuwenyu/RT-DETR.git
-cd RT-DETR/rtdetr_paddle
-pip3 install -r requirements.txt
-pip3 install onnx onnxslim onnxruntime paddle2onnx
+git clone https://github.com/open-mmlab/mmdetection.git
+cd mmdetection
+pip3 install openmim
+mim install mmengine
+mim install mmdeploy
+mim install "mmcv>=2.0.0rc4,<2.2.0"
+pip3 install -v -e .
+pip3 install onnx onnxslim onnxruntime
 ```
 
 **NOTE**: It is recommended to use Python virtualenv.
 
 #### 2. Copy conversor
 
-Copy the `export_rtdetr_paddle.py` file from `DeepStream-Yolo/utils` directory to the `RT-DETR/rtdetr_paddle` folder.
+Copy the `export_codetr.py` file from `DeepStream-Yolo/utils` directory to the `mmdetection` folder.
 
 #### 3. Download the model
 
-Download the `pdparams` file from [RT-DETR Paddle](https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetr_paddle) releases (example for RT-DETR-R50)
+Download the `pth` file from [CO-DETR (MMDetection)](https://github.com/open-mmlab/mmdetection/tree/main/projects/CO-DETR) releases (example for Co-DINO R50 DETR*)
 
 ```
-wget https://bj.bcebos.com/v1/paddledet/models/rtdetr_r50vd_6x_coco.pdparams
+wget https://download.openmmlab.com/mmdetection/v3.0/codetr/co_dino_5scale_r50_1x_coco-7481f903.pth
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for RT-DETR-R50)
+Generate the ONNX model file (example for Co-DINO R50 DETR)
 
 ```
-python3 export_rtdetr_paddle.py -w rtdetr_r50vd_6x_coco.pdparams -c configs/rtdetr/rtdetr_r50vd_6x_coco.yml --dynamic
+python3 export_codetr.py -w co_dino_5scale_r50_1x_coco-7481f903.pth -c projects/CO-DETR/configs/codino/co_dino_5scale_r50_8xb2_1x_coco.py --dynamic
+```
+
+**NOTE**: To change the inference size (defaut: 640)
+
+```
+-s SIZE
+--size SIZE
+-s HEIGHT WIDTH
+--size HEIGHT WIDTH
+```
+
+Example for 1280
+
+```
+-s 1280
+```
+
+or
+
+```
+-s 1280 1280
 ```
 
 **NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
@@ -65,7 +86,7 @@ python3 export_rtdetr_paddle.py -w rtdetr_r50vd_6x_coco.pdparams -c configs/rtde
 --batch 4
 ```
 
-**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 16.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 11.
 
 ```
 --opset 12
@@ -117,14 +138,14 @@ make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
 
 ##
 
-### Edit the config_infer_primary_rtdetr file
+### Edit the config_infer_primary_codetr file
 
-Edit the `config_infer_primary_rtdetr.txt` file according to your model (example for RT-DETR-R50 with 80 classes)
+Edit the `config_infer_primary_codetr.txt` file according to your model (example for Co-DINO R50 DETR with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=rtdetr_r50vd_6x_coco.pdparams.onnx
+onnx-file=co_dino_5scale_r50_1x_coco-7481f903.pth.onnx
 ...
 num-detected-classes=80
 ...
@@ -132,21 +153,13 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
-**NOTE**: The **RT-DETR** do not resize the input with padding. To get better accuracy, use
+**NOTE**: The **CO-DETR (MMDetection)** resizes the input with left/top padding. To get better accuracy, use
 
 ```
 [property]
 ...
-maintain-aspect-ratio=0
-...
-```
-
-**NOTE**: The **RT-DETR** do not require NMS. To get better accuracy, use
-
-```
-[property]
-...
-cluster-mode=4
+maintain-aspect-ratio=1
+symmetric-padding=0
 ...
 ```
 
@@ -158,7 +171,7 @@ cluster-mode=4
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_rtdetr.txt
+config-file=config_infer_primary_codetr.txt
 ```
 
 ##

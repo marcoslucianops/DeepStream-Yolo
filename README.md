@@ -18,7 +18,7 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * Support for non square models
 * Models benchmarks
 * Support for Darknet models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing
-* Support for RT-DETR, YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, Gold-YOLO, RTMDet (MMYOLO), YOLOX, YOLOR, YOLOv9, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing
+* Support for RT-DETR, CO-DETR (MMDetection), YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, Gold-YOLO, RTMDet (MMYOLO), YOLOX, YOLOR, YOLOv9, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing
 * GPU bbox parser
 * Custom ONNX model parser
 * Dynamic batch-size
@@ -49,6 +49,7 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * [DAMO-YOLO usage](docs/DAMOYOLO.md)
 * [PP-YOLOE / PP-YOLOE+ usage](docs/PPYOLOE.md)
 * [YOLO-NAS usage](docs/YOLONAS.md)
+* [CO-DETR (MMDetection) usage](docs/CODETR.md)
 * [RT-DETR PyTorch usage](docs/RTDETR_PyTorch.md)
 * [RT-DETR Paddle usage](docs/RTDETR_Paddle.md)
 * [RT-DETR Ultralytics usage](docs/RTDETR_Ultralytics.md)
@@ -220,8 +221,9 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * [RTMDet (MMYOLO)](https://github.com/open-mmlab/mmyolo/tree/main/configs/rtmdet)
 * [Gold-YOLO](https://github.com/huawei-noah/Efficient-Computing/tree/master/Detection/Gold-YOLO)
 * [DAMO-YOLO](https://github.com/tinyvision/DAMO-YOLO)
-* [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/develop/configs/ppyoloe)
+* [PP-YOLOE / PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.8/configs/ppyoloe)
 * [YOLO-NAS](https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md)
+* [CO-DETR (MMDetection)](https://github.com/open-mmlab/mmdetection/tree/main/projects/CO-DETR)
 * [RT-DETR](https://github.com/lyuwenyu/RT-DETR)
 
 ##

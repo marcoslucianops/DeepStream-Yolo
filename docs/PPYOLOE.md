@@ -14,7 +14,7 @@
 
 #### 1. Download the PaddleDetection repo and install the requirements
 
-https://github.com/PaddlePaddle/PaddleDetection/blob/develop/docs/tutorials/INSTALL.md
+https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.8/docs/tutorials/INSTALL.md
 
 **NOTE**: It is recommended to use Python virtualenv.
 
@@ -24,7 +24,7 @@ Copy the `export_ppyoloe.py` file from `DeepStream-Yolo/utils` directory to the 
 
 #### 3. Download the model
 
-Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/develop/configs/ppyoloe) releases (example for PP-YOLOE+_s)
+Download the `pdparams` file from [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.8/configs/ppyoloe) releases (example for PP-YOLOE+_s)
 
 ```
 wget https://paddledet.bj.bcebos.com/models/ppyoloe_plus_crn_s_80e_coco.pdparams
