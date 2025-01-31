@@ -94,7 +94,7 @@ def main(args):
     img_size = args.size * 2 if len(args.size) == 1 else args.size
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
-    onnx_output_file = f'{args.weights}.onnx'
+    onnx_output_file = args.weights.replace(".pt", "") + ".onnx"
 
     dynamic_axes = {
         'input': {
