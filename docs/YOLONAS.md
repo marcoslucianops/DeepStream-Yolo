@@ -30,10 +30,10 @@ Copy the `export_yolonas.py` file from `DeepStream-Yolo/utils` directory to the 
 
 #### 3. Download the model
 
-Download the `pth` file from [YOLO-NAS](https://sghub.deci.ai/) releases (example for YOLO-NAS S)
+Download the `pth` file from [YOLO-NAS](https://sg-hub-nv.s3.amazonaws.com/) releases (example for YOLO-NAS S)
 
 ```
-wget https://sghub.deci.ai/models/yolo_nas_s_coco.pth
+wget https://sg-hub-nv.s3.amazonaws.com/models/yolo_nas_s_coco.pth
 ```
 
 **NOTE**: You can use your custom model.
