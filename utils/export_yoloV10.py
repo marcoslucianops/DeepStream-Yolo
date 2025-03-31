@@ -1,5 +1,6 @@
 import os
 import sys
+import types
 import onnx
 import torch
 import torch.nn as nn
@@ -34,7 +35,19 @@ class DeepStreamOutput(nn.Module):
         return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
-def yolov8_export(weights, device, inplace=True, fuse=True):
+def forward_deepstream(self, x):
+    x_detach = [xi.detach() for xi in x]
+    one2one = [
+        torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
+    ]
+    if hasattr(self, 'inference'):
+        y = self.inference(one2one)
+    else:
+        y = self._inference(one2one)
+    return y
+
+
+def yolov10_export(weights, device, inplace=True, fuse=True):
     ckpt = torch.load(weights, map_location='cpu')
     ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()
     if not hasattr(ckpt, 'stride'):
@@ -55,10 +68,12 @@ def yolov8_export(weights, device, inplace=True, fuse=True):
     model.float()
     model = model.fuse()
     for k, m in model.named_modules():
-        if m.__class__.__name__ in ('Detect', 'RTDETRDecoder'):
+        if m.__class__.__name__ in ('Detect', 'RTDETRDecoder', 'v10Detect'):
             m.dynamic = False
             m.export = True
             m.format = 'onnx'
+            if m.__class__.__name__ == 'v10Detect':
+                m.forward = types.MethodType(forward_deepstream, m)
     return model
 
 
@@ -76,10 +91,10 @@ def main(args):
 
     print(f'\nStarting: {args.weights}')
 
-    print('Opening YOLOv8 model')
+    print('Opening YOLOv10 model')
 
     device = torch.device('cpu')
-    model = yolov8_export(args.weights, device)
+    model = yolov10_export(args.weights, device)
 
     if len(model.names.keys()) > 0:
         print('Creating labels.txt file')
@@ -121,7 +136,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DeepStream YOLOv8 conversion')
+    parser = argparse.ArgumentParser(description='DeepStream YOLOv10 conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
     parser.add_argument('--opset', type=int, default=17, help='ONNX opset version')

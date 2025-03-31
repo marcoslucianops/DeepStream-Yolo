@@ -18,7 +18,7 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * Support for non square models
 * Models benchmarks
 * Support for Darknet models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing
-* Support for RT-DETR, CO-DETR (MMDetection), YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, Gold-YOLO, RTMDet (MMYOLO), YOLOX, YOLOR, YOLOv9, YOLOv8, YOLOv7, YOLOv6 and YOLOv5 using ONNX conversion with GPU post-processing
+* Support for RT-DETR, CO-DETR (MMDetection), YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, Gold-YOLO, RTMDet (MMYOLO), YOLOX, YOLOR, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5u and YOLOv5 using ONNX conversion with GPU post-processing
 * GPU bbox parser
 * Custom ONNX model parser
 * Dynamic batch-size
@@ -38,10 +38,13 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * [Notes](#notes)
 * [INT8 calibration](docs/INT8Calibration.md)
 * [YOLOv5 usage](docs/YOLOv5.md)
+* [YOLOv5u usage](docs/YOLOv5u.md)
 * [YOLOv6 usage](docs/YOLOv6.md)
 * [YOLOv7 usage](docs/YOLOv7.md)
 * [YOLOv8 usage](docs/YOLOv8.md)
 * [YOLOv9 usage](docs/YOLOv9.md)
+* [YOLOv10 usage](docs/YOLOv10.md)
+* [YOLO11 usage](docs/YOLO1.md)
 * [YOLOR usage](docs/YOLOR.md)
 * [YOLOX usage](docs/YOLOX.md)
 * [RTMDet (MMYOLO) usage](docs/RTMDet.md)
@@ -212,10 +215,13 @@ NVIDIA DeepStream SDK 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 / 
 * [MobileNet-YOLO](https://github.com/dog-qiuqiu/MobileNet-Yolo)
 * [YOLO-Fastest](https://github.com/dog-qiuqiu/Yolo-Fastest)
 * [YOLOv5](https://github.com/ultralytics/yolov5)
+* [YOLOv5u](https://github.com/ultralytics/ultralytics)
 * [YOLOv6](https://github.com/meituan/YOLOv6)
 * [YOLOv7](https://github.com/WongKinYiu/yolov7)
 * [YOLOv8](https://github.com/ultralytics/ultralytics)
 * [YOLOv9](https://github.com/WongKinYiu/yolov9)
+* [YOLOv10](https://github.com/THU-MIG/yolov10)
+* [YOLO11](https://github.com/ultralytics/ultralytics)
 * [YOLOR](https://github.com/WongKinYiu/yolor)
 * [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
 * [RTMDet (MMYOLO)](https://github.com/open-mmlab/mmyolo/tree/main/configs/rtmdet)

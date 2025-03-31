@@ -147,8 +147,8 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
     }
   }
   if (m_ClusterMode != 2 && m_ClusterMode != 4) {
-      std::cout << "NOTE: Wrong cluster-mode is set, make sure to set cluster-mode=4 (RT-DETR or custom NMS) or " <<
-          "cluster-mode=2 on the config_infer file\n" << std::endl;
+      std::cout << "NOTE: Wrong cluster-mode is set, make sure to set cluster-mode=4 (YOLOv10, RT-DETR or custom " <<
+          "NMS) or cluster-mode=2 on the config_infer file\n" << std::endl;
   }
 
   if (m_NetworkMode == "FP16") {

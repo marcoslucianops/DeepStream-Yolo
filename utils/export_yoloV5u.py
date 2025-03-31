@@ -34,7 +34,7 @@ class DeepStreamOutput(nn.Module):
         return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
-def yolov8_export(weights, device, inplace=True, fuse=True):
+def yolov5u_export(weights, device, inplace=True, fuse=True):
     ckpt = torch.load(weights, map_location='cpu')
     ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()
     if not hasattr(ckpt, 'stride'):
@@ -76,10 +76,10 @@ def main(args):
 
     print(f'\nStarting: {args.weights}')
 
-    print('Opening YOLOv8 model')
+    print('Opening YOLOv5u model')
 
     device = torch.device('cpu')
-    model = yolov8_export(args.weights, device)
+    model = yolov5u_export(args.weights, device)
 
     if len(model.names.keys()) > 0:
         print('Creating labels.txt file')
@@ -121,7 +121,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DeepStream YOLOv8 conversion')
+    parser = argparse.ArgumentParser(description='DeepStream YOLOv5u conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
     parser.add_argument('--opset', type=int, default=17, help='ONNX opset version')

@@ -1,10 +1,10 @@
-# YOLOv8 usage
+# YOLO11 usage
 
 **NOTE**: The yaml file is not required.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_yoloV8 file](#edit-the-config_infer_primary_yolov8-file)
+* [Edit the config_infer_primary_yolo11 file](#edit-the-config_infer_primary_yolo11-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,7 +12,7 @@
 
 ### Convert model
 
-#### 1. Download the YOLOv8 repo and install the requirements
+#### 1. Download the YOLO11 repo and install the requirements
 
 ```
 git clone https://github.com/ultralytics/ultralytics.git
@@ -25,24 +25,24 @@ pip3 install onnx onnxslim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder.
+Copy the `export_yolo11.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder.
 
 #### 3. Download the model
 
-Download the `pt` file from [YOLOv8](https://github.com/ultralytics/assets/releases/) releases (example for YOLOv8s)
+Download the `pt` file from [YOLO11](https://github.com/ultralytics/assets/releases/) releases (example for YOLO11s)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s.pt
+wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLOv8s)
+Generate the ONNX model file (example for YOLO11s)
 
 ```
-python3 export_yoloV8.py -w yolov8s.pt --dynamic
+python3 export_yolo11.py -w yolo11s.pt --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -136,14 +136,14 @@ make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
 
 ##
 
-### Edit the config_infer_primary_yoloV8 file
+### Edit the config_infer_primary_yolo11 file
 
-Edit the `config_infer_primary_yoloV8.txt` file according to your model (example for YOLOv8s with 80 classes)
+Edit the `config_infer_primary_yolo11.txt` file according to your model (example for YOLO11s with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=yolov8s.pt.onnx
+onnx-file=yolo11s.pt.onnx
 ...
 num-detected-classes=80
 ...
@@ -151,7 +151,7 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
-**NOTE**: The **YOLOv8** resizes the input with center padding. To get better accuracy, use
+**NOTE**: The **YOLO11** resizes the input with center padding. To get better accuracy, use
 
 ```
 [property]
@@ -169,7 +169,7 @@ symmetric-padding=1
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_yoloV8.txt
+config-file=config_infer_primary_yolo11.txt
 ```
 
 ##
