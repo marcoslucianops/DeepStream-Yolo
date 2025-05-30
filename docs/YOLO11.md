@@ -90,6 +90,12 @@ or
 --opset 12
 ```
 
+**NOTE**: If you wanna export `classification` type, use task option
+
+```
+--task classification
+```
+
 #### 5. Copy generated files
 
 Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo` folder.
