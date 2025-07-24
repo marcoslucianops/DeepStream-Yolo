@@ -95,7 +95,7 @@ def parse_args():
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pth) file path (required)')
     parser.add_argument('-c', '--config', required=True, help='Input YAML (.yml) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
-    parser.add_argument('--opset', type=int, default=16, help='ONNX opset version')
+    parser.add_argument('--opset', type=int, default=17, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
     parser.add_argument('--batch', type=int, default=1, help='Static batch-size')
