@@ -35,7 +35,7 @@ class DeepStreamOutput(nn.Module):
 
 
 def yolo11_export(weights, device, inplace=True, fuse=True):
-    ckpt = torch.load(weights, map_location='cpu')
+    ckpt = torch.load(weights, map_location='cpu', weights_only=False)
     ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()
     if not hasattr(ckpt, 'stride'):
         ckpt.stride = torch.tensor([32.])
