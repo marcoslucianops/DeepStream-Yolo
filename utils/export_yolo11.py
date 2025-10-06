@@ -8,6 +8,7 @@ from copy import deepcopy
 import ultralytics.utils
 import ultralytics.models.yolo
 import ultralytics.utils.tal as _m
+from abc import ABC, abstractmethod
 
 sys.modules['ultralytics.yolo'] = ultralytics.models.yolo
 sys.modules['ultralytics.yolo.utils'] = ultralytics.utils
@@ -23,7 +24,16 @@ def _dist2bbox(distance, anchor_points, xywh=False, dim=-1):
 _m.dist2bbox.__code__ = _dist2bbox.__code__
 
 
-class DeepStreamOutput(nn.Module):
+class DeepStreamOutputBase(nn.Module, ABC):
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def forward(self, x):
+        pass
+    
+    
+class DeepStreamObjectDetectionOutput(DeepStreamOutputBase):
     def __init__(self):
         super().__init__()
 
@@ -32,6 +42,16 @@ class DeepStreamOutput(nn.Module):
         boxes = x[:, :, :4]
         scores, labels = torch.max(x[:, :, 4:], dim=-1, keepdim=True)
         return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
+    
+    
+class DeepStreamClassificationOutput(DeepStreamOutputBase):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        x = x[0]
+        scores, labels = torch.max(x, dim=-1, keepdim=True)
+        return torch.cat([scores, labels.to(scores.dtype)], dim=-1)
 
 
 def yolo11_export(weights, device, inplace=True, fuse=True):
@@ -87,12 +107,19 @@ def main(args):
             for name in model.names.values():
                 f.write(f'{name}\n')
 
-    model = nn.Sequential(model, DeepStreamOutput())
+    if args.task == 'detection':
+        output_layer = DeepStreamObjectDetectionOutput()
+    elif args.task == 'classification':
+        output_layer = DeepStreamClassificationOutput()
+    else:
+        raise NotImplementedError(f'Task {args.task} is not implemented')
+
+    model = nn.Sequential(model, output_layer)
 
     img_size = args.size * 2 if len(args.size) == 1 else args.size
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
-    onnx_output_file = f'{args.weights}.onnx'
+    onnx_output_file = args.weights.replace('.pt', '.onnx')
 
     dynamic_axes = {
         'input': {
@@ -123,11 +150,13 @@ def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='DeepStream YOLO11 conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
-    parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
+    parser.add_argument('-s', '--size', nargs='+', type=int, default=640, help='Inference size [H,W] (default [640])')
     parser.add_argument('--opset', type=int, default=17, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
     parser.add_argument('--batch', type=int, default=1, help='Static batch-size')
+    parser.add_argument('--task', type=str, default='detection', choices=['detection', 'classification'], help='Task type (default: detection)')
+
     args = parser.parse_args()
     if not os.path.isfile(args.weights):
         raise SystemExit('Invalid weights file')
