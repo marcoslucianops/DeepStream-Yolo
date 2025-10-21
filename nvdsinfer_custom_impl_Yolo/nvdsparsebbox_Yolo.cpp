@@ -109,6 +109,8 @@ NvDsInferParseCustomYolo(std::vector<NvDsInferLayerInfo> const& outputLayersInfo
   const NvDsInferLayerInfo& output = outputLayersInfo[0];
   const uint outputSize = output.inferDims.d[0];
 
+  std::cout << "DEBUG: Yolo output tensor size: " << outputSize << std::endl;
+
   std::vector<NvDsInferParseObjectInfo> outObjs = decodeTensorYolo((const float*) (output.buffer), outputSize,
       networkInfo.width, networkInfo.height, detectionParams.perClassPreclusterThreshold);
 
