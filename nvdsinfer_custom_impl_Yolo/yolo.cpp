@@ -201,9 +201,17 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
 
   assert(runtime);
 
+#if NV_TENSORRT_MAJOR >= 8
   nvinfer1::IHostMemory* serializedEngine = builder->buildSerializedNetwork(*network, *config);
 
-  nvinfer1::ICudaEngine* engine = runtime->deserializeCudaEngine(serializedEngine->data(), serializedEngine->size());
+  nvinfer1::ICudaEngine* engine = nullptr;
+  if (serializedEngine) {
+    engine = runtime->deserializeCudaEngine(serializedEngine->data(), serializedEngine->size());
+  }
+#else
+  nvinfer1::ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
+#endif
+
   if (engine) {
     std::cout << "Building complete\n" << std::endl;
   }
@@ -212,9 +220,9 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
   }
 
 #if NV_TENSORRT_MAJOR >= 8
-  delete serializedEngine;
-#else
-  serializedEngine->destroy();
+  if (serializedEngine) {
+    delete serializedEngine;
+  }
 #endif
 
 #ifdef GRAPH
