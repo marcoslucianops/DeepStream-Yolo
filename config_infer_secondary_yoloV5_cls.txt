@@ -1,0 +1,100 @@
+################################################################################
+# Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+################################################################################
+
+# Following properties are mandatory when engine files are not specified:
+#   int8-calib-file(Only in INT8)
+#   Caffemodel mandatory properties: model-file, proto-file, output-blob-names
+#   UFF: uff-file, input-dims, uff-input-blob-name, output-blob-names
+#   ONNX: onnx-file
+#
+# Mandatory properties for detectors:
+#   num-detected-classes
+#
+# Optional properties for detectors:
+#   cluster-mode(Default=Group Rectangles), interval(Primary mode only, Default=0)
+#   custom-lib-path,
+#   parse-bbox-func-name
+#
+# Mandatory properties for classifiers:
+#   classifier-threshold, is-classifier, classifier-type
+#
+# Optional properties for classifiers:
+#   classifier-async-mode(Secondary mode only, Default=false)
+#
+# Optional properties in secondary mode:
+#   operate-on-gie-id(Default=0), operate-on-class-ids(Defaults to all classes),
+#   input-object-min-width, input-object-min-height, input-object-max-width,
+#   input-object-max-height
+#
+# Following properties are always recommended:
+#   batch-size(Default=1)
+#
+# Other optional properties:
+#   net-scale-factor(Default=1), network-mode(Default=0 i.e FP32),
+#   model-color-format(Default=0 i.e. RGB) model-engine-file, labelfile-path,
+#   mean-file, gie-unique-id(Default=0), offsets, process-mode (Default=1 i.e. primary),
+#   custom-lib-path, network-mode(Default=0 i.e FP32)
+#
+# The values in the config file are overridden by values set through GObject
+# properties.
+
+[property]
+gpu-id=0
+gie-unique-id=4
+net-scale-factor=0.017352074
+offsets=123.675;116.28;103.53
+onnx-file=yolov5s-cls.onnx
+model-engine-file=yolov5s-cls.onnx_b16_gpu0_fp16.engine
+labelfile-path=imagenet_classes.txt
+force-implicit-batch-dim=0
+batch-size=16
+# 0=NCHW 1=NHWC
+network-input-order=0
+# 0=RGB 1=BGR 2=GRAY
+model-color-format=0
+# 1=Primary model, 2=secondary model
+process-mode=2
+## 0=FP32, 1=INT8, 2=FP16 mode
+network-mode=2
+## 0=Detector, 1=Classifier, 2=Segmentation, 3=Instance Segmentation
+network-type=1
+classifier-async-mode=0
+classifier-threshold=0.25
+## Deprecated
+#is-classifier=0
+
+parse-classifier-func-name=NvDsInferCustomYolov5ClsParse
+custom-lib-path=nvdsinfer_custom_impl_Yolo_cls/libnvinfer_custom_impl_yolov5_cls_parser.so
+
+## Re-inference interval for objects, in frames
+#secondary-reinfer-intrval=14
+## Scale and padding the image maintain aspect ratio
+maintain-aspect-ratio=1
+symmetric-padding=1
+#output-tensor-meta=1
+input-object-min-width=0
+input-object-min-height=0
+operate-on-gie-id=1
+#operate-on-class-ids=0
+classifier-type=imagenet
+
+
