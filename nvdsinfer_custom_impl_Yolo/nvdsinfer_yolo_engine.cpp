@@ -144,6 +144,26 @@ NvDsInferYoloCudaEngineGet(nvinfer1::IBuilder* const builder, const NvDsInferCon
     return false;
   }
 
+  nvinfer1::IHostMemory* serialized = cudaEngine->serialize();
+  if (serialized) {
+      std::string enginePath = initParams->modelEngineFilePath; // key from nvinfer config
+      if (!enginePath.empty()) {
+          if (!serialized || !serialized->data() || serialized->size() == 0) {
+              std::cerr << "saveEngine: empty engine!" << std::endl;
+          }
+          std::ofstream out(enginePath, std::ios::binary);
+          if (!out) {
+              std::cerr << "saveEngine: cannot open " << enginePath << std::endl;
+          }
+          out.write(reinterpret_cast<const char*>(serialized->data()), serialized->size());
+      }
+    #if NV_TENSORRT_MAJOR >= 8
+      delete serialized;
+    #else
+      serialized->destroy();
+    #endif        
+  }
+
   return true;
 }
 #endif
