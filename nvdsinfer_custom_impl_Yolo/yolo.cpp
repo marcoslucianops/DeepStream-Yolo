@@ -40,7 +40,9 @@ Yolo::Yolo(const NetworkInfo& networkInfo) : m_InputBlobName(networkInfo.inputBl
     m_DeviceType(networkInfo.deviceType), m_NumDetectedClasses(networkInfo.numDetectedClasses),
     m_ClusterMode(networkInfo.clusterMode), m_NetworkMode(networkInfo.networkMode),
     m_ScaleFactor(networkInfo.scaleFactor), m_Offsets(networkInfo.offsets), m_WorkspaceSize(networkInfo.workspaceSize),
-    m_InputFormat(networkInfo.inputFormat), m_InputC(0), m_InputH(0), m_InputW(0), m_InputSize(0), m_NumClasses(0),
+    m_InputFormat(networkInfo.inputFormat), m_InputC(0), m_InputH(0), m_InputW(0),
+    m_InferDimsC(networkInfo.inferDimsC), m_InferDimsH(networkInfo.inferDimsH), m_InferDimsW(networkInfo.inferDimsW),
+    m_InputSize(0), m_NumClasses(0),
     m_LetterBox(0), m_NewCoords(0), m_YoloCount(0)
 {
 }
@@ -100,6 +102,10 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
     m_InputC = network->getInput(0)->getDimensions().d[1];
     m_InputH = network->getInput(0)->getDimensions().d[2];
     m_InputW = network->getInput(0)->getDimensions().d[3];
+    // Handle dynamic dimensions - use infer-dims from config
+    if (m_InputC <= 0) m_InputC = m_InferDimsC;
+    if (m_InputH <= 0) m_InputH = m_InferDimsH;
+    if (m_InputW <= 0) m_InputW = m_InferDimsW;
   }
   else {
     m_ConfigBlocks = parseConfigFile(m_CfgFilePath);
@@ -117,14 +123,25 @@ Yolo::createEngine(nvinfer1::IBuilder* builder)
     }
   }
 
-  if ((m_NetworkType == "darknet" && !m_ImplicitBatch) || network->getInput(0)->getDimensions().d[0] == -1) {
+  // Check if any dimension is dynamic
+  bool hasDynamicDims = false;
+  nvinfer1::Dims inputDimsCheck = network->getInput(0)->getDimensions();
+  for (int d = 0; d < inputDimsCheck.nbDims; ++d) {
+    if (inputDimsCheck.d[d] == -1) hasDynamicDims = true;
+  }
+
+  if ((m_NetworkType == "darknet" && !m_ImplicitBatch) || hasDynamicDims) {
     nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
     assert(profile);
     for (INT i = 0; i < network->getNbInputs(); ++i) {
       nvinfer1::ITensor* input = network->getInput(i);
       nvinfer1::Dims inputDims = input->getDimensions();
       nvinfer1::Dims dims = inputDims;
-      dims.d[0] = 1;
+      // Fix dynamic dimensions using infer-dims from config
+      if (dims.d[0] == -1) dims.d[0] = 1;
+      if (dims.d[1] == -1) dims.d[1] = m_InferDimsC;
+      if (dims.d[2] == -1) dims.d[2] = m_InferDimsH;
+      if (dims.d[3] == -1) dims.d[3] = m_InferDimsW;
       profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kMIN, dims);
       dims.d[0] = m_BatchSize;
       profile->setDimensions(input->getName(), nvinfer1::OptProfileSelector::kOPT, dims);

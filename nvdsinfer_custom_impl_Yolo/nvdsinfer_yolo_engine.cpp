@@ -64,6 +64,9 @@ getYoloNetworkInfo(NetworkInfo& networkInfo, const NvDsInferContextInitParams* i
   networkInfo.offsets = initParams->offsets;
   networkInfo.workspaceSize = initParams->workspaceSize;
   networkInfo.inputFormat = initParams->networkInputFormat;
+  networkInfo.inferDimsC = initParams->inferInputDims.c > 0 ? initParams->inferInputDims.c : 3;
+  networkInfo.inferDimsH = initParams->inferInputDims.h > 0 ? initParams->inferInputDims.h : 640;
+  networkInfo.inferDimsW = initParams->inferInputDims.w > 0 ? initParams->inferInputDims.w : 640;
 
   if (initParams->networkMode == NvDsInferNetworkMode_FP32) {
     networkInfo.networkMode = "FP32";

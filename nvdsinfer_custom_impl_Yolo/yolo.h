@@ -75,6 +75,9 @@ struct NetworkInfo
   const float* offsets;
   uint workspaceSize;
   int inputFormat;
+  int inferDimsC;
+  int inferDimsH;
+  int inferDimsW;
 };
 
 struct TensorInfo
@@ -130,6 +133,9 @@ class Yolo : public IModelParser {
     uint m_InputC;
     uint m_InputH;
     uint m_InputW;
+    int m_InferDimsC;
+    int m_InferDimsH;
+    int m_InferDimsW;
     uint64_t m_InputSize;
     uint m_NumClasses;
     uint m_LetterBox;
