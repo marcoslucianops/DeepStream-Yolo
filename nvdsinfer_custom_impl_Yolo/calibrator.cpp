@@ -124,7 +124,7 @@ prepareImage(cv::Mat& img, int inputC, int inputH, int inputW, float scaleFactor
     cv::subtract(out, cv::Scalar(offsets[0] / 255), out);
   }
   else {
-    cv::subtract(out, cv::Scalar(offsets[0] / 255, offsets[1] / 255, offsets[3] / 255), out);
+    cv::subtract(out, cv::Scalar(offsets[0] / 255, offsets[1] / 255, offsets[2] / 255), out);
   }
 
   std::vector<cv::Mat> inputChannels(inputC);
