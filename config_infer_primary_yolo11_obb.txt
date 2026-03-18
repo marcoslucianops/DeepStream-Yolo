@@ -21,6 +21,10 @@ parse-bbox-func-name=NvDsInferParseYoloOBB
 #parse-bbox-func-name=NvDsInferParseYoloOBBCuda
 custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
 engine-create-func-name=NvDsInferYoloCudaEngineGet
+# Uncomment the line below to expose raw OBB output tensors downstream via NvDsInferTensorMeta.
+# The raw tensor contains [x, y, w, h, class_probs..., angle] for each detection.
+# Access it in a GStreamer pad probe using NVDSINFER_TENSOR_OUTPUT_META. See docs/YOLO11-OBB.md for details.
+#output-tensor-meta=1
 
 [class-attrs-all]
 nms-iou-threshold=0.45

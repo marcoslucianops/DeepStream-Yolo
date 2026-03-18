@@ -228,3 +228,79 @@ YOLO11-OBB models are typically trained on:
 - **DOTAv2**: 18 classes (adds airport and helipad)
 
 Make sure `num-detected-classes` matches your model's training dataset.
+
+##
+
+### OBB Geometry and DeepStream Metadata
+
+#### Why Axis-Aligned Bounding Boxes?
+
+The DeepStream inference API defines a fixed structure for parsed detections:
+
+```cpp
+struct NvDsInferParseObjectInfo {
+  float left, top, width, height;  // Axis-aligned box only
+  float detectionConfidence;
+  unsigned int classId;
+};
+```
+
+The custom bbox parser callback (`NvDsInferParseYoloOBB`) **must return** `std::vector<NvDsInferParseObjectInfo>`. There is no mechanism in this interface to attach additional fields like angle or corner points. This is a DeepStream API constraint, not a limitation of this implementation.
+
+The AABB returned by the parser is computed using the tightest-fit formula:
+```
+half_aabb_w = (obb_width × |cos(angle)| + obb_height × |sin(angle)|) / 2
+half_aabb_h = (obb_width × |sin(angle)| + obb_height × |cos(angle)|) / 2
+```
+
+This ensures the axis-aligned box **fully encloses** the rotated object, which is required for DeepStream's NMS, OSD rendering, and object tracking components to function correctly.
+
+#### Accessing Full OBB Geometry (Including Angle)
+
+If your application needs the original rotation angle or corner points, you can access them using DeepStream's **raw tensor metadata** feature:
+
+**Step 1:** Enable `output-tensor-meta` in your config file:
+```ini
+[property]
+...
+output-tensor-meta=1
+...
+```
+
+**Step 2:** Write a GStreamer pad probe to read `NvDsInferTensorMeta` from the buffer. The raw output tensor contains:
+```
+[x_center, y_center, width, height, class_prob_0, class_prob_1, ..., angle]
+```
+
+**Example probe structure (C++):**
+```cpp
+static GstPadProbeReturn
+osd_sink_pad_buffer_probe(GstPad *pad, GstPadProbeInfo *info, gpointer u_data)
+{
+    GstBuffer *buf = (GstBuffer *) info->data;
+    NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta(buf);
+
+    for (NvDsMetaList *l_frame = batch_meta->frame_meta_list; l_frame; l_frame = l_frame->next) {
+        NvDsFrameMeta *frame_meta = (NvDsFrameMeta *)(l_frame->data);
+
+        // Access tensor metadata
+        for (NvDsMetaList *l_user = frame_meta->frame_user_meta_list; l_user; l_user = l_user->next) {
+            NvDsUserMeta *user_meta = (NvDsUserMeta *)(l_user->data);
+            if (user_meta->base_meta.meta_type == NVDSINFER_TENSOR_OUTPUT_META) {
+                NvDsInferTensorMeta *tensor_meta = (NvDsInferTensorMeta *)user_meta->user_meta_data;
+                // Read raw OBB tensor here - contains angle information
+                // Tensor format: [num_detections, 4+num_classes+1]
+            }
+        }
+    }
+    return GST_PAD_PROBE_OK;
+}
+```
+
+**Step 3:** Parse the raw tensor to extract angle and compute corner points if needed.
+
+For Python examples, see the [DeepStream Python Apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) repository.
+
+**Summary:**
+- **Standard pipeline**: OBB → AABB (works with all DeepStream components)
+- **Advanced users**: OBB → AABB + raw tensor metadata (enables custom angle-aware post-processing)
