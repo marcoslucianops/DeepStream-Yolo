@@ -1,0 +1,32 @@
+[property]
+gpu-id=0
+net-scale-factor=0.0039215697906911373
+model-color-format=0
+onnx-file=yolo11n-obb.onnx
+model-engine-file=model_b1_gpu0_fp32.engine
+#int8-calib-file=calib.table
+labelfile-path=labels.txt
+batch-size=1
+network-mode=0
+num-detected-classes=15
+interval=0
+gie-unique-id=1
+process-mode=1
+network-type=0
+cluster-mode=2
+maintain-aspect-ratio=1
+symmetric-padding=1
+#workspace-size=2000
+parse-bbox-func-name=NvDsInferParseYoloOBB
+#parse-bbox-func-name=NvDsInferParseYoloOBBCuda
+custom-lib-path=nvdsinfer_custom_impl_Yolo/libnvdsinfer_custom_impl_Yolo.so
+engine-create-func-name=NvDsInferYoloCudaEngineGet
+# Uncomment the line below to expose raw OBB output tensors downstream via NvDsInferTensorMeta.
+# The raw tensor contains [x, y, w, h, class_probs..., angle] for each detection.
+# Access it in a GStreamer pad probe using NVDSINFER_TENSOR_OUTPUT_META. See docs/YOLO11-OBB.md for details.
+#output-tensor-meta=1
+
+[class-attrs-all]
+nms-iou-threshold=0.45
+pre-cluster-threshold=0.25
+topk=300
