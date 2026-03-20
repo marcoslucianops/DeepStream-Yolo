@@ -18,7 +18,7 @@ NVIDIA DeepStream SDK 8.0 / 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 
 * Support for non square models
 * Models benchmarks
 * Support for Darknet models (YOLOv4, etc) using cfg and weights conversion with GPU post-processing
-* Support for RF-DETR, D-FINE, RT-DETR, CO-DETR (MMDetection), YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, Gold-YOLO, RTMDet (MMYOLO), YOLOX, YOLOR, YOLOv13, YOLOv12, YOLO11, YOLO11-OBB, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5u and YOLOv5 using ONNX conversion with GPU post-processing
+* Support for YOLO-Master, YOLO26, RF-DETR, D-FINE, RT-DETR, CO-DETR (MMDetection), YOLO-NAS, PPYOLOE+, PPYOLOE, DAMO-YOLO, Gold-YOLO, RTMDet (MMYOLO), YOLOX, YOLOR, YOLOv13, YOLOv12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5u and YOLOv5 using ONNX conversion with GPU post-processing
 * GPU bbox parser
 * Custom ONNX model parser
 * Dynamic batch-size
@@ -61,6 +61,8 @@ NVIDIA DeepStream SDK 8.0 / 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 
 * [RT-DETR Ultralytics usage](docs/RTDETR_Ultralytics.md)
 * [D-FINE usage](docs/DFINE.md)
 * [RF-DETR usage](docs/RFDETR.md)
+* [YOLO26 usage](docs/YOLO26.md)
+* [YOLO-Master usage](docs/YOLOMaster.md)
 * [Using your custom model](docs/customModels.md)
 * [Multiple YOLO GIEs](docs/multipleGIEs.md)
 
@@ -257,6 +259,8 @@ NVIDIA DeepStream SDK 8.0 / 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 
 * [RT-DETR](https://github.com/lyuwenyu/RT-DETR)
 * [D-FINE](https://github.com/Peterande/D-FINE)
 * [RF-DETR](https://github.com/roboflow/rf-detr)
+* [YOLO26](https://github.com/ultralytics/ultralytics)
+* [YOLO-Master](https://github.com/Tencent/YOLO-Master)
 
 ##
 

@@ -32,7 +32,7 @@ Copy the `export_yolo11.py` file from `DeepStream-Yolo/utils` directory to the `
 Download the `pt` file from [YOLO11](https://github.com/ultralytics/assets/releases/) releases (example for YOLO11s)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt
+wget https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo11s.pt
 ```
 
 **NOTE**: You can use your custom model.

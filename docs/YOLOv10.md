@@ -15,8 +15,8 @@
 #### 1. Download the YOLOv10 repo and install the requirements
 
 ```
-git clone https://github.com/ultralytics/ultralytics.git
-cd ultralytics
+git clone https://github.com/THU-MIG/yolov10.git
+cd yolov10
 pip3 install -e .
 pip3 install onnx onnxslim onnxruntime
 ```
@@ -25,7 +25,7 @@ pip3 install onnx onnxslim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_yoloV10.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder.
+Copy the `export_yoloV10.py` file from `DeepStream-Yolo/utils` directory to the `yolov10` folder.
 
 #### 3. Download the model
 

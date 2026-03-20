@@ -32,7 +32,7 @@ Copy the `export_yoloV5u.py` file from `DeepStream-Yolo/utils` directory to the 
 Download the `pt` file from [YOLOv5u](https://github.com/ultralytics/assets/releases/) releases (example for YOLOv5su)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov5su.pt
+wget https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov5su.pt
 ```
 
 **NOTE**: You can use your custom model.

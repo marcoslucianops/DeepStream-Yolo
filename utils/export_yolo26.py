@@ -50,7 +50,7 @@ def forward_deepstream(self, x):
     return y
 
 
-def yolov10_export(weights, device, fuse=True):
+def yolo26_export(weights, device, fuse=True):
     model = YOLO(weights)
     model = deepcopy(model.model).to(device)
     for p in model.parameters():
@@ -64,7 +64,7 @@ def yolov10_export(weights, device, fuse=True):
             m.dynamic = False
             m.export = True
             m.format = "onnx"
-            if m.__class__.__name__ == "v10Detect":
+            if m.__class__.__name__ == "Detect":
                 m.forward = types.MethodType(forward_deepstream, m)
         elif isinstance(m, C2f):
             m.forward = m.forward_split
@@ -85,10 +85,10 @@ def main(args):
 
     print(f"\nStarting: {args.weights}")
 
-    print("Opening YOLOv10 model")
+    print("Opening YOLO26 model")
 
     device = torch.device("cpu")
-    model = yolov10_export(args.weights, device)
+    model = yolo26_export(args.weights, device)
 
     if len(model.names.keys()) > 0:
         print("Creating labels.txt file")
@@ -137,7 +137,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description="DeepStream YOLOv10 conversion")
+    parser = argparse.ArgumentParser(description="DeepStream YOLO26 conversion")
     parser.add_argument("-w", "--weights", required=True, type=str, help="Input weights (.pt) file path (required)")
     parser.add_argument("-s", "--size", nargs="+", type=int, default=[640], help="Inference size [H,W] (default [640])")
     parser.add_argument("--opset", type=int, default=17, help="ONNX opset version")

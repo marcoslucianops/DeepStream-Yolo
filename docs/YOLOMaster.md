@@ -1,10 +1,10 @@
-# RT-DETR Ultralytics usage
+# YOLO-Master usage
 
-**NOTE**: Ultralytics (https://docs.ultralytics.com/models/rtdetr) version.
+**NOTE**: The yaml file is not required.
 
 * [Convert model](#convert-model)
 * [Compile the lib](#compile-the-lib)
-* [Edit the config_infer_primary_rtdetr file](#edit-the-config_infer_primary_rtdetr-file)
+* [Edit the config_infer_primary_yolomaster file](#edit-the-config_infer_primary_yolomaster-file)
 * [Edit the deepstream_app_config file](#edit-the-deepstream_app_config-file)
 * [Testing the model](#testing-the-model)
 
@@ -12,11 +12,11 @@
 
 ### Convert model
 
-#### 1. Download the Ultralytics repo and install the requirements
+#### 1. Download the YOLO-Master repo and install the requirements
 
 ```
-git clone https://github.com/ultralytics/ultralytics.git
-cd ultralytics
+git clone https://github.com/Tencent/YOLO-Master.git
+cd YOLO-Master
 pip3 install -e .
 pip3 install onnx onnxslim onnxruntime
 ```
@@ -25,24 +25,24 @@ pip3 install onnx onnxslim onnxruntime
 
 #### 2. Copy conversor
 
-Copy the `export_rtdetr_ultralytics.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder.
+Copy the `export_yolomaster.py` file from `DeepStream-Yolo/utils` directory to the `YOLO-Master` folder.
 
 #### 3. Download the model
 
-Download the `pt` file from [Ultralytics](https://github.com/ultralytics/assets/releases/) releases (example for RT-DETR-L)
+Download the `pt` file from [YOLO-Master](https://github.com/Tencent/YOLO-Master/releases/) releases (example for YOLO-Master-N)
 
 ```
-wget https://github.com/ultralytics/assets/releases/download/v8.4.0/rtdetr-l.pt
+wget https://github.com/Tencent/YOLO-Master/releases/download/v0.0.0/yolo-master-v0.1-n.pt
 ```
 
 **NOTE**: You can use your custom model.
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for RT-DETR-L)
+Generate the ONNX model file (example for YOLO-Master-N)
 
 ```
-python3 export_rtdetr_ultralytics.py -w rtdetr-l.pt --dynamic
+python3 export_yolomaster.py -w yolo-master-v0.1-n.pt --dynamic
 ```
 
 **NOTE**: To change the inference size (defaut: 640)
@@ -84,7 +84,7 @@ or
 --batch 4
 ```
 
-**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 16.
+**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 17.
 
 ```
 --opset 12
@@ -138,14 +138,14 @@ make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
 
 ##
 
-### Edit the config_infer_primary_rtdetr file
+### Edit the config_infer_primary_yolomaster file
 
-Edit the `config_infer_primary_rtdetr.txt` file according to your model (example for RT-DETR-L with 80 classes)
+Edit the `config_infer_primary_yolomaster.txt` file according to your model (example for YOLO-Master-N with 80 classes)
 
 ```
 [property]
 ...
-onnx-file=rtdetr-l.onnx
+onnx-file=yolo-master-v0.1-n.onnx
 ...
 num-detected-classes=80
 ...
@@ -153,21 +153,13 @@ parse-bbox-func-name=NvDsInferParseYolo
 ...
 ```
 
-**NOTE**: The **RT-DETR Ultralytics** do not resize the input with padding. To get better accuracy, use
+**NOTE**: The **YOLO-Master** resizes the input with center padding. To get better accuracy, use
 
 ```
 [property]
 ...
-maintain-aspect-ratio=0
-...
-```
-
-**NOTE**: The **RT-DETR Ultralytics** do not require NMS. To get better accuracy, use
-
-```
-[property]
-...
-cluster-mode=4
+maintain-aspect-ratio=1
+symmetric-padding=1
 ...
 ```
 
@@ -179,7 +171,7 @@ cluster-mode=4
 ...
 [primary-gie]
 ...
-config-file=config_infer_primary_rtdetr.txt
+config-file=config_infer_primary_yolomaster.txt
 ```
 
 ##

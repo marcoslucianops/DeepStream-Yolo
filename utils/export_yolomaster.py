@@ -1,6 +1,5 @@
 import os
 import sys
-import types
 import onnx
 import torch
 import torch.nn as nn
@@ -37,20 +36,7 @@ class DeepStreamOutput(nn.Module):
         return torch.cat([boxes, scores, labels.to(boxes.dtype)], dim=-1)
 
 
-def forward_deepstream(self, x):
-    x_detach = [xi.detach() for xi in x]
-    if hasattr(self, "inference"):
-        one2one = [
-            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
-        ]
-        y = self.inference(one2one)
-    else:
-        one2one = self.forward_head(x_detach, **self.one2one)
-        y = self._inference(one2one)
-    return y
-
-
-def yolov10_export(weights, device, fuse=True):
+def yolo_master_export(weights, device, fuse=True):
     model = YOLO(weights)
     model = deepcopy(model.model).to(device)
     for p in model.parameters():
@@ -64,8 +50,6 @@ def yolov10_export(weights, device, fuse=True):
             m.dynamic = False
             m.export = True
             m.format = "onnx"
-            if m.__class__.__name__ == "v10Detect":
-                m.forward = types.MethodType(forward_deepstream, m)
         elif isinstance(m, C2f):
             m.forward = m.forward_split
     return model
@@ -85,10 +69,10 @@ def main(args):
 
     print(f"\nStarting: {args.weights}")
 
-    print("Opening YOLOv10 model")
+    print("Opening YOLO-Master model")
 
     device = torch.device("cpu")
-    model = yolov10_export(args.weights, device)
+    model = yolo_master_export(args.weights, device)
 
     if len(model.names.keys()) > 0:
         print("Creating labels.txt file")
@@ -137,7 +121,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description="DeepStream YOLOv10 conversion")
+    parser = argparse.ArgumentParser(description="DeepStream YOLO-Master conversion")
     parser.add_argument("-w", "--weights", required=True, type=str, help="Input weights (.pt) file path (required)")
     parser.add_argument("-s", "--size", nargs="+", type=int, default=[640], help="Inference size [H,W] (default [640])")
     parser.add_argument("--opset", type=int, default=17, help="ONNX opset version")
