@@ -26,7 +26,7 @@ class DeepStreamOutput(nn.Module):
 def yolov7_export(weights, device, inplace=True, fuse=True):
     ckpt = torch.load(weights, map_location="cpu", weights_only=False)
     model = ckpt["ema" if ckpt.get("ema") else "model"].to(device).float()
-    model = ckpt.fuse().eval() if fuse and hasattr(ckpt, "fuse") else ckpt.eval()
+    model = model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()
     for m in model.modules():
         if isinstance(m, (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU)):
             m.inplace = inplace
