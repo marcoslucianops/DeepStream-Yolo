@@ -28,7 +28,7 @@ def yolov5_export(weights, device, inplace=True, fuse=True):
     model = attempt_load(weights, device=device, inplace=inplace, fuse=fuse)
     model.eval()
     for k, m in model.named_modules():
-        if isinstance(m, Detect)
+        if isinstance(m, Detect):
             m.inplace = False
             m.dynamic = False
             m.export = True
